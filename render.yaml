@@ -2,7 +2,7 @@
 # 也可以不用本文件：直接在 Render 新建 Web Service 选 Docker，效果一致。
 services:
   - type: web
-    name: link2post
+    name: qingke-jiedu
     runtime: docker
     plan: free
     region: singapore

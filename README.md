@@ -1,13 +1,15 @@
-# 链接转图文 · link2post
+# 青稞解读 · QingKe JieDu
 
-输入一篇 **论文 PDF 链接** 或 **任意网页链接**，一键生成：
+输入一篇 **论文 PDF 链接** 或 **任意网页链接**，一键生成内容并发布到多平台：
 
 1. 📄 **内容图片** —— PDF 逐页转 PNG / 网页全页截图（长页自动分段），可逐张下载、可打包 ZIP；
-2. 📝 **解读文案** —— 面向公众号读者，**≤1000 字**，Markdown 结构化（小节标题 / 加粗 / 列表 / 引用），前端格式化渲染，支持「预览 / 源码」切换与纯文本复制；
-3. 🔥 **爆款标题** —— 适合公众号传播，**≤20 字**（主标题 + 2 条备选）。
+2. 📝 **解读文案** —— 面向公众号读者，**≤1000 字**，Markdown 结构化（小节标题 / 加粗 / 列表 / 引用 / 表格），前端格式化渲染，支持「预览 / 源码」切换与纯文本复制；
+3. 🔥 **爆款标题** —— 适合公众号传播，**≤20 字**（主标题 + 2 条备选）；
+4. 📖 **论文深度解读** —— 读 arXiv 论文 HTML 版，图片以 CDN 嵌入，按「零背景可进入」六部分生成 Markdown 图文报告；
+5. 📤 **多平台同步** —— 一键同步到多个公众号（贴图/文章，按账号配色）与 X。
 
 ```
-链接 → 抓取(PDF/HTML) → 转图 → 抽取正文 → AI 生成文案+标题 → 落盘 → 前端展示/下载
+链接 → 抓取(PDF/HTML) → 转图 → 抽取正文 → AI 生成文案/标题/深度解读 → 落盘 → 展示/下载 → 同步发布
 ```
 
 ## 快速开始
@@ -47,6 +49,13 @@ echo 'DEEPSEEK_API_KEY=sk-xxx' >> .env
 Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy }`，
 新增模型只需在 `src/ai/index.js` 的 `createProvider()` 里加一个分支。
 
+## 两种模式
+
+- **图文转图**（默认）：链接 → PDF/网页转图片（可下载）+ 1000 字内解读文案 + 20 字内爆款标题。
+- **论文深度解读**：输入 arXiv 链接（abs/pdf/html），读取论文 **HTML 版**，抽取其中的图片（用
+  arXiv **CDN 链接**以 `![图注](url)` 嵌入），按 [paper-deep-reader-skill](https://github.com/Linwei-Chen/paper-deep-reader-skill)
+  的六部分结构生成 Markdown 图文报告，可下载 `.md` / 复制。
+
 ## 目录结构
 
 ```
@@ -59,8 +68,10 @@ link2post/
 │   ├── pdfToImages.js        # PDF→PNG 渲染 + 正文/元数据抽取
 │   ├── webToImages.js        # 网页→全页截图（分段），复用系统 Chrome
 │   ├── extractText.js        # Readability 正文抽取（标题/作者/摘要）
-│   ├── arxiv.js              # arXiv API 精确标题/作者
-│   ├── textUtils.js          # 字数统计 / 按字符截断
+│   ├── arxiv.js              # arXiv API 精确标题/作者/时间
+│   ├── arxivHtml.js          # arXiv HTML 版抓取 + 图片(CDN)抽取
+│   ├── meta.js               # 机构/时间抽取
+│   ├── textUtils.js          # 字数统计 / 按字符/句/词边界截断
 │   ├── ai/
 │   │   ├── index.js          # createProvider 工厂
 │   │   └── openaiProvider.js # DeepSeek/OpenAI 兼容引擎
@@ -76,6 +87,7 @@ link2post/
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | POST | `/api/process` | `{"url":"…"}` → 返回完整结果（图片列表、文案、标题、下载地址） |
+| POST | `/api/deepread` | `{"url":"…"}` → arXiv 论文深度解读（Markdown 图文报告，图片 CDN 嵌入） |
 | GET | `/files/:id/:filename` | 内联访问生成的图片 / ZIP / Markdown |
 | GET | `/download/:id/:filename` | 强制下载（`Content-Disposition: attachment`） |
 | GET | `/api/health` | 健康检查（当前文案引擎） |
@@ -85,10 +97,11 @@ link2post/
 
 参考 [doocs/cose](https://github.com/doocs/cose) 与「爱贝壳内容同步助手」的「打开编辑器 → 自动填充」思路。
 
-- **公众号（贴图）**：配置 `WECHAT_APP_ID` + `WECHAT_APP_SECRET`（认证服务号）后，点「同步到公众号」会把
-  选中的图片上传为永久素材，并用 `draft/add` 的 **`article_type: "newspic"`**（图片消息，即「贴图」）
-  新建草稿——首图为封面、最多 20 张，标题为生成的爆款标题、正文为解读文案纯文本。未配置凭证时降级为
-  **打包下载图片 + 打开公众号后台**，手动上传。
+- **公众号（多账号 + 贴图/文章）**：支持配置多个公众号（`WECHAT_APP_ID/SECRET`、`WECHAT2_APP_ID/SECRET`…，
+  用 `WECHAT_NAME` / `WECHAT2_NAME` 命名），同步时下拉选择账号、切换「贴图 / 文章」类型：
+  - **贴图**（`article_type: "newspic"`）：选中的图片上传为永久素材、首图为封面，标题 + 解读文案纯文本。
+  - **文章**（`article_type: "news"`）：第一张图作封面，正文 Markdown 渲染为 HTML + 图片，存为图文草稿。
+  未配置凭证时降级为**打包下载图片 + 打开公众号后台**，手动上传。
 - **X**：点「同步到 X」打开 `twitter.com/intent/tweet` 发帖框并**预填标题**（无凭证可用）；
   图片需手动附图。长文同步到 X Articles 需走 X API 或浏览器自动化，暂未内置。
 

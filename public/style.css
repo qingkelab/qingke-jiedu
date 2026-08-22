@@ -44,6 +44,7 @@ h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
   border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px;
 }
 .input-row { display: flex; gap: 10px; }
+.mode-row { margin-bottom: 12px; }
 #url {
   flex: 1; padding: 13px 15px; font-size: 15px;
   border: 1px solid var(--line); border-radius: 10px; outline: none;
@@ -165,6 +166,18 @@ h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
   background: #eef0f2; border-radius: 5px; padding: 1px 6px; font-size: 13px;
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
+.copy-render img {
+  max-width: 100%; display: block; margin: 10px 0; border-radius: 8px;
+  border: 1px solid var(--line); background: #fff;
+}
+.copy-render table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+.copy-render th, .copy-render td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+.copy-render th { background: #f0f1f3; font-weight: 700; }
+.copy-render pre {
+  background: #f0f1f3; border: 1px solid var(--line); border-radius: 8px;
+  padding: 12px 14px; overflow-x: auto; font-size: 13px; line-height: 1.6;
+}
+.copy-render pre code { background: transparent; padding: 0; font-size: 13px; }
 .copy-render > :first-child { margin-top: 0; }
 .copy-render > :last-child { margin-bottom: 0; }
 
@@ -189,6 +202,14 @@ h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
 .foot { margin-top: 28px; text-align: center; color: var(--muted); font-size: 12.5px; }
 
 /* Sync */
+.account-radios { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.radio-option {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border: 1px solid var(--line); border-radius: 10px; background: #fafbfc; cursor: pointer;
+  font-size: 14px; color: var(--ink); user-select: none;
+}
+.radio-option:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-dark); }
+.radio-option input { accent-color: var(--accent); }
 .sync-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn.sync {
   padding: 11px 20px; font-size: 14px; font-weight: 700; color: #fff;

@@ -40,7 +40,21 @@ export const config = {
   maxCopyChars: Number(process.env.MAX_COPY_CHARS || 1000), // 解读文案字数上限
   maxTitleChars: Number(process.env.MAX_TITLE_CHARS || 20), // 标题字数上限
 
-  // 同步：微信公众号（新建图文草稿，需认证服务号凭证）
-  wechatAppId: process.env.WECHAT_APP_ID || '',
-  wechatAppSecret: process.env.WECHAT_APP_SECRET || '',
+  // 同步：微信公众号（支持多个账号，需认证服务号凭证）
+  // 账号1：WECHAT_APP_ID / WECHAT_APP_SECRET / WECHAT_NAME
+  // 账号2：WECHAT2_APP_ID / WECHAT2_APP_SECRET / WECHAT2_NAME（依此类推）
+  wechatAccounts: buildWechatAccounts(),
 };
+
+function buildWechatAccounts() {
+  const accounts = [];
+  for (let i = 1; i <= 5; i++) {
+    const suffix = i === 1 ? '' : String(i);
+    const appId = process.env[`WECHAT${suffix}_APP_ID`] || '';
+    const appSecret = process.env[`WECHAT${suffix}_APP_SECRET`] || '';
+    const name = process.env[`WECHAT${suffix}_NAME`] || `公众号${i}`;
+    const theme = process.env[`WECHAT${suffix}_THEME`] || 'orange'; // orange | blue
+    if (appId && appSecret) accounts.push({ index: i - 1, name, appId, appSecret, theme });
+  }
+  return accounts;
+}

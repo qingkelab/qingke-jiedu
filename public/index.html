@@ -3,23 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307c160'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white'>链</text></svg>" />
-  <title>链接转图文 · 论文/网页 → 图片 + 解读 + 爆款标题</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307c160'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white'>青</text></svg>" />
+  <title>青稞解读 · 论文/网页 → 图片 + 解读 + 爆款标题</title>
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
   <div class="wrap">
     <header class="hero">
       <div class="brand">
-        <span class="logo">链</span>
+        <span class="logo">青</span>
         <div>
-          <h1>链接转图文</h1>
-          <p class="tagline">粘贴论文 / 网页链接，一键生成可下载图片 · 1000 字内解读 · 20 字内爆款标题</p>
+          <h1>青稞解读</h1>
+          <p class="tagline">粘贴论文 / 网页链接，一键生成图片 · 1000 字内解读 · 20 字内爆款标题，并同步到公众号与 X</p>
         </div>
       </div>
     </header>
 
     <section class="input-card">
+      <div class="mode-row">
+        <div class="seg">
+          <button id="mode-pic" class="seg-btn active" type="button">图文转图</button>
+          <button id="mode-deep" class="seg-btn" type="button">论文深度解读</button>
+        </div>
+      </div>
       <form id="form" autocomplete="off">
         <div class="input-row">
           <input
@@ -28,7 +34,7 @@
             placeholder="https:// 输入论文 PDF 链接或网页链接"
             required
           />
-          <button id="submit" type="submit">生成图文</button>
+          <button id="submit" type="submit">生成</button>
         </div>
       </form>
       <div class="examples">
@@ -101,11 +107,43 @@
           <h2>📤 同步发布</h2>
           <span id="sync-hint" class="muted"></span>
         </div>
+        <div class="account-radios" id="wechat-account"></div>
         <div class="sync-actions">
-          <button class="btn sync" id="sync-wechat">同步到公众号</button>
+          <button class="btn sync" id="sync-wechat">同步为公众号贴图</button>
           <button class="btn sync" id="sync-x">同步到 X</button>
         </div>
         <p class="sync-note" id="sync-note"></p>
+      </section>
+    </main>
+
+    <main id="deepresult" hidden>
+      <div class="meta-bar">
+        <span class="badge">📖 论文深度解读</span>
+        <div class="meta-title" id="deep-title"></div>
+        <span id="deep-origin" class="muted"></span>
+      </div>
+      <section class="card">
+        <div class="card-head">
+          <h2>📝 解读报告</h2>
+          <div class="head-actions">
+            <span id="deep-fig-count" class="muted"></span>
+            <button class="btn ghost" id="deep-copy" type="button">复制 Markdown</button>
+            <a id="deep-md-btn" class="btn ghost" href="#">下载 .md</a>
+          </div>
+        </div>
+        <div class="copy-render deep" id="deep-render"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>📤 同步发布</h2>
+          <span class="muted">同步为公众号文章</span>
+        </div>
+        <div class="account-radios" id="deep-wechat-account"></div>
+        <div class="sync-actions">
+          <button class="btn sync" id="deep-sync-wechat">同步为公众号文章</button>
+        </div>
+        <p class="sync-note" id="deep-sync-note"></p>
       </section>
     </main>
 

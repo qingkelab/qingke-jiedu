@@ -39,7 +39,11 @@ const INST_PATTERNS = [
 
 /** 从论文/网页正文前缀粗提取机构名（去重、去子串冗余，最多 3 个）。 */
 export function extractInstitution(text, maxChars = 3000) {
-  const s = String(text || '').slice(0, maxChars);
+  let s = String(text || '')
+    // 先去掉邮箱与 "Email:" 标签，避免被当成机构名的一部分
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, ' ')
+    .replace(/\bEmail\b[^,，\s]*/gi, ' ')
+    .slice(0, maxChars);
   const found = [];
   const seen = new Set();
   for (const re of INST_PATTERNS) {

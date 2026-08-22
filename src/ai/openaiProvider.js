@@ -104,13 +104,81 @@ function buildTitlesFixMessages(source, limits, prevTitles) {
   ];
 }
 
+/** 论文深度解读：六部分 Markdown 图文报告，图片以 CDN 形式嵌入。 */
+function buildDeepReadMessages(source, figures) {
+  const figList = (figures || [])
+    .map((f, i) => `- 图${i + 1}：${f.caption || '（无图注）'}\n  CDN: ${f.url}`)
+    .join('\n');
+
+  const sys = [
+    '你是一名「技术解释者」：能结合自身认知与经验，把一个复杂概念或技术趋势阐释清楚——',
+    '既让零背景读者读得进去，也让懂行读者能复核机制、证据与边界。',
+    '',
+    '## 三重成品合同（缺一不可）',
+    '1. 论文身份：读者能说出「研究对象、旧方法看不见什么、作者实际造出的产物（方法/理论/评测/资源/系统）、',
+    '   组件怎样从输入运行到输出、哪些研究主线不可省、最强证据边界」。',
+    '2. 认识更新：先让读者在具体处境里形成自然理解，再用论文证据逼它显得不够，',
+    '   引入刚好补上缺口的新关系，使原判断/做法改变，并留下下一问——不是事实清单，而是一条发现路径。',
+    '3. 解释重建：找出能推出多个结果的最小「生成器」（组件链/因果机制/测量关系），用它解释至少两个',
+    '   相隔较远的发现、预测一个相邻条件，并点出失效边界；没有单一生成器就明说，不硬造公式。',
+    '',
+    '## 输出结构（用 # 与 ## 标题）',
+    '# [论文标题]：深度解读',
+    '> 一句话元信息（作者 / 机构 / 时间 / 来源）',
+    '## 1. 核心思想一句话总结',
+    '（中文 ≤50 字，说清问题、产物、最关键成立依据）',
+    '## 2. 论文背景与动机',
+    '（旧缺口：旧方法/旧尺子看不见什么；补齐必需概念；为什么重要；关键洞见）',
+    '## 3. 核心方法/产物详解',
+    '（输入→组件→输出；用一个最小例子走通机制；相对旧工作的 Before/After/Diff/Trade-off）',
+    '## 4. 实验与结果分析',
+    '（中心证据要有坐标：在问什么、固定什么、和谁比、结果如何、因此更新哪个判断；证据强度与边界）',
+    '## 5. 论文的贡献与影响',
+    '（问题/方法/证据层贡献；影响；未来方向从具体缺口推出）',
+    '## 6. 结论',
+    '（3-5 句收束；并以 1-4 句回答：作者最该纠正的一个自然误解是什么）',
+    '',
+    '## 写作纪律',
+    '- 先写人、物、动作、判断和结果，再写关系与术语；术语只在读者感到缺口时才出现，命名后立即说清它补了哪里。',
+    '- 具体案例负责让读者进入，但不能替代论文身份；案例与作者产物要映回论文对象。',
+    '- 数字必须有实验坐标，数字之后立即做一次等价尺度翻译，并说明这个量级改变了什么判断、还不足以推出什么；不堆模型名与分数。',
+    '- 作者的产物必须可辨认：方法、理论、评测、资源或系统，不是背景标签。',
+    '- 每个标题继承上一段未解决的问题（相邻标题换序会断）；标题写读者正面对的问题，不写“研究问题/方法/实验”这类栏目名。',
+    '- 一小段只增加一个承重关系；区分作者主张 / 直接证据 / 推断；不把“首个/SOTA”当独立核验。',
+    '- 边界通过“对象还能回答什么、下一步需要什么条件”自然收住，不写“本文未核验”这类元话语。',
+    '',
+    '## 图片引用（我会自动在引用处插入图片）',
+    '- 在正文讲到关键图时，用（图N）引用（N 是「论文图片」列表里的编号，如「（图2）」「（图2、图3）」）。',
+    '- 只引用与主线直接相关的关键图（架构图、机制图、决定性结果图）；装饰/补充图可不引用。',
+    '- 每个（图N）前说明它回答什么问题、后写观察与推理桥；不要集中堆图。',
+    '- 你无法看到图片像素，解读依据图注与正文，不编造图内细节。',
+    '',
+    '直接输出 Markdown 报告，不要输出任何解释性前言。',
+  ].join('\n');
+
+  const context = [
+    `标题：${source.title || '（无）'}`,
+    `作者：${source.byline || '（无）'}`,
+    `机构：${source.institution || '（未知）'}`,
+    `时间：${source.date || '（未知）'}`,
+    `来源：${source.url || ''}`,
+    `论文图片（共 ${(figures || []).length} 张，选与主线相关的嵌入）：\n${figList || '（无）'}`,
+    `正文（截断）：\n${(source.text || '').slice(0, 18000)}`,
+  ].join('\n\n');
+
+  return [
+    { role: 'system', content: sys },
+    { role: 'user', content: `请解读这篇论文：\n\n${context}` },
+  ];
+}
+
 /**
  * 生成 OpenAI-compatible（DeepSeek / OpenAI 等）provider。
  */
 export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
   const endpoint = `${String(baseUrl).replace(/\/+$/, '')}/chat/completions`;
 
-  async function chat(messages) {
+  async function chat(messages, maxTokens = 2200) {
     const res = await fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -121,7 +189,7 @@ export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
         model,
         messages,
         temperature: 0.7,
-        max_tokens: 2200,
+        max_tokens: maxTokens,
       }),
       signal: AbortSignal.timeout(config.llmTimeoutMs),
     });
@@ -166,6 +234,11 @@ export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
         titles: titles.length ? titles.slice(0, 3) : ['值得一读的新进展'],
         copy: copy || '（模型未返回文案，请稍后重试）',
       };
+    },
+
+    async deepRead({ source, figures }) {
+      const content = await chat(buildDeepReadMessages(source, figures), 8000);
+      return { markdown: content || '（模型未返回内容，请稍后重试）' };
     },
   };
 }

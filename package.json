@@ -1,9 +1,9 @@
 {
-  "name": "link2post",
+  "name": "qingke-jiedu",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "输入论文/网页链接 → 转图片(可下载) + 1000字内解读文案 + 20字内公众号爆款标题",
+  "description": "青稞解读：输入论文/网页链接，一键生成图片、1000字内解读文案、20字内爆款标题，并同步到多个公众号与 X",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js"
