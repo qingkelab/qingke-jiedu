@@ -1,0 +1,21 @@
+{
+  "name": "link2post",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "输入论文/网页链接 → 转图片(可下载) + 1000字内解读文案 + 20字内公众号爆款标题",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "@napi-rs/canvas": "^1.0.7",
+    "adm-zip": "^0.6.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsdom": "^29.1.1",
+    "pdfjs-dist": "^6.2.108",
+    "puppeteer-core": "^25.8.0"
+  }
+}

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307c160'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white'>链</text></svg>" />
+  <title>链接转图文 · 论文/网页 → 图片 + 解读 + 爆款标题</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="brand">
+        <span class="logo">链</span>
+        <div>
+          <h1>链接转图文</h1>
+          <p class="tagline">粘贴论文 / 网页链接，一键生成可下载图片 · 1000 字内解读 · 20 字内爆款标题</p>
+        </div>
+      </div>
+    </header>
+
+    <section class="input-card">
+      <form id="form" autocomplete="off">
+        <div class="input-row">
+          <input
+            id="url"
+            type="url"
+            placeholder="https:// 输入论文 PDF 链接或网页链接"
+            required
+          />
+          <button id="submit" type="submit">生成图文</button>
+        </div>
+      </form>
+      <div class="examples">
+        <span>试试：</span>
+        <button class="chip" data-url="https://arxiv.org/pdf/1706.03762.pdf">论文 PDF（Attention 论文）</button>
+        <button class="chip" data-url="https://arxiv.org/abs/1706.03762">网页（arXiv 摘要页）</button>
+      </div>
+    </section>
+
+    <section id="status" class="status" hidden>
+      <div class="spinner"></div>
+      <span id="status-text">正在处理…</span>
+    </section>
+
+    <section id="error" class="error" hidden></section>
+
+    <main id="result" hidden>
+      <div class="meta-bar">
+        <span id="meta-type" class="badge"></span>
+        <span id="meta-provider" class="badge muted"></span>
+        <div class="meta-title" id="meta-title"></div>
+        <span id="meta-origin" class="muted"></span>
+      </div>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>🎞️ 内容图片</h2>
+          <div class="head-actions">
+            <span id="img-count" class="muted"></span>
+            <span id="sel-count" class="badge" hidden></span>
+            <button class="btn ghost" id="sel-all" type="button">全选</button>
+            <button class="btn ghost" id="sel-clear" type="button">清空</button>
+            <a id="zip-btn" class="btn ghost" href="#">⬇ 下载全部（ZIP）</a>
+          </div>
+        </div>
+        <div id="gallery" class="gallery"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>📝 解读文案</h2>
+          <div class="head-actions">
+            <span id="copy-count" class="badge"></span>
+            <button class="btn ghost" id="copy-copy">复制文案</button>
+            <a id="md-btn" class="btn ghost" href="#">下载 .md</a>
+          </div>
+        </div>
+        <div class="copy-toolbar">
+          <div class="seg">
+            <button id="view-preview" class="seg-btn active" type="button">预览</button>
+            <button id="view-src" class="seg-btn" type="button">Markdown 源码</button>
+          </div>
+        </div>
+        <div id="copy-render" class="copy-render"></div>
+        <pre id="copy-src" class="copy-text" hidden></pre>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>🔥 爆款标题</h2>
+          <div class="head-actions">
+            <span id="title-count" class="badge"></span>
+          </div>
+        </div>
+        <div id="titles" class="titles"></div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>📤 同步发布</h2>
+          <span id="sync-hint" class="muted"></span>
+        </div>
+        <div class="sync-actions">
+          <button class="btn sync" id="sync-wechat">同步到公众号</button>
+          <button class="btn sync" id="sync-x">同步到 X</button>
+        </div>
+        <p class="sync-note" id="sync-note"></p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span id="foot-note"></span>
+    </footer>
+  </div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lightbox-inner">
+      <img id="lightbox-img" alt="预览" />
+      <button id="lightbox-close" class="lightbox-close">✕</button>
+      <a id="lightbox-dl" class="lightbox-dl" href="#">下载原图</a>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
