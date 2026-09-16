@@ -32,7 +32,8 @@ export function extractCodeUrl(html) {
 
 /**
  * 抓取 arXiv 论文的 HTML 版本，抽取正文文本与图片（CDN 链接 + 图注）。
- * @returns {Promise<{id:string, base:string, text:string, figures:Array<{url:string,caption:string}>}>}
+ * 图片形态：`<img>`（新论文）／`<object data="…svg">`（老论文矢量图）／内联 `<svg>`。
+ * @returns {Promise<{id:string, base:string, text:string, figures:Array<{url:string,caption:string,kind:string,svgMarkup?:string}>}>}
  */
 export async function fetchArxivHtml(url) {
   const id = parseArxivId(url);
@@ -63,17 +64,47 @@ export async function fetchArxivHtml(url) {
     .replace(/^\[?\d{4}\.\d{4,5}(v\d+)?\]?\s*/i, '')
     .trim();
 
-  // 图片：figure 内的内容图（跳过 logo/静态资源/base64）
+  // 图片：figure 内的内容图（img / object[data] / 内联 svg），跳过 logo/静态资源/base64
   const figures = [];
-  for (const f of doc.querySelectorAll('figure')) {
-    const img = f.querySelector('img');
+  const visited = new Set();
+  const BAD_SRC = /static\/|funders|logo|glyph|smileybones|favicon|icon/i;
+  for (const f of doc.querySelectorAll('figure, .ltx_figure, .figure')) {
+    if (visited.has(f)) continue;
+    visited.add(f);
     const cap = f.querySelector('figcaption');
+    const caption = (cap?.textContent || '').replace(/\s+/g, ' ').trim();
+
+    const img = f.querySelector('img');
     const src = img?.getAttribute('src') || '';
-    if (!src || src.startsWith('data:') || /static\/|funders|logo/i.test(src)) continue;
-    figures.push({
-      url: resolveUrl(src, base),
-      caption: (cap?.textContent || img?.getAttribute('alt') || '').replace(/\s+/g, ' ').trim(),
-    });
+    if (src && !src.startsWith('data:') && !BAD_SRC.test(src)) {
+      figures.push({
+        url: resolveUrl(src, base),
+        caption: caption || (img.getAttribute('alt') || '').replace(/\s+/g, ' ').trim(),
+        kind: 'img',
+      });
+      continue;
+    }
+
+    const obj = f.querySelector('object[data]');
+    const data = obj?.getAttribute('data') || '';
+    if (data && !data.startsWith('data:') && !BAD_SRC.test(data)) {
+      const isSvg = /svg/i.test(obj?.getAttribute('type') || '') || /\.svg(\?|$)/i.test(data);
+      if (isSvg) {
+        figures.push({ url: resolveUrl(data, base), caption, kind: 'svg' });
+      }
+      // 非 svg（如 object 指向 pdf）暂不支持，跳过
+      continue;
+    }
+
+    const inlineSvg = f.querySelector('svg');
+    if (inlineSvg) {
+      figures.push({
+        url: '',
+        caption,
+        kind: 'inline-svg',
+        svgMarkup: inlineSvg.outerHTML.slice(0, 400000),
+      });
+    }
   }
 
   return {
@@ -81,7 +112,7 @@ export async function fetchArxivHtml(url) {
     base,
     title,
     text,
-    figures,
+    figures: figures.slice(0, 40),
     // 代码链接：只在正文前段（摘要/引言）里找，避开页脚工具与参考文献里的链接
     codeUrl: extractCodeUrl(text.slice(0, 5000)),
   };

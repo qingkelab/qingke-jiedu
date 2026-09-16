@@ -27,6 +27,9 @@ function inline(s, t) {
   x = x.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:6px;display:block;margin:10px 0;" />');
   x = x.replace(/\*\*([^*]+)\*\*/g, `<strong style="color:${t.accent};">$1</strong>`);
   x = x.replace(/`([^`]+)`/g, '<code style="background:#f0f0f0;border-radius:4px;padding:1px 6px;font-size:0.9em;">$1</code>');
+  // LaTeX：微信不支持渲染，退化为等宽原样文本（去 $ 定界符）
+  x = x.replace(/\$\$([^$]+?)\$\$/g, '<span style="font-family:Menlo,Consolas,monospace;background:#f6f7f8;padding:1px 6px;border-radius:4px;font-size:0.9em;">$1</span>');
+  x = x.replace(/\$([^$\n]+?)\$/g, '<span style="font-family:Menlo,Consolas,monospace;background:#f6f7f8;padding:1px 4px;border-radius:4px;font-size:0.9em;">$1</span>');
   return x;
 }
 
@@ -60,11 +63,16 @@ export function markdownToHtml(md, theme = 'orange') {
 
     if (/^```/.test(line)) {
       flushPara(); closeList();
+      const lang = line.replace(/^```/, '').trim().toLowerCase();
       const code = [];
       i++;
       while (i < lines.length && !/^```/.test(lines[i].trim())) { code.push(lines[i]); i++; }
       i++;
-      html += `<pre style="background:#f6f7f8;border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6;"><code>${escapeHtml(code.join('\n'))}</code></pre>`;
+      if (lang === 'svg') {
+        html += '<p style="color:#888;font-size:13px;text-align:center;">（图解为 SVG，微信正文不支持内嵌，请在原文 .md 或网页预览中查看）</p>';
+      } else {
+        html += `<pre style="background:#f6f7f8;border:1px solid #e5e7eb;border-radius:6px;padding:12px 14px;overflow-x:auto;font-size:13px;line-height:1.6;"><code>${escapeHtml(code.join('\n'))}</code></pre>`;
+      }
       continue;
     }
 
@@ -141,5 +149,7 @@ export function plainFromMarkdown(md) {
     .join('\n')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
     .replace(/`([^`]+)`/g, '$1')
+    .replace(/\$\$([^$]+?)\$\$/g, '$1')
+    .replace(/\$([^$\n]+?)\$/g, '$1')
     .trim();
 }

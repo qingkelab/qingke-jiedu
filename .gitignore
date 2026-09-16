@@ -3,3 +3,4 @@ output/
 .npm-cache/
 .env
 .DS_Store
+.wechat-chrome-profile/

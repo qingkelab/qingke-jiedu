@@ -79,7 +79,10 @@ export async function syncWechatPic({ account, title, content = '', images = [] 
   const article = {
     article_type: 'newspic',
     title: title || '贴图',
+    digest: plainFromMarkdown(content || '').slice(0, 120),
     content: content || '',
+    // 封面直接用论文首页原图，不做裁剪/缩放/铺底
+    thumb_media_id: image_list[0].image_media_id,
     image_info: { image_list },
   };
 

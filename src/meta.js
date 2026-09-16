@@ -62,3 +62,33 @@ export function extractInstitution(text, maxChars = 3000) {
   );
   return filtered.slice(0, 3).join('、');
 }
+
+const TERM_STOP = new Set(
+  ('the and for with are was were this that these those from into over under between during before after ' +
+    'above below their them they our your its but not can may will would should could been being have has had ' +
+    'does did where when which while figure table section equation abstract introduction method methods related ' +
+    'work works results result conclusion conclusions references appendix available code data we propose proposed ' +
+    'based show shows shown our new first second finally however moreover therefore thus also yet using used use ' +
+    'provides provided compared comparison experiments experimental benchmark benchmarks state art university ' +
+    'institute google microsoft openai deepmind meta email one two three four five both each all some such other ' +
+    'another same different several many most more less only very just too present paper study author authors ' +
+    'et al following figure fig tab table tables')
+    .split(/\s+/),
+);
+
+/** 从正文抽术语表：全大写缩略词 + 首字母大写的词/词组，供文案强制对齐用。 */
+export function extractTerms(text, max = 60) {
+  const s = String(text || '');
+  const acronyms = s.match(/\b[A-Z]{2,8}\b/g) || [];
+  const titled = s.match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3}\b/g) || [];
+
+  const seen = new Set();
+  const out = [];
+  for (const t of [...acronyms, ...titled]) {
+    const k = t.toLowerCase();
+    if (TERM_STOP.has(k) || k.length < 2 || seen.has(k)) continue;
+    seen.add(k);
+    out.push(t);
+  }
+  return out.slice(0, max);
+}
