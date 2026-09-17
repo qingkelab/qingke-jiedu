@@ -6,7 +6,8 @@
   "description": "青稞解读：输入论文/网页链接，一键生成图片、1000字内解读文案、20字内爆款标题，并同步到多个公众号与 X",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "test": "node --test \"test/*.test.js\""
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",

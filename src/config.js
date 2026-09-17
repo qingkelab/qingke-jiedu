@@ -49,6 +49,14 @@ export const config = {
   // 深度解读：Ollama 等本地模型默认用「分段生成再合并」（每节一次调用，绕开单次长文超时/写不满问题）；
   // 设 DEEPREAD_MULTIPASS=0 可关闭、走单次整篇生成
   deepreadMultipass: process.env.DEEPREAD_MULTIPASS !== '0',
+  // 结构化全文理解（切片 → 研究地图 → 检索 → 审计 → 定点修复）
+  deepreadStructured: process.env.DEEPREAD_STRUCTURED !== '0', // 关掉就完全走旧流程
+  deepreadChunkChars: Number(process.env.DEEPREAD_CHUNK_CHARS || 1600), // 单个 chunk 的字数上限
+  deepreadEvidenceChars: Number(process.env.DEEPREAD_EVIDENCE_CHARS || 6000), // 每节检索注入的证据字数预算
+  deepreadMaxChunks: Number(process.env.DEEPREAD_MAX_CHUNKS || 12), // 每节最多注入多少个 chunk
+  deepreadMapChars: Number(process.env.DEEPREAD_MAP_CHARS || 22000), // 研究地图阶段的输入预算
+  deepreadAudit: process.env.DEEPREAD_AUDIT !== '0', // 终稿证据审计
+  deepreadRepair: process.env.DEEPREAD_REPAIR !== '0', // 审计不通过时定点修复（只重写问题小节）
 
   // ===== 论文视频播客 =====
   // TTS 配音：auto = 有 MINIMAX_API_KEY 用 MiniMax(speech-02-hd)，否则用 edge-tts（免费，需已安装）

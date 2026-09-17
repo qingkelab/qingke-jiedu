@@ -514,15 +514,28 @@ function resetDeepProgress() {
 function deepStageText(p) {
   const s = (p && p.stage) || '';
   const sec = p && p.section;
+  const detail = (p && p.detail) || '';
   if (s === 'queued') return '排队中…';
   if (s === 'fetch') return '正在抓取论文与图片…';
   if (s === 'memory') return '正在整理上下文记忆…';
-  if (s === 'plan') return '正在规划解读大纲…';
-  if (s === 'writing' && sec) return `正在撰写第 ${sec.index}/${sec.total} 节：${sec.title}…`;
+  // 结构化全文理解：切片 → 研究地图 → 检索 → 大纲 → 逐节写作 → 审计 → 修复 → 收尾
+  if (s === 'chunking') return detail || '正在结构化切片全文…';
+  if (s === 'research_map') return detail ? `研究地图：${detail}` : '正在建立研究地图…';
+  if (s === 'retrieval') return detail || '正在从全文检索本节证据…';
+  if (s === 'plan') return detail ? `大纲已就绪：${detail}` : '正在规划解读大纲…';
+  if (s === 'audit') return detail || '正在做证据审计（数字/公式/图/结论）…';
+  if (s === 'repair') return detail || '正在按审计结果定点修复…';
+  if (s === 'finalize') return detail ? `正在收尾（${detail}）…` : '正在收尾…';
+  if ((s === 'section' || s === 'writing') && sec) {
+    return detail
+      ? `正在撰写第 ${sec.index}/${sec.total} 节：${sec.title}（${detail}）`
+      : `正在撰写第 ${sec.index}/${sec.total} 节：${sec.title}…`;
+  }
+  if (s === 'section_done' && sec) return `第 ${sec.index}/${sec.total} 节完成`;
   if (s === 'merge') return '正在合并成稿…';
   if (s === 'generating') return '模型正在生成（本地模型约需数分钟）…';
   if (s === 'review') return '正在对照原文审校修正…';
-  return (p && p.detail) || '处理中…';
+  return detail || '处理中…';
 }
 function addDeepSectionDone(sec) {
   const el = $('#status-detail');
@@ -817,6 +830,7 @@ function renderDeep(d) {
   $('#deep-origin').textContent = [d.institution, d.date, d.provider ? `${d.provider}（${d.model || ''}）` : ''].filter(Boolean).join(' · ');
   $('#deep-fig-count').textContent = `${(d.figures || []).length} 张图（CDN 嵌入）`;
   renderStyleCheck($('#deep-style'), d.style);
+  renderDeepAudit(d);
   $('#deep-render').innerHTML = renderMarkdown(d.markdown);
   renderMath($('#deep-render'));
   const deepReasoning = $('#deep-reasoning');
@@ -1140,6 +1154,44 @@ $('#copy-retry').addEventListener('click', async () => {
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/**
+ * 证据审计面板：展示全文切片规模、研究地图来源、审计各项结论与定点修复次数。
+ * 只做展示，不进入正文（Markdown 里不含审计噪声）。
+ */
+function renderDeepAudit(d) {
+  const el = $('#deep-audit');
+  if (!el) return;
+  const audit = d.audit;
+  const struct = d.structure;
+  const meta = audit && audit.stats;
+  if (!audit && !struct) {
+    el.hidden = true;
+    el.innerHTML = '';
+    return;
+  }
+  const label = { pass: '通过', warn: '提示', fail: '未通过', info: '跳过' };
+  const chips = [];
+  if (d.pipeline === 'structured' && struct) {
+    chips.push(
+      `<span class="audit-chip info">全文切片 ${struct.sectionCount} 节 / ${struct.chunkCount} chunks / ${struct.chars} 字</span>`,
+    );
+  } else {
+    chips.push('<span class="audit-chip info">旧流程（未做结构化切片）</span>');
+  }
+  for (const c of (audit && audit.checks) || []) {
+    const detail = c.detail ? ` title="${escapeHtml(c.detail)}"` : '';
+    chips.push(`<span class="audit-chip ${c.status}"${detail}>${c.name}·${label[c.status] || c.status}</span>`);
+  }
+  if (audit && audit.after) {
+    chips.push('<span class="audit-chip info">已定点修复并复检</span>');
+  }
+  if (meta) {
+    chips.push(`<span class="audit-chip info">审计数字 ${meta.numbers} 个 / 公式 ${meta.formulas} 条</span>`);
+  }
+  el.hidden = false;
+  el.innerHTML = chips.join('');
 }
 
 /** 文风体检面板：段落粒度 / 句长 / 标点密度 / AI 味词命中 + 整改提示。 */

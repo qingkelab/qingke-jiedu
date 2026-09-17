@@ -260,6 +260,9 @@ async function runDeepread({ url, providerName, model, onProgress }) {
     id: fetched.id,
     title: fetched.title,
     text: fetched.text,
+    textLines: fetched.textLines || '',
+    structure: fetched.structure || null,
+    kind: fetched.kind,
     figures: fetched.figures,
     codeUrl: fetched.codeUrl,
   };
@@ -272,6 +275,9 @@ async function runDeepread({ url, providerName, model, onProgress }) {
     date: arxiv?.published ? parseIsoDate(arxiv.published) : '',
     url: url.trim(),
     text: html.text,
+    textLines: html.textLines,
+    structure: html.structure,
+    kind: html.kind,
     terms: extractTerms(html.text),
   };
 
@@ -279,7 +285,7 @@ async function runDeepread({ url, providerName, model, onProgress }) {
   onProgress?.({ stage: 'memory' });
   source.memory = await buildMemoryContext({ terms: source.terms, title: source.title });
 
-  const { markdown, reasoning, style } = await provider.deepRead({
+  const { markdown, reasoning, style, audit, meta } = await provider.deepRead({
     source,
     figures: html.figures,
     onProgress,
@@ -323,6 +329,14 @@ async function runDeepread({ url, providerName, model, onProgress }) {
   const dir = path.join(config.outputDir, id);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, 'deepread.md'), fullMarkdown, 'utf-8');
+  // 证据审计与结构化元数据落到单独的 json：内部调试用，不进最终 Markdown
+  if (audit || meta) {
+    await writeFile(
+      path.join(dir, 'deepread.audit.json'),
+      JSON.stringify({ audit: audit || null, meta: meta || null, at: new Date().toISOString() }, null, 2),
+      'utf-8',
+    ).catch(() => {});
+  }
 
   addHistory({ url: url.trim(), title: source.title, type: 'deepread' }).catch(() => {});
 
@@ -340,6 +354,10 @@ async function runDeepread({ url, providerName, model, onProgress }) {
     reasoning: reasoning || '',
     markdown: fullMarkdown,
     markdownUrl: `/files/${id}/deepread.md`,
+    // 证据审计（internal metadata，仅用于前端展示统计与排查，不污染正文）
+    audit: audit || null,
+    pipeline: meta?.pipeline || 'legacy',
+    structure: meta?.structure || null,
     // 文风体检（基于模型原始正文统计；图片/出处块不计入）
     style: style || checkStyle(markdown, 'deepread'),
   };

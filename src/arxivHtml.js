@@ -1,5 +1,6 @@
 import { JSDOM } from 'jsdom';
 import { config } from './config.js';
+import { blocksFromDom, assemble } from './deepread/chunker.js';
 
 /** 从 arXiv 链接解析出论文 ID（abs/pdf/html 均可）。 */
 export function parseArxivId(url) {
@@ -54,6 +55,15 @@ export async function fetchArxivHtml(url) {
 
   // 正文文本：去掉脚本/样式/导航等
   doc.querySelectorAll('script, style, nav, footer, header, aside').forEach((el) => el.remove());
+
+  // 结构化切片（section / paragraph / formula / figure / table），供深度解读全文分析
+  let structure = null;
+  try {
+    structure = assemble(blocksFromDom(doc), { kind: 'html', maxChunkChars: config.deepreadChunkChars });
+  } catch {
+    structure = null; // 结构抽取失败不影响纯文本路径
+  }
+
   const text = (doc.body?.textContent || '').replace(/\s+/g, ' ').trim();
 
   // 标题：优先 h1.ltx_title，其次 <title>（去掉 [ID] 前缀）
@@ -112,6 +122,7 @@ export async function fetchArxivHtml(url) {
     base,
     title,
     text,
+    structure, // 结构化切片（section/chunk），供深度解读全文分析
     figures: figures.slice(0, 40),
     // 代码链接：只在正文前段（摘要/引言）里找，避开页脚工具与参考文献里的链接
     codeUrl: extractCodeUrl(text.slice(0, 5000)),

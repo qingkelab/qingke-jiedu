@@ -154,6 +154,8 @@
           <li><b>收尾</b>：给一句具体的社区视角判断（与既有工作的关系、可复现性、最该补的验证），不升华成金句。</li>
           <li><b>反 AI 味</b>：禁「随着…的发展」「首先/其次/最后」「总而言之」「不是 A 而是 B」「本质上 / 更重要的是」等模板腔与空泛开头。</li>
           <li><b>审校</b>：生成后自动对照原文自检一遍（出处 / 导语 / 结构 / 术语一致 / 数字口径 / 图片引用 / 去 AI 味）。</li>
+          <li><b>全文理解</b>：先做结构化切片（章节 / 段落 / 公式 / 图注 / 表格）与「研究地图」（问题 / 主张 / 方法 / 结果 / 消融 / 局限 + 证据定位），逐节写作按小节从全文检索证据，不再只看前半篇。</li>
+          <li><b>证据审计</b>：成稿后核对数字 / 模型与数据集名 / 消融 / 局限 / 公式 / 图与正文对应；发现问题只重写有问题的那一节。</li>
         </ul>
         <p class="guide-foot">规则来源：qingkelab/agent-skills · qingke-tech-writing</p>
       </details>
@@ -283,6 +285,7 @@
           </div>
         </div>
         <div id="deep-style" class="style-check" hidden></div>
+        <div id="deep-audit" class="style-check" hidden></div>
         <div class="copy-render deep" id="deep-render"></div>
         <details class="reasoning" id="deep-reasoning" hidden>
           <summary>🧠 推理过程（模型思考）</summary>

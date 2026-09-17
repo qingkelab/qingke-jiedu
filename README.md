@@ -24,6 +24,7 @@
 ```bash
 cd link2post
 npm install --cache "$PWD/.npm-cache"   # 若全局 npm 缓存有权限问题，用本地缓存
+npm test                                 # 跑测试（切片 / 检索 / 地图 / 审计 / 降级 / provider）
 npm start                                # 或 npm run dev（热重载）
 # 浏览器打开 http://127.0.0.1:4780
 ```
@@ -58,9 +59,33 @@ Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy 
 ## 两种模式
 
 - **图文转图**（默认）：链接 → PDF/网页转图片（可下载）+ 1000 字内解读文案 + 20 字内爆款标题。
-- **论文深度解读**：输入 arXiv 链接（abs/pdf/html），读取论文 **HTML 版**，抽取其中的图片（用
-  arXiv **CDN 链接**以 `![图注](url)` 嵌入），按 [paper-deep-reader-skill](https://github.com/Linwei-Chen/paper-deep-reader-skill)
-  的六部分结构生成 Markdown 图文报告，可下载 `.md` / 复制。
+- **论文深度解读**：输入 arXiv 链接（abs/pdf/html），HTML → TeX 源码 → PDF 三级回退取源，
+  **全文结构化理解 + 证据驱动生成**（见下节），输出 3000–6000 字 Markdown 图文报告，可下载 `.md` / 复制。
+
+### 深度解读怎么工作（全文结构化 + 证据驱动）
+
+```
+抓取 → chunking 全文切片 → research_map 论文地图 → retrieval 检索式上下文
+     → plan 大纲 → section 逐节写作 → audit 证据审计 → repair 定点修复 → finalize
+```
+
+- **chunking**：优先用 HTML 的真实 section 层次（`.ltx_section` / `figure` / `caption` / MathML `annotation` 里的 LaTeX），
+  TeX 用 `## 章节 / 图注： / $$公式$$` 标记还原结构，PDF 用带换行正文里的编号标题分节；
+  产出稳定 id 的 chunk（`c1`、`c2`…），带 section 标题、类型（段落/公式/图注/表格）与原文顺序。
+  30k+ 字论文整篇参与分析，不再 `slice(0, 16000)`。
+- **research_map**：写作前先做一次轻量结构化分析，产出 `problem / key_claims / method_components / equations /
+  datasets / benchmarks / baselines / main_results / ablations / limitations / figures / evidence`，
+  每条尽量带 `chunkIds`；模型给不出可用 JSON 时用本地关键词 + 数字抽取兜底。
+- **retrieval**：每个小节按「标题 + 写作要点 + 论文地图」做词法检索（中文 2-gram / 英文词干，无 embedding 依赖），
+  叠加章节角色先验（方法节偏爱方法/公式/架构图，结果节偏爱实验/表格/数字，局限节偏爱 limitation/ablation/失败案例），
+  每节注入证据片段（带 chunk id）+ 少量全局上下文（摘要、图片索引、研究地图）。
+- **audit**：成稿后核对数字/百分比能否在原文找到、模型与数据集名、main result 覆盖、消融与局限是否覆盖、
+  公式是否被改写、`（图N）` 是否越界或与图注不符；产出内部 metadata（不进正文，另存 `deepread.audit.json`）。
+- **repair**：审计不通过时**只重写有问题的那一节**（按 H2 标题定点替换）并复检，不整篇重生成。
+- **降级**：切片不足 / 结构化流程整体失败 → 回退旧流程（Ollama 走 multipass、API 模型走整篇生成）；
+  研究地图失败 → 本地地图；检索失败 → 本节 chunks；审计失败 → 只记 warning，不阻断报告。
+  相关开关：`DEEPREAD_STRUCTURED`、`DEEPREAD_CHUNK_CHARS`、`DEEPREAD_EVIDENCE_CHARS`、
+  `DEEPREAD_MAX_CHUNKS`、`DEEPREAD_MAP_CHARS`、`DEEPREAD_AUDIT`、`DEEPREAD_REPAIR`。
 
 ## 目录结构
 
@@ -80,10 +105,21 @@ link2post/
 │   ├── textUtils.js          # 字数统计 / 按字符/句/词边界截断
 │   ├── ai/
 │   │   ├── index.js          # createProvider 工厂
+│   │   ├── json.js           # 模型输出 JSON 宽松解析
 │   │   └── openaiProvider.js # DeepSeek/OpenAI 兼容引擎
-│   ├── pipeline.js           # 主流程编排
+│   ├── deepread/             # 深度解读：全文结构化理解 + 证据驱动
+│   │   ├── chunker.js        # HTML/TeX/PDF → section/chunk 结构化切片
+│   │   ├── researchMap.js    # 论文地图（问题/主张/方法/公式/结果/消融/局限 + 证据定位）
+│   │   ├── retrieval.js      # 词法检索选证据（章节角色先验 + 全局上下文）
+│   │   ├── audit.js          # 证据审计（数字/实体/覆盖/公式/图）
+│   │   ├── review.js         # 终稿审校护栏（防截断）
+│   │   ├── prompts.js        # 各阶段提示词
+│   │   ├── legacy.js         # 旧流程（multipass / 整篇生成）作为降级路径
+│   │   └── index.js          # runDeepRead 编排
+│   ├── pipeline.js           # 图文解读主流程编排
 │   └── store.js              # 落盘 + ZIP/Markdown 打包
 ├── public/                   # 前端（index.html / app.js / style.css）
+├── test/                     # node:test 测试（切片/检索/地图/审计/降级/provider）
 ├── output/                   # 每次生成结果（id/001.png … images.zip summary.md）
 └── .env.example
 ```
@@ -96,7 +132,8 @@ link2post/
 | POST | `/api/copy` | `{"id":"…","provider":"…","model":"…"}` → **阶段二**：对已落盘的结果生成解读文案 + 爆款标题，写回 `result.json` |
 | POST | `/api/upload` | 上传 PDF / Markdown / 文本 → **阶段一**（PDF 转图，纯文本无图），文案同样走 `/api/copy` |
 | POST | `/api/process` | `{"url":"…"}` → 一站式跑完两个阶段；模型不可用时返回 `200` + `copyStatus:"error"`，图片部分照常返回 |
-| POST | `/api/deepread` | `{"url":"…"}` → arXiv 论文深度解读（Markdown 图文报告，图片 CDN 嵌入） |
+| POST | `/api/deepread` | `{"url":"…"}` → arXiv 论文深度解读：建任务返回 `{id}`，用 SSE 订阅进度；结果含 `markdown` / `audit`（证据审计元数据）/ `pipeline` / `structure` |
+| GET | `/api/deepread/events?job=…` | SSE 进度：`fetch → chunking → research_map → retrieval → plan → section → audit → repair → finalize` |
 | GET | `/files/:id/:filename` | 内联访问生成的图片 / ZIP / Markdown |
 | GET | `/download/:id/:filename` | 强制下载（`Content-Disposition: attachment`） |
 | GET | `/api/health` | 健康检查（当前文案引擎 + 是否已配置 API key） |
@@ -118,6 +155,10 @@ link2post/
 
 ## 关键设计点
 
+- **深度解读：全文结构化 + 证据驱动**：先切片（HTML/TeX 真实章节层次；PDF 编号标题），再建「论文地图」
+  （问题/主张/方法/公式/结果/消融/局限 + chunkIds 证据定位），逐节写作改为**按小节从全文检索证据**
+  （词法检索 + 章节角色先验），成稿后做证据审计，只在个别小节出问题时定点重写。
+  每一步都有降级路径，`/api/deepread` 的 SSE 协议与前端进度不变（新增 chunking/research_map/retrieval/audit/repair 阶段）。
 - **转图与文案解耦**：`prepareUrl/prepareUpload` 只做「抓取 + 转图 + 抽取正文」，先把图片写进
   `output/{id}/` 并打包；`generateCopy` 再单独读回正文生成文案。模型未配置 / 超时 / 报错只把
   `copyStatus` 标成 `error`，图片、ZIP、summary.md 不受影响，前端在「解读文案」卡片内提示失败并给出

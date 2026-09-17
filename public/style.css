@@ -235,6 +235,16 @@ h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
 }
 .only-images input { accent-color: var(--accent); cursor: pointer; }
 
+/* 深度解读·证据审计面板 */
+.audit-chip {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; background: #f0f1f3; color: var(--muted); cursor: default;
+}
+.audit-chip.pass { background: var(--accent-soft); color: var(--accent-dark); }
+.audit-chip.warn { background: #fff7e8; color: #9a6212; }
+.audit-chip.fail { background: #fdecec; color: #b4232a; }
+.audit-chip.info { background: #f0f1f3; color: var(--muted); }
+
 /* Gallery */
 .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
 .tile {

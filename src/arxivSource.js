@@ -5,8 +5,9 @@ import { promisify } from 'node:util';
 import { gunzipSync } from 'node:zlib';
 import { config } from './config.js';
 import { fetchArxivHtml, parseArxivId } from './arxivHtml.js';
-import { pdfToImages, extractPdfInfo } from './pdfToImages.js';
+import { pdfToImages, extractPdfInfo, extractPdfTextBlocks } from './pdfToImages.js';
 import { svgToPng } from './webToImages.js';
+import { assemble, blocksFromMarkdownish } from './deepread/chunker.js';
 
 const execFileP = promisify(execFile);
 
@@ -212,8 +213,15 @@ export async function fetchArxivTex(url, log = () => {}) {
   const text = latexToText(tex);
   if (!text || text.length < 500) throw new Error('TeX 正文过短');
   const figures = await texFigures(destDir, tex, id);
+  // 结构化切片：latexToText 保留了 `## 章节` / `图注：` / `$$公式$$` 标记，可直接还原层次
+  let structure = null;
+  try {
+    structure = assemble(blocksFromMarkdownish(text), { kind: 'tex' });
+  } catch {
+    structure = null;
+  }
   log(`TeX 源码可用（正文 ${text.length} 字，${figures.length} 张图）`);
-  return { id, title: '', kind: 'tex', text, codeUrl: '', figures };
+  return { id, title: '', kind: 'tex', text, structure, codeUrl: '', figures };
 }
 
 /**
@@ -244,7 +252,15 @@ export async function fetchArxivSource(url, log = () => {}) {
         }
       }
       log(`取源完成：${kind}（${figures.length} 张图）`);
-      return { id, title: html.title, kind, text: html.text, codeUrl: html.codeUrl || '', figures };
+      return {
+        id,
+        title: html.title,
+        kind,
+        text: html.text,
+        structure: html.structure || null,
+        codeUrl: html.codeUrl || '',
+        figures,
+      };
     }
   } catch (err) {
     log(`HTML 版不可用（${(err && err.message) || err}），回退 TeX 源码`);
@@ -270,6 +286,23 @@ export async function fetchArxivSource(url, log = () => {}) {
   if (pdf.subarray(0, 5).toString() !== '%PDF-') throw new Error('arXiv PDF 响应异常');
   const info = await extractPdfInfo(pdf);
   if (!info.text || info.text.length < 300) throw new Error('PDF 正文提取失败');
+  // 深度解读需要章节结构：额外取一份「保留换行」的正文（失败不影响主流程）
+  let textLines = '';
+  try {
+    const blocks = await extractPdfTextBlocks(pdf);
+    textLines = blocks.lines.join('\n');
+  } catch {
+    textLines = '';
+  }
   log(`取源完成：pdf（无配图，正文 ${info.text.length} 字）`);
-  return { id, title: info.title || '', kind: 'pdf', text: info.text, codeUrl: '', figures: [] };
+  return {
+    id,
+    title: info.title || '',
+    kind: 'pdf',
+    text: info.text,
+    textLines,
+    structure: null,
+    codeUrl: '',
+    figures: [],
+  };
 }
