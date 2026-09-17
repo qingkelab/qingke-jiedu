@@ -1,0 +1,925 @@
+{
+  "id": "2406.09246",
+  "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+  "category": "Embodied AI / Robotics",
+  "url": "https://arxiv.org/abs/2406.09246",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 354704,
+  "source": {
+    "kind": "html",
+    "chars": 133708,
+    "textLines": 0,
+    "figures": 9,
+    "sections": 40,
+    "chunks": 188
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 40,
+    "chunkCount": 188,
+    "chars": 134195,
+    "coverage": 134195,
+    "truncated": false
+  },
+  "researchMapStatus": "model",
+  "researchMapStageStatus": "model_success",
+  "researchMapSource": "model",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 8,
+    "equations": 5,
+    "mainResults": 9,
+    "ablations": 5,
+    "limitations": 4,
+    "figures": 10,
+    "evidenceLinks": 21
+  },
+  "planStatus": "model_success",
+  "planSource": "model",
+  "auditVerdict": "passed_with_warning",
+  "stages": {
+    "chunking": {
+      "stage": "chunking",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 0,
+      "warning": false,
+      "skipped": false,
+      "sections": 40,
+      "chunks": 188,
+      "chars": 134195
+    },
+    "research_map": {
+      "stage": "research_map",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 12098,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 38645,
+      "warning": false,
+      "skipped": false,
+      "maxTokens": 16000,
+      "inputChars": 24000,
+      "evidenceLinks": 21
+    },
+    "plan": {
+      "stage": "plan",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 638,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 31391,
+      "warning": false,
+      "skipped": false,
+      "sectionCount": 7,
+      "maxTokens": 16000
+    },
+    "retrieval": {
+      "stage": "retrieval",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 97,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "evidence": 81,
+      "chunksCovered": 32,
+      "backHalfEvidence": 19
+    },
+    "section_generation": {
+      "stage": "section_generation",
+      "status": "success",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 197849,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "failed": 0
+    },
+    "audit": {
+      "stage": "audit",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 20,
+      "warning": false,
+      "skipped": false,
+      "verdict": "passed_with_warning",
+      "researchMapSource": "model",
+      "failedChecks": [],
+      "warnings": []
+    },
+    "repair": {
+      "stage": "repair",
+      "status": "skipped",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": null,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "审计无需修复",
+      "durationMs": null,
+      "warning": false,
+      "skipped": true,
+      "targets": 0,
+      "applied": 0
+    },
+    "review": {
+      "stage": "review",
+      "status": "warn",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": "length",
+      "rawContentLength": 10357,
+      "parsed": false,
+      "fallback": true,
+      "fallbackReason": "审校稿明显变短（13096 → 10357 字符）",
+      "reason": "审校结果被护栏丢弃（保留原稿）：审校稿明显变短（13096 → 10357 字符）",
+      "durationMs": 75512,
+      "warning": true,
+      "skipped": false
+    }
+  },
+  "stageSummary": {
+    "total": 8,
+    "withWarnings": 1,
+    "stagesWithWarnings": [
+      "review"
+    ],
+    "fallbacks": [
+      "review"
+    ],
+    "truncated": [],
+    "skipped": [
+      "repair"
+    ],
+    "failed": []
+  },
+  "evidence": [
+    {
+      "section": "为什么现在读 OpenVLA：7B 开源 VLA 能开箱控多机器人吗？",
+      "role": "results",
+      "chunkIds": [
+        "c38",
+        "c40",
+        "c42",
+        "c57",
+        "c99",
+        "c102",
+        "c154",
+        "c155",
+        "c156"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "闭源 VLA 与难适配：旧做法卡在权重、算力和微调成本",
+      "role": "intro",
+      "chunkIds": [
+        "c3",
+        "c8",
+        "c13",
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c38",
+        "c40",
+        "c75",
+        "c99",
+        "c154"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "模型骨架 🧠：DINOv2+SigLIP 拼给 Llama 2，动作变成 256 档 token",
+      "role": "method",
+      "chunkIds": [
+        "c3",
+        "c5",
+        "c14",
+        "c15",
+        "c17",
+        "c18",
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c31",
+        "c38"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "训练配方 ⚙️：OpenX 970k 演示和数据混合决定泛化上限",
+      "role": "method",
+      "chunkIds": [
+        "c3",
+        "c5",
+        "c14",
+        "c15",
+        "c17",
+        "c18",
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c31",
+        "c38"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "开箱控制 🤖：BridgeData V2 总分第一，Google robot 追平 55B RT-2-X",
+      "role": "general",
+      "chunkIds": [
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c38",
+        "c39",
+        "c40",
+        "c42",
+        "c43",
+        "c99",
+        "c153",
+        "c154"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "换机器人 🔧：LoRA 只调 1.4% 参数追平全量微调，量化不掉点",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c38",
+        "c40",
+        "c42",
+        "c43",
+        "c99",
+        "c153",
+        "c154"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "边界与社区 🌍：数据多样性仍是天花板，但开源权重+LoRA 值得跟进",
+      "role": "limitation",
+      "chunkIds": [
+        "c21",
+        "c72",
+        "c73",
+        "c74",
+        "c75",
+        "c76",
+        "c150",
+        "c151",
+        "c153",
+        "c154",
+        "c155",
+        "c156"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "pass",
+        "detail": "终稿数字 59 个，原文未检到 0 个（匹配方式：精确 56 / 归一化 0 / 近似 3）",
+        "missing": [],
+        "matched": [
+          {
+            "value": "7b",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "970k",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "29",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "2",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "55b",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "16.5%",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "7倍",
+            "method": "approximate",
+            "chunkId": "c3"
+          },
+          {
+            "value": "7",
+            "method": "exact",
+            "chunkId": "c6"
+          },
+          {
+            "value": "1",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "35m",
+            "method": "exact",
+            "chunkId": "c40"
+          },
+          {
+            "value": "93m",
+            "method": "exact",
+            "chunkId": "c40"
+          },
+          {
+            "value": "170",
+            "method": "exact",
+            "chunkId": "c38"
+          },
+          {
+            "value": "60",
+            "method": "exact",
+            "chunkId": "c11"
+          },
+          {
+            "value": "3",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "4",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "20.4%",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "33",
+            "method": "exact",
+            "chunkId": "c10"
+          },
+          {
+            "value": "1.4%",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "68.2",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "7.5%",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "32",
+            "method": "exact",
+            "chunkId": "c10"
+          },
+          {
+            "value": "97.6x",
+            "method": "approximate",
+            "chunkId": "c57"
+          },
+          {
+            "value": "10",
+            "method": "exact",
+            "chunkId": "c6"
+          },
+          {
+            "value": "16",
+            "method": "exact",
+            "chunkId": "c7"
+          },
+          {
+            "value": "59.7",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "69.7",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "7.2%",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "7188",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "1x",
+            "method": "approximate",
+            "chunkId": "c2"
+          },
+          {
+            "value": "163.3",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "30.3",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "6.1%",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "47.0",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "6.9%",
+            "method": "exact",
+            "chunkId": "c57"
+          },
+          {
+            "value": "8",
+            "method": "exact",
+            "chunkId": "c6"
+          },
+          {
+            "value": "30",
+            "method": "exact",
+            "chunkId": "c10"
+          },
+          {
+            "value": "90%",
+            "method": "exact",
+            "chunkId": "c75"
+          },
+          {
+            "value": "256",
+            "method": "exact",
+            "chunkId": "c19"
+          },
+          {
+            "value": "600m",
+            "method": "exact",
+            "chunkId": "c17"
+          },
+          {
+            "value": "0",
+            "method": "exact",
+            "chunkId": "c20"
+          }
+        ],
+        "methods": {
+          "exact": 56,
+          "normalized": 0,
+          "approximate": 3
+        }
+      },
+      {
+        "name": "entities",
+        "status": "warn",
+        "detail": "地图实体 14 个，原文未出现 8 个，终稿未提及 10 个",
+        "unknown": [
+          "Open X-Embodiment dataset (OpenX)",
+          "Google robot (RT-1/RT-2 evaluation)",
+          "Success rate ± StdErr",
+          "OpenX training data ablation",
+          "LIBERO simulation experiments",
+          "RT-2-X (55B parameters, closed-source)",
+          "Full fine-tuning (Full FT)",
+          "Last layer only fine-tuning"
+        ],
+        "notMentioned": [
+          "Open X-Embodiment dataset (OpenX)",
+          "Google robot (RT-1/RT-2 evaluation)",
+          "Success rate ± StdErr",
+          "OpenX training data ablation",
+          "LIBERO simulation experiments",
+          "RT-1-X (35M parameters)",
+          "RT-2-X (55B parameters, closed-source)",
+          "Full fine-tuning (Full FT)"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 20 个，终稿覆盖 16 个",
+        "covered": [
+          "7b",
+          "970k",
+          "2",
+          "170",
+          "1",
+          "60",
+          "55b",
+          "1.4%",
+          "69.7",
+          "7.2%",
+          "30.3",
+          "6.1%",
+          "33",
+          "30",
+          "7.5%",
+          "90%"
+        ],
+        "missed": [
+          "13.3%",
+          "12.7%",
+          "10.0%",
+          "7.1%"
+        ]
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 5 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 4 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 21 条，终稿 4 条，可对应 4 条"
+      },
+      {
+        "name": "figures",
+        "status": "pass",
+        "detail": "可用图 9 张，终稿引用 9 处",
+        "refs": [
+          1,
+          2,
+          3,
+          4,
+          6,
+          5,
+          7,
+          8,
+          9
+        ],
+        "badRefs": [],
+        "mismatched": []
+      }
+    ],
+    "issues": [
+      {
+        "check": "entities",
+        "severity": "warn",
+        "detail": "地图里的实体在原文中未出现（可能被臆造）：Open X-Embodiment dataset (OpenX)、Google robot (RT-1/RT-2 evaluation)、Success rate ± StdErr、OpenX training data ablation、LIBERO simulation experiments、RT-2-X (55B parameters, closed-source)"
+      }
+    ],
+    "serious": [],
+    "repairTargets": [],
+    "warnings": [],
+    "verdict": "passed_with_warning",
+    "researchMapStatus": "model_success",
+    "researchMapSource": "model",
+    "stats": {
+      "numbers": 59,
+      "missingNumbers": 0,
+      "numberMatchMethods": {
+        "exact": 56,
+        "normalized": 0,
+        "approximate": 3
+      },
+      "entities": 14,
+      "mainResults": 20,
+      "formulas": 4,
+      "figureRefs": 9
+    },
+    "sourceKey": "https://arxiv.org/abs/2406.09246"
+  },
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": 0,
+    "numberEvidenceCoverage": 1,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0.093,
+    "sectionCompleteness": 1,
+    "lengthStability": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0.8438,
+    "auditConfidence": 0.8
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "OpenVLA 是 7B 参数开源 VLA，用 970k 真机机器人示教数据训练",
+        "late": false,
+        "section": "OpenVLA:\nAn Open-Source Vision-Language-Action Model",
+        "ok": true,
+        "keywordHits": [
+          "7B",
+          "970k",
+          "demonstrations"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "7",
+          "970"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "跨 29 个任务、多机器人平台上比闭源 RT-2-X (55B) 绝对成功率高出 16.5%，参数少 7 倍",
+        "late": false,
+        "section": "OpenVLA:\nAn Open-Source Vision-Language-Action Model",
+        "ok": true,
+        "keywordHits": [
+          "RT-2-X"
+        ],
+        "missingKeywords": [
+          "task success rate"
+        ],
+        "numberHits": [
+          "16.5"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "参数高效微调：LoRA 微调效果优于全量微调与 sandwich 方案",
+        "late": false,
+        "section": "Parameter-Efficient Fine-Tuning",
+        "ok": true,
+        "keywordHits": [
+          "LoRA",
+          "parameter-efficient"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "Table 1 微调方法对比：LoRA(rank=32/64) 成功率 68.2%，优于全量微调",
+        "late": false,
+        "section": "Parameter-Efficient Fine-Tuning",
+        "ok": true,
+        "keywordHits": [
+          "LoRA",
+          "fine-tuning"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "68.2"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "设计决策消融（视觉编码器冻结 / sandwich 方案 / 数据配比）",
+        "late": false,
+        "section": "The OpenVLA Model",
+        "ok": true,
+        "keywordHits": [
+          "冻结",
+          "消融"
+        ],
+        "missingKeywords": [
+          "Design Decisions",
+          "frozen"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "失败模式与局限：困难任务上的部分成功、推理速度与显存约束",
+        "late": true,
+        "section": "B.1.1 BridgeData V2 Evaluation Tasks",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "failure",
+          "失败",
+          "partial successes",
+          "部分成功"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "7",
+        "970",
+        "16.5",
+        "68.2"
+      ],
+      "hits": [
+        "7",
+        "970",
+        "16.5",
+        "68.2"
+      ],
+      "missing": [],
+      "unlocated": [],
+      "located": 4
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "7B-parameter",
+          "open-source"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "architecture",
+          "image observation"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [
+      {
+        "text": "失败模式与局限：困难任务上的部分成功、推理速度与显存约束",
+        "ratio": 0.5454545454545454,
+        "section": "B.1.1 BridgeData V2 Evaluation Tasks",
+        "ok": false
+      }
+    ],
+    "sections": {
+      "ratio": 1,
+      "planned": 7,
+      "final": 7,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 7,
+      "planned": 7,
+      "chars": 12009,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.093,
+    "reliability": {
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 12098,
+      "researchMapFallbackReason": "",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "review"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 1,
+        "stagesWithWarnings": [
+          "review"
+        ],
+        "fallbacks": [
+          "review"
+        ],
+        "truncated": [],
+        "skipped": [
+          "repair"
+        ],
+        "failed": []
+      },
+      "evidenceChunks": 32,
+      "evidenceFromModelMap": 27
+    },
+    "audit": {
+      "verdict": "passed_with_warning",
+      "warnings": [],
+      "researchMapSource": "model"
+    }
+  },
+  "warnings": [],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 11127,
+      "lastAtMs": 11127
+    },
+    "research_map": {
+      "firstAtMs": 11130,
+      "lastAtMs": 49775
+    },
+    "plan": {
+      "firstAtMs": 49775,
+      "lastAtMs": 81168
+    },
+    "retrieval": {
+      "firstAtMs": 81266,
+      "lastAtMs": 81266
+    },
+    "section": {
+      "firstAtMs": 81266,
+      "lastAtMs": 238019
+    },
+    "section_done": {
+      "firstAtMs": 99002,
+      "lastAtMs": 279115
+    },
+    "audit": {
+      "firstAtMs": 279116,
+      "lastAtMs": 279140
+    },
+    "finalize": {
+      "firstAtMs": 279137,
+      "lastAtMs": 279137
+    }
+  },
+  "markdownChars": 13096,
+  "finishedAt": "2026-09-17T16:17:27.015Z"
+}

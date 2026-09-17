@@ -6,6 +6,7 @@ import { runDeepRead } from '../deepread/index.js';
 import { deepReadMultipass, deepReadSinglePass, isChineseText } from '../deepread/legacy.js';
 import { buildDeepReviewMessages } from '../deepread/prompts.js';
 import { acceptReview, reviewBudgetTokens } from '../deepread/review.js';
+import { STAGE_SOURCE, STAGE_STATUS, makeStage, summarizeStages } from '../deepread/stages.js';
 
 function buildMessages(source, limits) {
   const sys = [
@@ -148,12 +149,25 @@ function buildReviewMessages(source, limits, current, styleHint = '') {
 
 /**
  * 通用 OpenAI 兼容 chat/completions 请求（provider 与播客写稿共用）。
- * @returns {Promise<{content:string, reasoning:string}>}
+ *
+ * 除了正文，**必须把 finish_reason / usage / model 带回来**：reasoning 模型会把思考 token
+ * 算进 max_tokens，只看 content 无法区分「模型没话说」和「输出被截断」——上游阶段可靠性
+ * 全靠这几个字段判断（见 src/deepread/stages.js）。
+ *
+ * @returns {Promise<{content:string, reasoning:string, finishReason:string, usage:object|null, model:string}>}
  */
 export async function chatRequest({ baseUrl, apiKey, model, messages, maxTokens = 2200, timeoutMs, name = '' }) {
   const endpoint = `${String(baseUrl).replace(/\/+$/, '')}/chat/completions`;
   const ttl = timeoutMs || config.llmTimeoutMs;
   let res;
+  const payload = {
+    model,
+    messages,
+    temperature: 0.7,
+    max_tokens: maxTokens,
+  };
+  // 可选：把 reasoning 预算与可见输出分开（只有显式配置时才发，避免服务端不认这个字段）
+  if (config.llmReasoningEffort) payload.reasoning_effort = config.llmReasoningEffort;
   try {
     res = await fetch(endpoint, {
       method: 'POST',
@@ -161,12 +175,7 @@ export async function chatRequest({ baseUrl, apiKey, model, messages, maxTokens 
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature: 0.7,
-        max_tokens: maxTokens,
-      }),
+      body: JSON.stringify(payload),
       signal: AbortSignal.timeout(ttl),
     });
   } catch (err) {
@@ -188,8 +197,15 @@ export async function chatRequest({ baseUrl, apiKey, model, messages, maxTokens 
     throw new Error(`${name} 调用失败 HTTP ${res.status}: ${detail.slice(0, 200)}`);
   }
   const data = await res.json();
-  const msg = data?.choices?.[0]?.message || {};
-  return { content: msg.content || '', reasoning: msg.reasoning || '' };
+  const choice = data?.choices?.[0] || {};
+  const msg = choice.message || {};
+  return {
+    content: msg.content || '',
+    reasoning: msg.reasoning || msg.reasoning_content || '',
+    finishReason: choice.finish_reason || '',
+    usage: data?.usage || null,
+    model: data?.model || model || '',
+  };
 }
 
 export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
@@ -272,7 +288,14 @@ export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
 
       if (config.deepreadStructured) {
         try {
-          const result = await runDeepRead({ chat, source, figures, onProgress: emit, options });
+          const result = await runDeepRead({
+            chat,
+            source,
+            figures,
+            onProgress: emit,
+            // provider/model 只用于阶段元数据与可观测性（不改变生成逻辑）
+            options: { ...options, providerName: name, model },
+          });
           structured = result;
           // 结构化成功的判定看「是否真的写出了分节报告」（不按字数，短论文也能走这条路）
           const sectionCount = ((result.markdown || '').match(/^##\s+/gm) || []).length;
@@ -285,7 +308,16 @@ export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
               evidenceText: result.meta?.evidenceText || '',
               emit,
             });
-            return { ...result, markdown: reviewed.markdown, style: checkStyle(reviewed.markdown, 'deepread') };
+            return {
+              ...result,
+              markdown: reviewed.markdown,
+              style: checkStyle(reviewed.markdown, 'deepread'),
+              meta: {
+                ...(result.meta || {}),
+                stages: { ...(result.meta?.stages || {}), review: reviewed.stage },
+                stageSummary: summarizeStages({ ...(result.meta?.stages || {}), review: reviewed.stage }),
+              },
+            };
           }
           if (result.degraded) {
             console.warn('[deepread/structured] 降级到旧流程：', result.reason || '未说明');
@@ -340,26 +372,85 @@ export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
 
 /** 终稿审校：对照「检索到的证据」而不是正文前 16000 字，避免审校阶段又丢后半篇信息。 */
 async function reviewDeepReadMarkdown({ chat, source, markdown, evidenceText = '', emit }) {
-  if (!config.qualityReview || !markdown) return { markdown };
+  if (!config.qualityReview || !markdown) {
+    return {
+      markdown,
+      stage: makeStage({
+        stage: 'review',
+        status: STAGE_STATUS.SKIPPED,
+        source: STAGE_SOURCE.LOCAL,
+        parsed: null,
+        reason: markdown ? 'QUALITY_REVIEW=0，跳过终稿审校' : '无正文可审校',
+      }),
+    };
+  }
+  const startedAt = Date.now();
   emit({ stage: 'audit', detail: '正在做文风与事实审校…' });
   try {
     // 审校上下文用「检索到的全文证据」，缺失时退回正文
     const evidence = String(evidenceText || source.text || '').slice(0, 16000);
     const styleHint = styleWarningsForPrompt(markdown, 'deepread');
-    // token 预算按原稿长度给足：长报告被截断会丢掉整段后半篇
-    const review = await chat(
-      buildDeepReviewMessages(source, markdown, styleHint, { evidenceText: evidence }),
-      reviewBudgetTokens(markdown),
-    );
+    const reviewMessages = buildDeepReviewMessages(source, markdown, styleHint, { evidenceText: evidence });
+    // token 预算按「正文 + reasoning 余量」给足：预算不够时 reasoning 会吃满额度，
+    // 返回的稿子反而更短，护栏只能丢弃（审校等于没跑）。
+    const budget = reviewBudgetTokens(markdown);
+    let reviewed = null;
+    let smallerBudgetRetry = false;
+    try {
+      reviewed = await chat(reviewMessages, budget);
+    } catch (err) {
+      // 有些 provider 对 max_tokens 有硬上限（例如 gpt-4o-mini 16384）：退一档再试，
+      // 别让「审校」在预算不兼容时直接变成死阶段。
+      const msg = (err && err.message) || String(err);
+      const conservative = reviewBudgetTokens(markdown, { min: 6000, max: 16000, factor: 1.6, reasoningAllowance: 0 });
+      if (/HTTP 4\d\d/.test(msg) && conservative < budget) {
+        smallerBudgetRetry = true;
+        console.warn('[deepread/review] 大预算被拒，退一档重试：', msg.slice(0, 120));
+        reviewed = await chat(reviewMessages, conservative);
+      } else {
+        throw err;
+      }
+    }
+    const review = reviewed;
+    const base = {
+      stage: 'review',
+      source: STAGE_SOURCE.MODEL,
+      finishReason: review?.finishReason ?? null,
+      rawContentLength: String(review?.content || '').length,
+      durationMs: Date.now() - startedAt,
+      extra: { budgetTokens: budget, smallerBudgetRetry },
+    };
     const verdict = acceptReview(markdown, review?.content);
     if (verdict.ok && isChineseText(review.content)) {
-      return { markdown: review.content };
+      return { markdown: review.content, stage: makeStage({ ...base, status: STAGE_STATUS.MODEL_SUCCESS, parsed: true }) };
     }
     if (review?.content) {
       console.warn('[deepread/review] 丢弃审校结果：', verdict.reason || '非中文输出');
     }
-  } catch {
+    // 审校被护栏拒绝（变短/少小节/疑似截断/非中文）：保留原稿，但把原因记进阶段元数据
+    return {
+      markdown,
+      stage: makeStage({
+        ...base,
+        status: STAGE_STATUS.WARN,
+        parsed: false,
+        reason: `审校结果被护栏丢弃（保留原稿）：${verdict.reason || '非中文输出'}`,
+        fallbackReason: verdict.reason || '非中文输出',
+      }),
+    };
+  } catch (err) {
     /* 审校失败，用原稿 */
+    return {
+      markdown,
+      stage: makeStage({
+        stage: 'review',
+        status: STAGE_STATUS.PROVIDER_ERROR,
+        source: STAGE_SOURCE.MODEL,
+        parsed: false,
+        reason: `审校调用失败，保留原稿：${(err && err.message) || err}`,
+        fallbackReason: (err && err.message) || String(err),
+        durationMs: Date.now() - startedAt,
+      }),
+    };
   }
-  return { markdown };
 }

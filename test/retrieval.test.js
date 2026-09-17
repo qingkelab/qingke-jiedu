@@ -1,9 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPaperStructure } from '../src/deepread/chunker.js';
-import { buildGlobalContext, retrieveForSection, sectionRole, renderEvidence } from '../src/deepread/retrieval.js';
+import {
+  buildGlobalContext,
+  chunkCategories,
+  retrieveForSection,
+  sectionRole,
+  renderEvidence,
+} from '../src/deepread/retrieval.js';
 import { fallbackResearchMap } from '../src/deepread/researchMap.js';
-import { longPaperText } from './fixtures.js';
+import { longPaperText, reliabilityPaperText } from './fixtures.js';
 
 function setup() {
   const text = longPaperText();
@@ -88,4 +94,92 @@ test('检索异常时回退本节 chunks（不会抛错）', () => {
   const broken = { ...structure, chunks: structure.chunks.map((c) => ({ ...c, terms: null })) };
   const r = retrieveForSection({ structure: broken, section: { title: '结果', note: '' }, budgetChars: 4000 });
   assert.ok(Array.isArray(r.evidence));
+});
+
+// ============ 后半篇 / 消融 / 局限 / 附录召回 ============
+
+function reliabilitySetup() {
+  const structure = buildPaperStructure({ kind: 'tex', text: reliabilityPaperText() });
+  const total = structure.chunks.length;
+  const pos = (title) => {
+    const c = structure.chunks.find((x) => x.sectionTitle.includes(title));
+    return c ? c.index / (total - 1) : -1;
+  };
+  return { structure, total, pos };
+}
+
+test('证据类别识别：主结果 / 消融 / 局限 / 失败案例 / 伦理 / 附录', () => {
+  const { structure } = reliabilitySetup();
+  const cats = new Map(structure.chunks.map((c) => [c.id, chunkCategories(c)]));
+  const all = new Set();
+  for (const set of cats.values()) for (const c of set) all.add(c);
+  for (const name of ['main_results', 'ablations', 'limitations', 'failure_cases', 'ethics', 'appendix', 'future_work']) {
+    assert.ok(all.has(name), `应识别出 ${name} 类证据（实际 ${[...all].join(',')}）`);
+  }
+});
+
+test('结果节：后半篇的主结果表格 chunk 会被召回', () => {
+  const { structure, pos } = reliabilitySetup();
+  assert.ok(pos('Main Results') > 0.4, '主结果应位于后半篇');
+  const r = retrieveForSection({
+    structure,
+    section: { title: '实验结果与主结果', note: '主结果、表格、指标' },
+    budgetChars: 6000,
+    maxChunks: 12,
+  });
+  const text = r.evidence.map((e) => e.text).join('\n');
+  assert.match(text, /52\.4|41\.8/, '主结果数字应被召回');
+  assert.ok(r.evidence.some((e) => e.type === 'table'), `应召回到表格 chunk（${r.evidence.map((e) => e.type).join(',')}）`);
+  assert.ok(r.backHalfChunks >= 1, '应保证至少 1 条后半篇证据');
+  assert.ok(r.chunkIds.some((id) => /^c\d+$/.test(id)));
+});
+
+test('消融节：variant / w/o / sensitivity 类 chunk 会被召回', () => {
+  const { structure } = reliabilitySetup();
+  const r = retrieveForSection({
+    structure,
+    section: { title: '消融实验说明了什么', note: 'ablation、variant、参数敏感性' },
+    budgetChars: 6000,
+    maxChunks: 12,
+  });
+  const text = r.evidence.map((e) => e.text).join('\n');
+  assert.match(text, /消融|变体|w\/o|敏感性|46\.1|48\.9/, '消融结论应被召回');
+});
+
+test('局限节：失败案例 / 伦理 / broader impacts / 附录会被召回', () => {
+  const { structure, pos } = reliabilitySetup();
+  assert.ok(pos('Ethics and Broader Impacts') > 0.5, '伦理小节应在后半篇');
+  assert.ok(pos('Failure Cases') > 0.5, '失败案例小节应在后半篇');
+  const r = retrieveForSection({
+    structure,
+    section: { title: '失效边界与局限', note: 'limitation、failure、ethics、broader impacts、appendix' },
+    budgetChars: 8000,
+    maxChunks: 12,
+  });
+  const text = r.evidence.map((e) => e.text).join('\n');
+  assert.match(text, /失败分析|失败案例|失败模式/, '失败案例应被召回');
+  assert.match(text, /伦理|滥用|社会影响|Broader Impacts/, '伦理 / broader impacts 应被召回');
+  assert.ok(r.backHalfChunks >= 1, '局限节必须带后半篇证据');
+  // 附录与局限都在后半篇，且不能被「参考文献」噪声挤掉
+  assert.ok(!r.evidence.some((e) => /References|参考文献/.test(e.text)));
+});
+
+test('后半篇召回保障可显式控制（lateQuota=0 时关闭）', () => {
+  const { structure } = reliabilitySetup();
+  const withQuota = retrieveForSection({ structure, section: { title: '实验结果', note: '' }, budgetChars: 4000, maxChunks: 8 });
+  const without = retrieveForSection({ structure, section: { title: '实验结果', note: '' }, budgetChars: 4000, maxChunks: 8, lateQuota: 0 });
+  assert.ok(withQuota.backHalfChunks >= 1);
+  assert.equal(without.lateQuota, 0);
+});
+
+test('方法节不做后半篇强插，机制/公式优先', () => {
+  const { structure } = reliabilitySetup();
+  const r = retrieveForSection({
+    structure,
+    section: { title: '核心机制：从输入到输出', note: '方法 机制 公式' },
+    budgetChars: 6000,
+    maxChunks: 12,
+  });
+  assert.equal(r.lateQuota, 0, '方法节不启用后半篇配额');
+  assert.ok(r.evidence.some((e) => /Method|方法|Planner|Executor|Memory/.test(e.sectionTitle)));
 });

@@ -1,19 +1,26 @@
 {
   "id": "2406.09246",
-  "at": "2026-09-17T05:30:23.239Z",
+  "at": "2026-09-17T16:29:13.241Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
     "sourceCoverage": 1,
     "latePaperCoverage": 0,
-    "numberEvidenceCoverage": 0.75,
+    "numberEvidenceCoverage": 1,
     "figureCoverage": 1,
     "formulaCoverage": null,
-    "ablationCoverage": 0.5,
+    "ablationCoverage": 1,
     "limitationCoverage": 0,
-    "auditMissingRate": 0,
+    "auditMissingRate": 0.093,
     "sectionCompleteness": 1,
-    "lengthStability": 1
+    "lengthStability": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0.8438,
+    "auditConfidence": 0.8
   },
   "detail": {
     "evidence": [
@@ -24,11 +31,10 @@
         "ok": true,
         "keywordHits": [
           "7B",
-          "970k"
-        ],
-        "missingKeywords": [
+          "970k",
           "demonstrations"
         ],
+        "missingKeywords": [],
         "numberHits": [
           "7",
           "970"
@@ -57,11 +63,10 @@
         "section": "Parameter-Efficient Fine-Tuning",
         "ok": true,
         "keywordHits": [
-          "LoRA"
-        ],
-        "missingKeywords": [
+          "LoRA",
           "parameter-efficient"
         ],
+        "missingKeywords": [],
         "numberHits": [],
         "missingNumbers": []
       }
@@ -71,17 +76,16 @@
         "text": "Table 1 微调方法对比：LoRA(rank=32/64) 成功率 68.2%，优于全量微调",
         "late": false,
         "section": "Parameter-Efficient Fine-Tuning",
-        "ok": false,
+        "ok": true,
         "keywordHits": [
-          "LoRA"
-        ],
-        "missingKeywords": [
+          "LoRA",
           "fine-tuning"
         ],
-        "numberHits": [],
-        "missingNumbers": [
+        "missingKeywords": [],
+        "numberHits": [
           "68.2"
-        ]
+        ],
+        "missingNumbers": []
       },
       {
         "text": "设计决策消融（视觉编码器冻结 / sandwich 方案 / 数据配比）",
@@ -127,13 +131,12 @@
       "hits": [
         "7",
         "970",
-        "16.5"
-      ],
-      "missing": [
+        "16.5",
         "68.2"
       ],
+      "missing": [],
       "unlocated": [],
-      "located": 3
+      "located": 4
     },
     "figures": [
       {
@@ -166,19 +169,54 @@
     ],
     "sections": {
       "ratio": 1,
-      "planned": 6,
-      "final": 6,
+      "planned": 7,
+      "final": 7,
       "missing": []
     },
     "stability": {
       "stable": true,
       "score": 1,
-      "sections": 6,
-      "planned": 6,
-      "chars": 8780,
+      "sections": 7,
+      "planned": 7,
+      "chars": 12009,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0
+    "auditMissingRate": 0.093,
+    "reliability": {
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 12098,
+      "researchMapFallbackReason": "",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "review"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 1,
+        "stagesWithWarnings": [
+          "review"
+        ],
+        "fallbacks": [
+          "review"
+        ],
+        "truncated": [],
+        "skipped": [
+          "repair"
+        ],
+        "failed": []
+      },
+      "evidenceChunks": 32,
+      "evidenceFromModelMap": 27
+    },
+    "audit": {
+      "verdict": "passed_with_warning",
+      "warnings": [],
+      "researchMapSource": "model"
+    }
   }
 }

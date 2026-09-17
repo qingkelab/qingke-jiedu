@@ -26,8 +26,60 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { extractNumberTokens, numberKey, splitMarkdownSections } from './audit.js';
 import { tokenize } from './chunker.js';
+import { summarizeStages } from './stages.js';
 
 export const BENCHMARK_VERSION = 'v1';
+
+/**
+ * 从 result.meta 里取某阶段的元数据，兼容 v1 旧字段
+ * （旧记录只有 researchMapStatus: 'model'|'fallback'，没有统一 stages）。
+ */
+export function stageMetaOf(result, name) {
+  const stage = result?.meta?.stages?.[name];
+  if (stage) return stage;
+  if (name === 'research_map') {
+    const legacy = result?.meta?.researchMapStatus;
+    if (legacy === 'model') {
+      return { stage: 'research_map', status: 'model_success', source: 'model', fallback: false, warning: false };
+    }
+    if (legacy === 'fallback') {
+      return { stage: 'research_map', status: 'fallback', source: 'local', fallback: true, warning: true };
+    }
+    return null;
+  }
+  if (name === 'plan') {
+    const legacy = result?.meta?.planStatus;
+    if (!legacy) return null;
+    return {
+      stage: 'plan',
+      status: legacy,
+      source: result?.meta?.planSource || null,
+      fallback: legacy !== 'model_success',
+      warning: legacy !== 'model_success',
+    };
+  }
+  return null;
+}
+
+/**
+ * 审计可信度：把「上游地图是否生效」和「审计自身结论」合成一个 0~1 的确定性指标。
+ *   地图系数：model_success 1.0 / 截断·解析失败·调用失败 0.5 / 本地兜底 0.4
+ *   结论系数：passed 1.0 / passed_with_warning 0.8 / failed 0.5
+ * auditConfidence = 地图系数 × 结论系数（越低说明「审计通过」越不可信）。
+ */
+export function auditConfidenceOf({ researchMapStatus = null, researchMapSource = null, verdict = null } = {}) {
+  if (!researchMapStatus && !verdict) return null;
+  const mapFactor =
+    researchMapStatus === 'model_success'
+      ? 1
+      : researchMapStatus === 'fallback' || researchMapSource === 'local'
+        ? 0.4
+        : researchMapStatus
+          ? 0.5
+          : 0.6;
+  const verdictFactor = verdict === 'passed' ? 1 : verdict === 'passed_with_warning' ? 0.8 : verdict === 'failed' ? 0.5 : 0.6;
+  return Number((mapFactor * verdictFactor).toFixed(4));
+}
 
 // ============ 元数据解析与校验 ============
 
@@ -449,6 +501,17 @@ export function computeMetrics({ paper, result, structure }) {
   const stability = lengthStability(result);
   const auditRate = auditMissingRate(audit);
 
+  // ===== 阶段可靠性指标（来自真实调用状态，不来自结果猜�测） =====
+  const researchMapStage = stageMetaOf(result, 'research_map');
+  const planStage = stageMetaOf(result, 'plan');
+  const stageSummary = result?.meta?.stageSummary || summarizeStages(result?.meta?.stages || {});
+  const usedEvidenceIds = new Set((result?.meta?.evidence || []).flatMap((e) => e.chunkIds || []));
+  const modelMapIds = new Set(result?.meta?.researchMapEvidenceIds || []);
+  const modelMapHits = [...usedEvidenceIds].filter((id) => modelMapIds.has(id)).length;
+  const auditVerdict = audit?.verdict || result?.meta?.auditVerdict || null;
+  const researchMapStatus = researchMapStage?.status || null;
+  const researchMapSource = researchMapStage?.source || null;
+
   const metrics = {
     sourceCoverage: ratio(evidence.filter((e) => e.ok).length, evidence.length),
     latePaperCoverage: ratio(lateAll.filter((a) => a.match.ok).length, lateAll.length),
@@ -460,6 +523,15 @@ export function computeMetrics({ paper, result, structure }) {
     auditMissingRate: auditRate,
     sectionCompleteness: sections.ratio,
     lengthStability: stability.score,
+    // 阶段可靠性
+    researchMapModelSuccess: researchMapStage ? (researchMapStatus === 'model_success' ? 1 : 0) : null,
+    researchMapFallbackRate: researchMapStage ? (researchMapStage.fallback ? 1 : 0) : null,
+    planModelSuccess: planStage ? (planStage.status === 'model_success' ? 1 : 0) : null,
+    planFallbackRate: planStage ? (planStage.fallback ? 1 : 0) : null,
+    stagesWithWarnings: Object.keys(result?.meta?.stages || {}).length ? stageSummary.withWarnings : null,
+    evidenceFromModelMapRate: usedEvidenceIds.size ? Number((modelMapHits / usedEvidenceIds.size).toFixed(4)) : null,
+    // 审计可信度
+    auditConfidence: auditConfidenceOf({ researchMapStatus, researchMapSource, verdict: auditVerdict }),
   };
 
   return {
@@ -481,6 +553,21 @@ export function computeMetrics({ paper, result, structure }) {
       sections,
       stability,
       auditMissingRate: auditRate,
+      reliability: {
+        researchMapStatus,
+        researchMapSource,
+        researchMapFinishReason: researchMapStage?.finishReason ?? null,
+        researchMapRawContentLength: researchMapStage?.rawContentLength ?? null,
+        researchMapFallbackReason: researchMapStage?.fallbackReason || '',
+        planStatus: planStage?.status || null,
+        planSource: planStage?.source || null,
+        planFallbackReason: planStage?.fallbackReason || '',
+        stagesWithWarnings: stageSummary.stagesWithWarnings,
+        stageSummary,
+        evidenceChunks: usedEvidenceIds.size,
+        evidenceFromModelMap: modelMapHits,
+      },
+      audit: { verdict: auditVerdict, warnings: (audit?.warnings || []).map((w) => w.code), researchMapSource: audit?.researchMapSource || null },
     },
   };
 }
@@ -498,10 +585,70 @@ export const METRIC_LABELS = {
   auditMissingRate: 'Audit missing rate',
   sectionCompleteness: 'Section completeness',
   lengthStability: 'Length stability',
+  researchMapModelSuccess: 'Research map model success',
+  researchMapFallbackRate: 'Research map fallback rate',
+  planModelSuccess: 'Plan model success',
+  planFallbackRate: 'Plan fallback rate',
+  stagesWithWarnings: 'Stages with warnings (avg/papers)',
+  evidenceFromModelMapRate: 'Evidence from model map',
+  auditConfidence: 'Audit confidence',
 };
 
+/**
+ * 指标分三组（CLI / summary 按组展示，避免把「内容覆盖」和「阶段可靠性」混在一起读）：
+ *   内容覆盖：终稿有没有讲到论文的关键事实
+ *   阶段可靠性：上游阶段（研究地图 / 计划）到底有没有真的跑起来
+ *   审计可信度：audit 的结论有多可信（缺失率 + 与上游可信度的合成）
+ */
+export const METRIC_GROUPS = [
+  {
+    key: 'coverage',
+    label: '内容覆盖指标',
+    metrics: [
+      'sourceCoverage',
+      'latePaperCoverage',
+      'numberEvidenceCoverage',
+      'figureCoverage',
+      'formulaCoverage',
+      'ablationCoverage',
+      'limitationCoverage',
+      'sectionCompleteness',
+      'lengthStability',
+    ],
+  },
+  {
+    key: 'reliability',
+    label: '阶段可靠性指标',
+    metrics: [
+      'researchMapModelSuccess',
+      'researchMapFallbackRate',
+      'planModelSuccess',
+      'planFallbackRate',
+      'stagesWithWarnings',
+      'evidenceFromModelMapRate',
+    ],
+  },
+  { key: 'audit', label: '审计可信度指标', metrics: ['auditMissingRate', 'auditConfidence'] },
+];
+
+/** 单位不是百分比的指标（按原值展示）。 */
+const COUNT_METRICS = new Set(['stagesWithWarnings']);
+
+/** 把指标值格式化成 CLI/summary 用的字符串。 */
+export function formatMetric(key, value) {
+  if (typeof value !== 'number') return 'n/a';
+  if (COUNT_METRICS.has(key)) return value.toFixed(2).replace(/\.00$/, '');
+  return `${(value * 100).toFixed(0)}%`;
+}
+
+export function formatMetricPrecise(key, value) {
+  if (typeof value !== 'number') return 'n/a';
+  if (COUNT_METRICS.has(key)) return value.toFixed(2).replace(/\.00$/, '');
+  return `${(value * 100).toFixed(1)}%`;
+}
+
 /** 越低越好的指标。 */
-const LOWER_IS_BETTER = new Set(['auditMissingRate']);
+const LOWER_IS_BETTER = new Set(['auditMissingRate', 'researchMapFallbackRate', 'planFallbackRate', 'stagesWithWarnings']);
 
 /** 多篇论文聚合：忽略 null（该论文没有这类期望），并记录参与聚合的论文数。 */
 export function aggregateMetrics(paperEntries) {
@@ -557,21 +704,25 @@ export function renderCliSummary(summary) {
       lines.push(`- [${p.status}] ${p.id}: ${p.reason || ''}`);
     }
   }
-  lines.push('');
-  for (const key of [
-    'sourceCoverage',
-    'latePaperCoverage',
-    'numberEvidenceCoverage',
-    'figureCoverage',
-    'formulaCoverage',
-    'ablationCoverage',
-    'limitationCoverage',
-    'auditMissingRate',
-    'sectionCompleteness',
-    'lengthStability',
-  ]) {
-    const v = summary.metrics?.[key];
-    lines.push(`${METRIC_LABELS[key]}: ${typeof v === 'number' ? `${(v * 100).toFixed(0)}%` : 'n/a'}`);
+  for (const group of METRIC_GROUPS) {
+    lines.push('');
+    lines.push(`## ${group.label}`);
+    for (const key of group.metrics) {
+      lines.push(`${METRIC_LABELS[key]}: ${formatMetric(key, summary.metrics?.[key])}`);
+    }
+  }
+  // 上游阶段没生效时必须显式点名（覆盖率看起来正常也不能掩盖）
+  const fallbackPapers = (summary.papers || []).filter((p) => p.status === 'completed' && p.researchMapStatus && p.researchMapStatus !== 'model_success');
+  const planFallback = (summary.papers || []).filter((p) => p.status === 'completed' && p.planStatus && p.planStatus !== 'model_success');
+  if (fallbackPapers.length || planFallback.length) {
+    lines.push('');
+    lines.push('阶段降级明细：');
+    for (const p of (summary.papers || []).filter((x) => x.status === 'completed')) {
+      const bits = [];
+      if (p.researchMapStatus && p.researchMapStatus !== 'model_success') bits.push(`research_map=${p.researchMapStatus}`);
+      if (p.planStatus && p.planStatus !== 'model_success') bits.push(`plan=${p.planStatus}`);
+      if (bits.length) lines.push(`  - ${p.id}: ${bits.join('、')}`);
+    }
   }
   if (summary.comparison) {
     const c = summary.comparison;
@@ -595,29 +746,32 @@ export function renderSummaryMarkdown(summary) {
   lines.push('');
   lines.push('## 汇总指标');
   lines.push('');
-  lines.push('| 指标 | 数值 |');
-  lines.push('| --- | --- |');
-  for (const key of Object.keys(METRIC_LABELS)) {
-    const v = summary.metrics?.[key];
-    lines.push(`| ${METRIC_LABELS[key]} | ${typeof v === 'number' ? `${(v * 100).toFixed(1)}%` : 'n/a'} |`);
+  lines.push('| 分组 | 指标 | 数值 |');
+  lines.push('| --- | --- | --- |');
+  for (const group of METRIC_GROUPS) {
+    for (const key of group.metrics) {
+      lines.push(`| ${group.label} | ${METRIC_LABELS[key]} | ${formatMetricPrecise(key, summary.metrics?.[key])} |`);
+    }
   }
   lines.push('');
   lines.push('## 逐篇结果');
   lines.push('');
-  lines.push('| 论文 | 分类 | 状态 | sourceCoverage | latePaper | numbers | figures | formulas | ablation | limitation | auditMissing | 耗时 |');
-  lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
+  lines.push('| 论文 | 分类 | 状态 | research_map | plan | sourceCoverage | latePaper | numbers | figures | formulas | ablation | limitation | auditMissing | auditConfidence | 耗时 |');
+  lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
   const pct = (v) => (typeof v === 'number' ? `${(v * 100).toFixed(0)}%` : 'n/a');
   for (const p of summary.papers || []) {
     if (p.status !== 'completed') {
-      lines.push(`| ${p.id} | ${p.category || '-'} | ${p.status} | - | - | - | - | - | - | - | - | ${p.reason || ''} |`);
+      lines.push(`| ${p.id} | ${p.category || '-'} | ${p.status} | - | - | - | - | - | - | - | - | - | - | - | ${p.reason || ''} |`);
       continue;
     }
     const m = p.metrics || {};
     lines.push(
-      `| ${p.id} | ${p.category || '-'} | completed | ${pct(m.sourceCoverage)} | ${pct(m.latePaperCoverage)} | ${pct(
-        m.numberEvidenceCoverage,
-      )} | ${pct(m.figureCoverage)} | ${pct(m.formulaCoverage)} | ${pct(m.ablationCoverage)} | ${pct(m.limitationCoverage)} | ${pct(
-        m.auditMissingRate,
+      `| ${p.id} | ${p.category || '-'} | completed | ${p.researchMapStatus || '-'} | ${p.planStatus || '-'} | ${pct(
+        m.sourceCoverage,
+      )} | ${pct(m.latePaperCoverage)} | ${pct(m.numberEvidenceCoverage)} | ${pct(m.figureCoverage)} | ${pct(
+        m.formulaCoverage,
+      )} | ${pct(m.ablationCoverage)} | ${pct(m.limitationCoverage)} | ${pct(m.auditMissingRate)} | ${pct(
+        m.auditConfidence,
       )} | ${p.runtimeMs ? `${(p.runtimeMs / 1000).toFixed(0)}s` : '-'} |`,
     );
   }
@@ -628,6 +782,9 @@ export function renderSummaryMarkdown(summary) {
     lines.push(`- 提升：${summary.comparison.improved.map((i) => `${i.label} ${(i.baseline * 100).toFixed(0)}%→${(i.current * 100).toFixed(0)}%`).join('；') || '无'}`);
     lines.push(`- 回退：${summary.comparison.regressed.map((i) => `${i.label} ${(i.baseline * 100).toFixed(0)}%→${(i.current * 100).toFixed(0)}%`).join('；') || '无'}`);
     lines.push(`- 持平：${summary.comparison.unchanged.map((i) => i.label).join('；') || '无'}`);
+    if (summary.comparison.missing?.length) {
+      lines.push(`- 无基线可比（新增指标或旧 baseline 未记录）：${summary.comparison.missing.map((k) => METRIC_LABELS[k] || k).join('；')}`);
+    }
   }
   if (summary.notes?.length) {
     lines.push('');
@@ -647,17 +804,40 @@ export function collectQualityNotes(paperEntries, { lowThreshold = 0.6 } = {}) {
     const weak = Object.keys(METRIC_LABELS).filter((key) => {
       const v = m[key];
       if (typeof v !== 'number') return false;
-      return key === 'auditMissingRate' ? v > 0.05 : v < lowThreshold;
+      // 计数类指标单独在下面点名，不走「百分比弱项」扫描
+      if (COUNT_METRICS.has(key)) return false;
+      // 「越低越好」的指标：高了才是问题（不能把 fallback rate = 0% 当成弱项）
+      const rate = LOWER_IS_BETTER.has(key) ? 1 - v : v;
+      if (key === 'auditMissingRate') return v > 0.05;
+      return rate < lowThreshold;
     });
     if (weak.length) {
-      notes.push(`${p.id}：${weak.map((k) => `${METRIC_LABELS[k]}=${(m[k] * 100).toFixed(0)}%`).join('、')}`);
+      notes.push(`${p.id}：${weak.map((k) => `${METRIC_LABELS[k]}=${formatMetric(k, m[k])}`).join('、')}`);
     }
     if (p.lengthStability === 0) notes.push(`${p.id}：终稿疑似截断（lengthStability=0）`);
     if (p.degraded) notes.push(`${p.id}：走了降级流程（legacy fallback）`);
     // 静默降级比失败更危险：research map 没生效时，检索加权与消融/局限识别都退化成关键词匹配，
     // 覆盖率却可能看起来正常，所以必须显式报到 summary 里。
-    if (p.researchMapStatus === 'fallback') {
-      notes.push(`${p.id}：research map 未产出模型地图（本地关键词兜底）——证据定位、消融/局限识别的精度会下降`);
+    // 注意取「统一阶段状态」：record 里的 researchMapStatus 是 v1 遗留字段（model|fallback）
+    const mapStatus = p.researchMapStageStatus || p.researchMapStatus;
+    // 'model' 是 v1 遗留的「模型产出」写法，等同于 model_success
+    if (mapStatus && mapStatus !== 'model_success' && mapStatus !== 'model') {
+      const extra =
+        mapStatus === 'model_truncated'
+          ? '输出被 max_tokens 截断（finish_reason=length），需提高 DEEPREAD_MAP_TOKENS 或换非 reasoning 模型'
+          : mapStatus === 'fallback'
+            ? '本地关键词兜底'
+            : mapStatus;
+      notes.push(`${p.id}：research map 未产出模型地图（${extra}）——证据定位、消融/局限识别的精度会下降`);
+    }
+    if (p.planStatus && p.planStatus !== 'model_success') {
+      notes.push(`${p.id}：计划阶段未使用模型大纲（${p.planStatus}）——小节骨架退化为内置默认大纲`);
+    }
+    if (typeof p.stagesWithWarnings === 'number' && p.stagesWithWarnings > 0) {
+      notes.push(`${p.id}：${p.stagesWithWarnings} 个阶段带告警（${(p.stageWarnings || []).join('、') || '见单篇记录'}）`);
+    }
+    if (typeof m.auditConfidence === 'number' && m.auditConfidence < 0.5) {
+      notes.push(`${p.id}：审计可信度偏低（${(m.auditConfidence * 100).toFixed(0)}%）——上游地图未生效时 audit 的「通过」不能当结论`);
     }
   }
   return notes;

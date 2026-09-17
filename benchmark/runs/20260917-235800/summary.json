@@ -1,0 +1,420 @@
+{
+  "version": "v1",
+  "startedAt": "2026-09-17T15:58:00.307Z",
+  "finishedAt": "2026-09-17T16:29:13.241Z",
+  "runDir": "benchmark/runs/20260917-235800",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "total": 5,
+  "completed": 5,
+  "skipped": 0,
+  "failed": 0,
+  "metrics": {
+    "sourceCoverage": 0.9,
+    "latePaperCoverage": 0.4444,
+    "numberEvidenceCoverage": 0.7333,
+    "figureCoverage": 1,
+    "formulaCoverage": 1,
+    "ablationCoverage": 0.8,
+    "limitationCoverage": 0.3,
+    "auditMissingRate": 0.0522,
+    "sectionCompleteness": 0.9556,
+    "lengthStability": 1,
+    "researchMapModelSuccess": 0.8,
+    "researchMapFallbackRate": 0.2,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1.2,
+    "evidenceFromModelMapRate": 0.5406,
+    "auditConfidence": 0.584
+  },
+  "qualityNotes": [
+    "1706.03762：Late-paper coverage=33%、Ablation coverage=0%、Audit confidence=50%",
+    "2405.15793：Limitation coverage=0%、Evidence from model map=41%",
+    "2406.09246：Late-paper coverage=0%、Limitation coverage=0%、Audit missing rate=9%",
+    "2409.12191：Limitation coverage=0%、Audit missing rate=9%、Audit confidence=50%",
+    "2501.12948：Source coverage=50%、Number evidence=0%、Limitation coverage=50%、Research map model success=0%、Research map fallback rate=100%、Evidence from model map=0%、Audit confidence=32%",
+    "2501.12948：research map 未产出模型地图（输出被 max_tokens 截断（finish_reason=length），需提高 DEEPREAD_MAP_TOKENS 或换非 reasoning 模型）——证据定位、消融/局限识别的精度会下降",
+    "2501.12948：审计可信度偏低（32%）——上游地图未生效时 audit 的「通过」不能当结论"
+  ],
+  "papers": [
+    {
+      "id": "1706.03762",
+      "title": "Attention Is All You Need",
+      "category": "LLM",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 492024,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "auditVerdict": "failed",
+      "stagesWithWarnings": 2,
+      "stageWarnings": [
+        "section_generation",
+        "review"
+      ],
+      "researchMapStats": {
+        "keyClaims": 6,
+        "methodComponents": 5,
+        "equations": 12,
+        "mainResults": 6,
+        "ablations": 1,
+        "limitations": 2,
+        "figures": 5,
+        "evidenceLinks": 19
+      },
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": 0.3333,
+        "numberEvidenceCoverage": 1,
+        "figureCoverage": 1,
+        "formulaCoverage": 1,
+        "ablationCoverage": 0,
+        "limitationCoverage": 1,
+        "auditMissingRate": 0.0339,
+        "sectionCompleteness": 1,
+        "lengthStability": 1,
+        "researchMapModelSuccess": 1,
+        "researchMapFallbackRate": 0,
+        "planModelSuccess": 1,
+        "planFallbackRate": 0,
+        "stagesWithWarnings": 2,
+        "evidenceFromModelMapRate": 0.7333,
+        "auditConfidence": 0.5
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 40375,
+        "textLines": 0,
+        "figures": 5,
+        "sections": 25,
+        "chunks": 185
+      }
+    },
+    {
+      "id": "2405.15793",
+      "title": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+      "category": "Agent",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 319968,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "auditVerdict": "passed_with_warning",
+      "stagesWithWarnings": 1,
+      "stageWarnings": [
+        "review"
+      ],
+      "researchMapStats": {
+        "keyClaims": 6,
+        "methodComponents": 9,
+        "equations": 12,
+        "mainResults": 8,
+        "ablations": 3,
+        "limitations": 4,
+        "figures": 20,
+        "evidenceLinks": 13
+      },
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": null,
+        "numberEvidenceCoverage": 0.6667,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0.0263,
+        "sectionCompleteness": 1,
+        "lengthStability": 1,
+        "researchMapModelSuccess": 1,
+        "researchMapFallbackRate": 0,
+        "planModelSuccess": 1,
+        "planFallbackRate": 0,
+        "stagesWithWarnings": 1,
+        "evidenceFromModelMapRate": 0.4118,
+        "auditConfidence": 0.8
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 274329,
+        "textLines": 0,
+        "figures": 26,
+        "sections": 41,
+        "chunks": 574
+      }
+    },
+    {
+      "id": "2406.09246",
+      "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+      "category": "Embodied AI / Robotics",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 354704,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "auditVerdict": "passed_with_warning",
+      "stagesWithWarnings": 1,
+      "stageWarnings": [
+        "review"
+      ],
+      "researchMapStats": {
+        "keyClaims": 6,
+        "methodComponents": 8,
+        "equations": 5,
+        "mainResults": 9,
+        "ablations": 5,
+        "limitations": 4,
+        "figures": 10,
+        "evidenceLinks": 21
+      },
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": 0,
+        "numberEvidenceCoverage": 1,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0.093,
+        "sectionCompleteness": 1,
+        "lengthStability": 1,
+        "researchMapModelSuccess": 1,
+        "researchMapFallbackRate": 0,
+        "planModelSuccess": 1,
+        "planFallbackRate": 0,
+        "stagesWithWarnings": 1,
+        "evidenceFromModelMapRate": 0.8438,
+        "auditConfidence": 0.8
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 133708,
+        "textLines": 0,
+        "figures": 9,
+        "sections": 40,
+        "chunks": 188
+      }
+    },
+    {
+      "id": "2409.12191",
+      "title": "Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution",
+      "category": "Multimodal / VLM",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 322463,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "auditVerdict": "failed",
+      "stagesWithWarnings": 1,
+      "stageWarnings": [
+        "review"
+      ],
+      "researchMapStats": {
+        "keyClaims": 6,
+        "methodComponents": 6,
+        "equations": 5,
+        "mainResults": 12,
+        "ablations": 4,
+        "limitations": 0,
+        "figures": 15,
+        "evidenceLinks": 24
+      },
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": null,
+        "numberEvidenceCoverage": 1,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0.0876,
+        "sectionCompleteness": 1,
+        "lengthStability": 1,
+        "researchMapModelSuccess": 1,
+        "researchMapFallbackRate": 0,
+        "planModelSuccess": 1,
+        "planFallbackRate": 0,
+        "stagesWithWarnings": 1,
+        "evidenceFromModelMapRate": 0.7143,
+        "auditConfidence": 0.5
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 115376,
+        "textLines": 0,
+        "figures": 29,
+        "sections": 30,
+        "chunks": 138
+      }
+    },
+    {
+      "id": "2501.12948",
+      "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+      "category": "RL / RLVR",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 383750,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "researchMapStatus": "model_truncated",
+      "researchMapSource": "local",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "auditVerdict": "passed_with_warning",
+      "stagesWithWarnings": 1,
+      "stageWarnings": [
+        "research_map"
+      ],
+      "researchMapStats": {
+        "keyClaims": 6,
+        "methodComponents": 8,
+        "equations": 8,
+        "mainResults": 8,
+        "ablations": 6,
+        "limitations": 6,
+        "figures": 17,
+        "evidenceLinks": 27
+      },
+      "metrics": {
+        "sourceCoverage": 0.5,
+        "latePaperCoverage": 1,
+        "numberEvidenceCoverage": 0,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0.5,
+        "auditMissingRate": 0.0204,
+        "sectionCompleteness": 0.7778,
+        "lengthStability": 1,
+        "researchMapModelSuccess": 0,
+        "researchMapFallbackRate": 1,
+        "planModelSuccess": 1,
+        "planFallbackRate": 0,
+        "stagesWithWarnings": 1,
+        "evidenceFromModelMapRate": 0,
+        "auditConfidence": 0.32
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 225351,
+        "textLines": 0,
+        "figures": 21,
+        "sections": 54,
+        "chunks": 337
+      }
+    }
+  ],
+  "comparison": {
+    "improved": [
+      {
+        "metric": "sourceCoverage",
+        "label": "Source coverage",
+        "baseline": 0.8833,
+        "current": 0.9,
+        "delta": 0.0167
+      },
+      {
+        "metric": "figureCoverage",
+        "label": "Figure coverage",
+        "baseline": 0.9,
+        "current": 1,
+        "delta": 0.1
+      },
+      {
+        "metric": "ablationCoverage",
+        "label": "Ablation coverage",
+        "baseline": 0.7,
+        "current": 0.8,
+        "delta": 0.1
+      }
+    ],
+    "regressed": [
+      {
+        "metric": "latePaperCoverage",
+        "label": "Late-paper coverage",
+        "baseline": 0.6667,
+        "current": 0.4444,
+        "delta": -0.2223
+      },
+      {
+        "metric": "numberEvidenceCoverage",
+        "label": "Number evidence",
+        "baseline": 0.75,
+        "current": 0.7333,
+        "delta": -0.0167
+      },
+      {
+        "metric": "auditMissingRate",
+        "label": "Audit missing rate",
+        "baseline": 0.0104,
+        "current": 0.0522,
+        "delta": 0.0418
+      },
+      {
+        "metric": "sectionCompleteness",
+        "label": "Section completeness",
+        "baseline": 1,
+        "current": 0.9556,
+        "delta": -0.0444
+      }
+    ],
+    "unchanged": [
+      {
+        "metric": "formulaCoverage",
+        "label": "Formula coverage",
+        "baseline": 1,
+        "current": 1,
+        "delta": 0
+      },
+      {
+        "metric": "limitationCoverage",
+        "label": "Limitation coverage",
+        "baseline": 0.3,
+        "current": 0.3,
+        "delta": 0
+      },
+      {
+        "metric": "lengthStability",
+        "label": "Length stability",
+        "baseline": 1,
+        "current": 1,
+        "delta": 0
+      }
+    ],
+    "missing": [
+      "researchMapModelSuccess",
+      "researchMapFallbackRate",
+      "planModelSuccess",
+      "planFallbackRate",
+      "stagesWithWarnings",
+      "evidenceFromModelMapRate",
+      "auditConfidence"
+    ]
+  }
+}

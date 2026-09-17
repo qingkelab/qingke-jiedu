@@ -1,0 +1,1518 @@
+{
+  "id": "2409.12191",
+  "title": "Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution",
+  "category": "Multimodal / VLM",
+  "url": "https://arxiv.org/abs/2409.12191",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 322463,
+  "source": {
+    "kind": "html",
+    "chars": 115376,
+    "textLines": 0,
+    "figures": 29,
+    "sections": 30,
+    "chunks": 138
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 30,
+    "chunkCount": 138,
+    "chars": 92036,
+    "coverage": 92036,
+    "truncated": false
+  },
+  "researchMapStatus": "model",
+  "researchMapStageStatus": "model_success",
+  "researchMapSource": "model",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 6,
+    "equations": 5,
+    "mainResults": 12,
+    "ablations": 4,
+    "limitations": 0,
+    "figures": 15,
+    "evidenceLinks": 24
+  },
+  "planStatus": "model_success",
+  "planSource": "model",
+  "auditVerdict": "failed",
+  "stages": {
+    "chunking": {
+      "stage": "chunking",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 0,
+      "warning": false,
+      "skipped": false,
+      "sections": 30,
+      "chunks": 138,
+      "chars": 92036
+    },
+    "research_map": {
+      "stage": "research_map",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 16359,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 44227,
+      "warning": false,
+      "skipped": false,
+      "maxTokens": 16000,
+      "inputChars": 24000,
+      "evidenceLinks": 24
+    },
+    "plan": {
+      "stage": "plan",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 449,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 17920,
+      "warning": false,
+      "skipped": false,
+      "sectionCount": 7,
+      "maxTokens": 16000
+    },
+    "retrieval": {
+      "stage": "retrieval",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 63,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "evidence": 81,
+      "chunksCovered": 28,
+      "backHalfEvidence": 18
+    },
+    "section_generation": {
+      "stage": "section_generation",
+      "status": "success",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 156213,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "failed": 0
+    },
+    "audit": {
+      "stage": "audit",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 22,
+      "warning": false,
+      "skipped": false,
+      "verdict": "failed",
+      "researchMapSource": "model",
+      "failedChecks": [
+        "numbers"
+      ],
+      "warnings": []
+    },
+    "repair": {
+      "stage": "repair",
+      "status": "success",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 28623,
+      "warning": false,
+      "skipped": false,
+      "targets": 2,
+      "applied": 2,
+      "errors": 0
+    },
+    "review": {
+      "stage": "review",
+      "status": "warn",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": "length",
+      "rawContentLength": 0,
+      "parsed": false,
+      "fallback": true,
+      "fallbackReason": "审校返回空内容",
+      "reason": "审校结果被护栏丢弃（保留原稿）：审校返回空内容",
+      "durationMs": 71493,
+      "warning": true,
+      "skipped": false
+    }
+  },
+  "stageSummary": {
+    "total": 8,
+    "withWarnings": 1,
+    "stagesWithWarnings": [
+      "review"
+    ],
+    "fallbacks": [
+      "review"
+    ],
+    "truncated": [],
+    "skipped": [],
+    "failed": []
+  },
+  "evidence": [
+    {
+      "section": "任意分辨率让 LVLM 真正看清世界",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c5",
+        "c6",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c35",
+        "c42",
+        "c79",
+        "c80",
+        "c121"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "固定 224×224 与绝对位置编码卡住老 LVLM",
+      "role": "intro",
+      "chunkIds": [
+        "c2",
+        "c5",
+        "c6",
+        "c8",
+        "c14",
+        "c16",
+        "c18",
+        "c19",
+        "c20",
+        "c32",
+        "c79",
+        "c80"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "Naive Dynamic Resolution 让每张图自己决定 token 数",
+      "role": "formula",
+      "chunkIds": [
+        "c5",
+        "c16",
+        "c18",
+        "c19",
+        "c20",
+        "c32",
+        "c65",
+        "c66",
+        "c67",
+        "c68",
+        "c69",
+        "c70"
+      ],
+      "figureNums": [
+        4
+      ]
+    },
+    {
+      "section": "M-RoPE 把位置拆成时间、高、宽",
+      "role": "method",
+      "chunkIds": [
+        "c5",
+        "c6",
+        "c16",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c32",
+        "c37",
+        "c71",
+        "c72",
+        "c73"
+      ],
+      "figureNums": [
+        5
+      ]
+    },
+    {
+      "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c5",
+        "c6",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c35",
+        "c42",
+        "c79",
+        "c80",
+        "c121"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "消融三连：min_pixels、M-RoPE 外推、模型缩放都管用",
+      "role": "method",
+      "chunkIds": [
+        "c5",
+        "c6",
+        "c16",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c32",
+        "c37",
+        "c71",
+        "c72",
+        "c73"
+      ],
+      "figureNums": [
+        5
+      ]
+    },
+    {
+      "section": "16384 token 和 2fps 是硬边界，开源权重才是礼物",
+      "role": "limitation",
+      "chunkIds": [
+        "c8",
+        "c19",
+        "c21",
+        "c36",
+        "c64",
+        "c65",
+        "c71",
+        "c79",
+        "c80"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "fail",
+        "detail": "终稿数字 119 个，原文未检到 9 个（匹配方式：精确 108 / 归一化 0 / 近似 2）",
+        "missing": [
+          "256",
+          "33",
+          "34",
+          "4.6",
+          "3.8",
+          "14.7",
+          "6.7",
+          "5.2",
+          "2400"
+        ],
+        "matched": [
+          {
+            "value": "2",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "224x",
+            "method": "exact",
+            "chunkId": "c7"
+          },
+          {
+            "value": "224",
+            "method": "exact",
+            "chunkId": "c7"
+          },
+          {
+            "value": "2b",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "8b",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "72b",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "7b",
+            "method": "exact",
+            "chunkId": "c14"
+          },
+          {
+            "value": "7.6b",
+            "method": "exact",
+            "chunkId": "c14"
+          },
+          {
+            "value": "9",
+            "method": "exact",
+            "chunkId": "c104"
+          },
+          {
+            "value": "4",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "3.5",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "1",
+            "method": "exact",
+            "chunkId": "c9"
+          },
+          {
+            "value": "20",
+            "method": "exact",
+            "chunkId": "c13"
+          },
+          {
+            "value": "3",
+            "method": "exact",
+            "chunkId": "c16"
+          },
+          {
+            "value": "675m",
+            "method": "exact",
+            "chunkId": "c14"
+          },
+          {
+            "value": "2x",
+            "method": "exact",
+            "chunkId": "c18"
+          },
+          {
+            "value": "14",
+            "method": "exact",
+            "chunkId": "c18"
+          },
+          {
+            "value": "66",
+            "method": "exact",
+            "chunkId": "c18"
+          },
+          {
+            "value": "16",
+            "method": "exact",
+            "chunkId": "c47"
+          },
+          {
+            "value": "8",
+            "method": "exact",
+            "chunkId": "c71"
+          },
+          {
+            "value": "64",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "100",
+            "method": "exact",
+            "chunkId": "c67"
+          },
+          {
+            "value": "28",
+            "method": "exact",
+            "chunkId": "c55"
+          },
+          {
+            "value": "16384",
+            "method": "exact",
+            "chunkId": "c22"
+          },
+          {
+            "value": "2倍",
+            "method": "approximate",
+            "chunkId": "c2"
+          },
+          {
+            "value": "7",
+            "method": "exact",
+            "chunkId": "c55"
+          },
+          {
+            "value": "28.85",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "56.47",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "572",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "53.33",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "576",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "65.72",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "65.88",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "828",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "52.78",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "1600",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "74.99",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "69.54",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "824",
+            "method": "exact",
+            "chunkId": "c65"
+          },
+          {
+            "value": "52.89",
+            "method": "exact",
+            "chunkId": "c65"
+          }
+        ],
+        "methods": {
+          "exact": 108,
+          "normalized": 0,
+          "approximate": 2
+        }
+      },
+      {
+        "name": "entities",
+        "status": "warn",
+        "detail": "地图实体 35 个，原文未出现 12 个，终稿未提及 25 个",
+        "unknown": [
+          "MMMUval 准确率",
+          "DocVQAtest 准确率",
+          "InfoVQAtest 准确率",
+          "AI2D 准确率",
+          "ChartQAtest 准确率",
+          "TextVQAval 准确率",
+          "OCRBench 分数",
+          "MTVQA 准确率"
+        ],
+        "notMentioned": [
+          "InfoVQAtest",
+          "ChartQAtest",
+          "TextVQAval",
+          "VCRen easy",
+          "MVBench",
+          "PerceptionTesttest",
+          "MMMUval 准确率",
+          "DocVQAtest 准确率"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 80 个，终稿覆盖 37 个",
+        "covered": [
+          "2m",
+          "2",
+          "72b",
+          "64.5",
+          "7b",
+          "54.1",
+          "2b",
+          "41.1",
+          "3.5",
+          "68.3",
+          "4",
+          "69.1",
+          "66.1",
+          "96.5",
+          "94.5",
+          "90.1",
+          "95.2",
+          "92.8",
+          "94.1",
+          "88.3",
+          "866",
+          "3",
+          "93.4",
+          "91.5",
+          "89.8",
+          "97.2",
+          "73.0",
+          "70.7",
+          "87.8",
+          "89.7",
+          "74.1",
+          "96.8",
+          "72.0",
+          "75.9",
+          "4m",
+          "68.0",
+          "1.5"
+        ],
+        "missed": [
+          "84.5",
+          "76.5",
+          "65.5",
+          "82.0",
+          "88.1",
+          "83.0",
+          "74.7",
+          "87.6"
+        ]
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 4 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "info",
+        "detail": "原文未见明确局限"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 9 条，终稿 25 条，可对应 12 条"
+      },
+      {
+        "name": "figures",
+        "status": "warn",
+        "detail": "可用图 29 张，终稿引用 15 处，疑似错配 8 处",
+        "refs": [
+          2,
+          1,
+          3,
+          4,
+          5,
+          10,
+          13,
+          11,
+          7,
+          29,
+          22,
+          23,
+          24,
+          27,
+          6
+        ],
+        "badRefs": [],
+        "mismatched": [
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 10
+          },
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 13
+          },
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 7
+          },
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 29
+          },
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 22
+          },
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 23
+          },
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 24
+          },
+          {
+            "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+            "num": 27
+          }
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：256、33、34、4.6、3.8、14.7、6.7、5.2",
+        "missing": [
+          "256",
+          "33",
+          "34",
+          "4.6",
+          "3.8",
+          "14.7",
+          "6.7",
+          "5.2",
+          "2400"
+        ]
+      },
+      {
+        "check": "entities",
+        "severity": "warn",
+        "detail": "地图里的实体在原文中未出现（可能被臆造）：MMMUval 准确率、DocVQAtest 准确率、InfoVQAtest 准确率、AI2D 准确率、ChartQAtest 准确率、TextVQAval 准确率"
+      },
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源」节引用的图10 与图注内容不符"
+      },
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源」节引用的图13 与图注内容不符"
+      }
+    ],
+    "serious": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：256、33、34、4.6、3.8、14.7、6.7、5.2",
+        "missing": [
+          "256",
+          "33",
+          "34",
+          "4.6",
+          "3.8",
+          "14.7",
+          "6.7",
+          "5.2",
+          "2400"
+        ]
+      }
+    ],
+    "repairTargets": [
+      {
+        "heading": "Naive Dynamic Resolution 让每张图自己决定 token 数",
+        "hints": [
+          "核对数字 256：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 33：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      },
+      {
+        "heading": "M-RoPE 把位置拆成时间、高、宽",
+        "hints": [
+          "核对数字 33：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 34：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      },
+      {
+        "heading": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+        "hints": [
+          "核对数字 4.6：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "图 10 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系",
+          "图 13 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      }
+    ],
+    "warnings": [],
+    "verdict": "failed",
+    "researchMapStatus": "model_success",
+    "researchMapSource": "model",
+    "stats": {
+      "numbers": 119,
+      "missingNumbers": 9,
+      "numberMatchMethods": {
+        "exact": 108,
+        "normalized": 0,
+        "approximate": 2
+      },
+      "entities": 35,
+      "mainResults": 80,
+      "formulas": 25,
+      "figureRefs": 15
+    },
+    "sourceKey": "https://arxiv.org/abs/2409.12191",
+    "after": {
+      "checks": [
+        {
+          "name": "numbers",
+          "status": "fail",
+          "detail": "终稿数字 115 个，原文未检到 6 个（匹配方式：精确 107 / 归一化 0 / 近似 2）",
+          "missing": [
+            "4.6",
+            "3.8",
+            "14.7",
+            "6.7",
+            "5.2",
+            "2400"
+          ],
+          "matched": [
+            {
+              "value": "2",
+              "method": "exact",
+              "chunkId": "c2"
+            },
+            {
+              "value": "224x",
+              "method": "exact",
+              "chunkId": "c7"
+            },
+            {
+              "value": "224",
+              "method": "exact",
+              "chunkId": "c7"
+            },
+            {
+              "value": "2b",
+              "method": "exact",
+              "chunkId": "c2"
+            },
+            {
+              "value": "8b",
+              "method": "exact",
+              "chunkId": "c2"
+            },
+            {
+              "value": "72b",
+              "method": "exact",
+              "chunkId": "c2"
+            },
+            {
+              "value": "7b",
+              "method": "exact",
+              "chunkId": "c14"
+            },
+            {
+              "value": "7.6b",
+              "method": "exact",
+              "chunkId": "c14"
+            },
+            {
+              "value": "9",
+              "method": "exact",
+              "chunkId": "c104"
+            },
+            {
+              "value": "4",
+              "method": "exact",
+              "chunkId": "c2"
+            },
+            {
+              "value": "3.5",
+              "method": "exact",
+              "chunkId": "c2"
+            },
+            {
+              "value": "1",
+              "method": "exact",
+              "chunkId": "c9"
+            },
+            {
+              "value": "20",
+              "method": "exact",
+              "chunkId": "c13"
+            },
+            {
+              "value": "3",
+              "method": "exact",
+              "chunkId": "c16"
+            },
+            {
+              "value": "675m",
+              "method": "exact",
+              "chunkId": "c14"
+            },
+            {
+              "value": "2x",
+              "method": "exact",
+              "chunkId": "c18"
+            },
+            {
+              "value": "14",
+              "method": "exact",
+              "chunkId": "c18"
+            },
+            {
+              "value": "66",
+              "method": "exact",
+              "chunkId": "c18"
+            },
+            {
+              "value": "16",
+              "method": "exact",
+              "chunkId": "c47"
+            },
+            {
+              "value": "8",
+              "method": "exact",
+              "chunkId": "c71"
+            },
+            {
+              "value": "100",
+              "method": "exact",
+              "chunkId": "c67"
+            },
+            {
+              "value": "28",
+              "method": "exact",
+              "chunkId": "c55"
+            },
+            {
+              "value": "16384",
+              "method": "exact",
+              "chunkId": "c22"
+            },
+            {
+              "value": "2倍",
+              "method": "approximate",
+              "chunkId": "c2"
+            },
+            {
+              "value": "7",
+              "method": "exact",
+              "chunkId": "c55"
+            },
+            {
+              "value": "64",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "28.85",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "56.47",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "572",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "53.33",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "576",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "65.72",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "65.88",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "828",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "52.78",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "1600",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "74.99",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "69.54",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "824",
+              "method": "exact",
+              "chunkId": "c65"
+            },
+            {
+              "value": "52.89",
+              "method": "exact",
+              "chunkId": "c65"
+            }
+          ],
+          "methods": {
+            "exact": 107,
+            "normalized": 0,
+            "approximate": 2
+          }
+        },
+        {
+          "name": "entities",
+          "status": "warn",
+          "detail": "地图实体 35 个，原文未出现 12 个，终稿未提及 25 个",
+          "unknown": [
+            "MMMUval 准确率",
+            "DocVQAtest 准确率",
+            "InfoVQAtest 准确率",
+            "AI2D 准确率",
+            "ChartQAtest 准确率",
+            "TextVQAval 准确率",
+            "OCRBench 分数",
+            "MTVQA 准确率"
+          ],
+          "notMentioned": [
+            "InfoVQAtest",
+            "ChartQAtest",
+            "TextVQAval",
+            "VCRen easy",
+            "MVBench",
+            "PerceptionTesttest",
+            "MMMUval 准确率",
+            "DocVQAtest 准确率"
+          ]
+        },
+        {
+          "name": "main_result",
+          "status": "pass",
+          "detail": "主要结果关键数字 80 个，终稿覆盖 37 个",
+          "covered": [
+            "2m",
+            "2",
+            "72b",
+            "64.5",
+            "7b",
+            "54.1",
+            "2b",
+            "41.1",
+            "3.5",
+            "68.3",
+            "4",
+            "69.1",
+            "66.1",
+            "96.5",
+            "94.5",
+            "90.1",
+            "95.2",
+            "92.8",
+            "94.1",
+            "88.3",
+            "866",
+            "3",
+            "93.4",
+            "91.5",
+            "89.8",
+            "97.2",
+            "73.0",
+            "70.7",
+            "87.8",
+            "89.7",
+            "74.1",
+            "96.8",
+            "72.0",
+            "75.9",
+            "4m",
+            "68.0",
+            "1.5"
+          ],
+          "missed": [
+            "84.5",
+            "76.5",
+            "65.5",
+            "82.0",
+            "88.1",
+            "83.0",
+            "74.7",
+            "87.6"
+          ]
+        },
+        {
+          "name": "ablation",
+          "status": "pass",
+          "detail": "原文有 4 条消融信息，终稿已覆盖"
+        },
+        {
+          "name": "limitation",
+          "status": "info",
+          "detail": "原文未见明确局限"
+        },
+        {
+          "name": "formula",
+          "status": "pass",
+          "detail": "原文公式 9 条，终稿 30 条，可对应 15 条"
+        },
+        {
+          "name": "figures",
+          "status": "warn",
+          "detail": "可用图 29 张，终稿引用 15 处，疑似错配 8 处",
+          "refs": [
+            2,
+            1,
+            3,
+            4,
+            5,
+            10,
+            13,
+            11,
+            7,
+            29,
+            22,
+            23,
+            24,
+            27,
+            6
+          ],
+          "badRefs": [],
+          "mismatched": [
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 10
+            },
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 13
+            },
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 7
+            },
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 29
+            },
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 22
+            },
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 23
+            },
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 24
+            },
+            {
+              "section": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+              "num": 27
+            }
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "check": "numbers",
+          "severity": "fail",
+          "detail": "数字无法在原文定位：4.6、3.8、14.7、6.7、5.2、2400",
+          "missing": [
+            "4.6",
+            "3.8",
+            "14.7",
+            "6.7",
+            "5.2",
+            "2400"
+          ]
+        },
+        {
+          "check": "entities",
+          "severity": "warn",
+          "detail": "地图里的实体在原文中未出现（可能被臆造）：MMMUval 准确率、DocVQAtest 准确率、InfoVQAtest 准确率、AI2D 准确率、ChartQAtest 准确率、TextVQAval 准确率"
+        },
+        {
+          "check": "figures",
+          "severity": "warn",
+          "detail": "第「表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源」节引用的图10 与图注内容不符"
+        },
+        {
+          "check": "figures",
+          "severity": "warn",
+          "detail": "第「表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源」节引用的图13 与图注内容不符"
+        }
+      ],
+      "serious": [
+        {
+          "check": "numbers",
+          "severity": "fail",
+          "detail": "数字无法在原文定位：4.6、3.8、14.7、6.7、5.2、2400",
+          "missing": [
+            "4.6",
+            "3.8",
+            "14.7",
+            "6.7",
+            "5.2",
+            "2400"
+          ]
+        }
+      ],
+      "repairTargets": [
+        {
+          "heading": "表2 多基准：72B 逼近 GPT-4o，7B/2B 超开源",
+          "hints": [
+            "核对数字 4.6：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+            "核对数字 3.8：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+            "核对数字 14.7：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+            "核对数字 6.7：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+            "图 10 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系",
+            "图 13 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+          ]
+        },
+        {
+          "heading": "M-RoPE 把位置拆成时间、高、宽",
+          "hints": [
+            "核对数字 6.7：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+          ]
+        },
+        {
+          "heading": "16384 token 和 2fps 是硬边界，开源权重才是礼物",
+          "hints": [
+            "核对数字 6.7：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+          ]
+        }
+      ],
+      "warnings": [
+        {
+          "code": "research_map_source_unknown",
+          "detail": "研究地图缺少阶段元数据，无法判断它来自模型还是本地兜底"
+        }
+      ],
+      "verdict": "failed",
+      "researchMapStatus": "unknown",
+      "researchMapSource": "unknown",
+      "stats": {
+        "numbers": 115,
+        "missingNumbers": 6,
+        "numberMatchMethods": {
+          "exact": 107,
+          "normalized": 0,
+          "approximate": 2
+        },
+        "entities": 35,
+        "mainResults": 80,
+        "formulas": 30,
+        "figureRefs": 15
+      },
+      "sourceKey": "https://arxiv.org/abs/2409.12191"
+    }
+  },
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": null,
+    "numberEvidenceCoverage": 1,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0.0876,
+    "sectionCompleteness": 1,
+    "lengthStability": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0.7143,
+    "auditConfidence": 0.5
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "Qwen2-VL 提供 2B / 8B / 72B 三个规模，并统一图像与视频处理范式",
+        "late": false,
+        "section": "Qwen2-VL: Enhancing Vision-Language Model’s Perception of the World at Any Resolution",
+        "ok": true,
+        "keywordHits": [
+          "2B",
+          "72B",
+          "Qwen2-VL"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "2",
+          "72"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "M-RoPE（Multimodal Rotary Position Embedding）统一文本 / 图像 / 视频的位置信息",
+        "late": false,
+        "section": "Qwen2-VL: Enhancing Vision-Language Model’s Perception of the World at Any Resolution",
+        "ok": true,
+        "keywordHits": [
+          "M-RoPE",
+          "Rotary Position Embedding"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "在 DocVQA、MathVista 等视觉 benchmark 上取得领先，并支持 20 分钟以上长视频理解",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "DocVQA",
+          "MathVista",
+          "video"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "20"
+        ],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "消融验证关键组件（动态分辨率 / M-RoPE / 数据规模）对性能的贡献",
+        "late": false,
+        "section": "Ablation Study",
+        "ok": true,
+        "keywordHits": [
+          "消融",
+          "动态分辨率",
+          "M-RoPE"
+        ],
+        "missingKeywords": [
+          "ablation"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "能力边界与后续工作（视频理解、位置外推的限制）",
+        "late": false,
+        "section": "Introduction",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "limitations",
+          "局限",
+          "future work",
+          "后续工作"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "2",
+        "72",
+        "20"
+      ],
+      "hits": [
+        "2",
+        "72",
+        "20"
+      ],
+      "missing": [],
+      "unlocated": [],
+      "located": 3
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "capabilities",
+          "video analysis"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 5,
+        "keywords": [
+          "length extrapolation",
+          "Video-MME"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [],
+    "sections": {
+      "ratio": 1,
+      "planned": 7,
+      "final": 7,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 7,
+      "planned": 7,
+      "chars": 11497,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0876,
+    "reliability": {
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 16359,
+      "researchMapFallbackReason": "",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "review"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 1,
+        "stagesWithWarnings": [
+          "review"
+        ],
+        "fallbacks": [
+          "review"
+        ],
+        "truncated": [],
+        "skipped": [],
+        "failed": []
+      },
+      "evidenceChunks": 28,
+      "evidenceFromModelMap": 20
+    },
+    "audit": {
+      "verdict": "failed",
+      "warnings": [],
+      "researchMapSource": "model"
+    }
+  },
+  "warnings": [],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 3868,
+      "lastAtMs": 3868
+    },
+    "research_map": {
+      "firstAtMs": 3874,
+      "lastAtMs": 48101
+    },
+    "plan": {
+      "firstAtMs": 48101,
+      "lastAtMs": 66021
+    },
+    "retrieval": {
+      "firstAtMs": 66084,
+      "lastAtMs": 66084
+    },
+    "section": {
+      "firstAtMs": 66084,
+      "lastAtMs": 203150
+    },
+    "section_done": {
+      "firstAtMs": 85079,
+      "lastAtMs": 222297
+    },
+    "audit": {
+      "firstAtMs": 222297,
+      "lastAtMs": 250945
+    },
+    "repair": {
+      "firstAtMs": 222319,
+      "lastAtMs": 222319
+    },
+    "finalize": {
+      "firstAtMs": 250942,
+      "lastAtMs": 250942
+    }
+  },
+  "markdownChars": 12597,
+  "finishedAt": "2026-09-17T16:22:49.486Z"
+}

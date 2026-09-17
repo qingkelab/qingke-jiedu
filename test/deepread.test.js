@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPaperStructure } from '../src/deepread/chunker.js';
 import { runDeepRead } from '../src/deepread/index.js';
+import { defaultDeepReadPlan } from '../src/deepread/prompts.js';
 import { longPaperText } from './fixtures.js';
 
 function sourceFrom(text) {
@@ -196,6 +197,87 @@ test('审计失败不阻断报告（只记 warning）', async () => {
   // structure 为空时按文本重建，仍应正常出稿
   assert.equal(res.degraded, false);
   assert.ok(res.markdown.length > 200);
+});
+
+test('计划阶段：模型大纲被截断时标记 model_truncated 并显式声明使用默认骨架', async () => {
+  const base = makeChat().chat;
+  const chat = async (messages, maxTokens) => {
+    const user = messages[messages.length - 1]?.content || '';
+    // 真实事故：reasoning 吃满预算，大纲可见正文为空、finish_reason=length
+    if (/请给出大纲/.test(user)) return { content: '', finishReason: 'length' };
+    return base(messages, maxTokens);
+  };
+  const res = await runDeepRead({ chat, source: sourceFrom(longPaperText()), figures: [], onProgress: () => {} });
+  assert.equal(res.meta.planStatus, 'model_truncated');
+  assert.equal(res.meta.planSource, 'default');
+  assert.equal(res.meta.stages.plan.status, 'model_truncated');
+  assert.equal(res.meta.stages.plan.finishReason, 'length');
+  assert.equal(res.meta.stages.plan.source, 'default');
+  assert.equal(res.meta.stages.plan.fallback, true);
+  assert.equal(res.meta.stages.plan.sectionCount, defaultDeepReadPlan().length);
+  // 用的是默认骨架（而不是靠标题去猜）
+  assert.deepEqual(
+    res.meta.plan.map((p) => p.title),
+    defaultDeepReadPlan().map((p) => p.title),
+  );
+  assert.ok(res.meta.warnings.some((w) => /大纲/.test(w)), '降级原因要留在 warnings 里');
+  assert.equal(res.degraded, false, '降级不等于流程失败');
+});
+
+test('计划阶段：模型有输出但解析不出小节 → parse_failed（与截断区分）', async () => {
+  const base = makeChat().chat;
+  const chat = async (messages, maxTokens) => {
+    const user = messages[messages.length - 1]?.content || '';
+    if (/请给出大纲/.test(user)) return { content: '我建议按论文结构分节展开，先讲问题再讲方法。', finishReason: 'stop' };
+    return base(messages, maxTokens);
+  };
+  const res = await runDeepRead({ chat, source: sourceFrom(longPaperText()), figures: [], onProgress: () => {} });
+  assert.equal(res.meta.planStatus, 'parse_failed');
+  assert.equal(res.meta.stages.plan.status, 'parse_failed');
+  assert.notEqual(res.meta.stages.plan.status, 'model_truncated');
+  assert.equal(res.meta.stages.plan.parsed, false);
+  assert.ok(res.meta.stages.plan.rawContentLength > 0, '有可见正文才算解析失败');
+});
+
+test('计划阶段：模型大纲可用时标记 model_success 并记录小节数', async () => {
+  const { chat } = makeChat();
+  const res = await runDeepRead({ chat, source: sourceFrom(longPaperText()), figures: [], onProgress: () => {} });
+  assert.equal(res.meta.planStatus, 'model_success');
+  assert.equal(res.meta.planSource, 'model');
+  assert.equal(res.meta.stages.plan.status, 'model_success');
+  assert.equal(res.meta.stages.plan.fallback, false);
+  assert.equal(res.meta.stages.plan.sectionCount, res.meta.plan.length);
+});
+
+test('统一阶段元数据覆盖 research_map / plan / retrieval / section_generation / audit / repair', async () => {
+  const { chat } = makeChat();
+  const res = await runDeepRead({ chat, source: sourceFrom(longPaperText()), figures: [], onProgress: () => {} });
+  const stages = res.meta.stages;
+  for (const name of ['research_map', 'plan', 'retrieval', 'section_generation', 'audit', 'repair']) {
+    assert.ok(stages[name], `缺少阶段元数据：${name}`);
+  }
+  for (const [name, stage] of Object.entries(stages)) {
+    for (const field of ['stage', 'status', 'source', 'fallback', 'warning', 'parsed']) {
+      assert.ok(field in stage, `${name} 缺少统一字段 ${field}`);
+    }
+    assert.equal(stage.stage, name, '阶段名要与 key 一致');
+    assert.equal(typeof stage.fallbackReason, 'string');
+  }
+  assert.equal(stages.research_map.status, 'model_success');
+  assert.equal(stages.audit.status, 'success');
+  assert.equal(typeof res.meta.stageSummary.withWarnings, 'number');
+  assert.ok(Array.isArray(res.meta.stageSummary.stagesWithWarnings));
+  assert.ok(res.meta.researchMapEvidenceIds.length >= 1, '模型地图要暴露证据 chunk id');
+  assert.equal(typeof res.meta.auditVerdict, 'string');
+});
+
+test('审计接收上游地图可信度：地图兜底时结论降级并给出 warning', async () => {
+  const { chat } = makeChat({ failMap: true });
+  const res = await runDeepRead({ chat, source: sourceFrom(longPaperText()), figures: [], onProgress: () => {} });
+  assert.equal(res.meta.stages.research_map.status, 'provider_error');
+  assert.equal(res.audit.researchMapSource, 'local');
+  assert.ok(res.audit.warnings.some((w) => w.code === 'research_map_unavailable'));
+  assert.notEqual(res.audit.verdict, 'passed', '地图不可信时不能算干净通过');
 });
 
 test('结构来自 HTML 时使用真实章节（含 figure 映射）', () => {

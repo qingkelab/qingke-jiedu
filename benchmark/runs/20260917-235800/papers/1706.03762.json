@@ -1,0 +1,1328 @@
+{
+  "id": "1706.03762",
+  "title": "Attention Is All You Need",
+  "category": "LLM",
+  "url": "https://arxiv.org/abs/1706.03762",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 492024,
+  "source": {
+    "kind": "html",
+    "chars": 40375,
+    "textLines": 0,
+    "figures": 5,
+    "sections": 25,
+    "chunks": 185
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 25,
+    "chunkCount": 185,
+    "chars": 40960,
+    "coverage": 40960,
+    "truncated": false
+  },
+  "researchMapStatus": "model",
+  "researchMapStageStatus": "model_success",
+  "researchMapSource": "model",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 5,
+    "equations": 12,
+    "mainResults": 6,
+    "ablations": 1,
+    "limitations": 2,
+    "figures": 5,
+    "evidenceLinks": 19
+  },
+  "planStatus": "model_success",
+  "planSource": "model",
+  "auditVerdict": "failed",
+  "stages": {
+    "chunking": {
+      "stage": "chunking",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 1,
+      "warning": false,
+      "skipped": false,
+      "sections": 25,
+      "chunks": 185,
+      "chars": 40960
+    },
+    "research_map": {
+      "stage": "research_map",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 9229,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 38428,
+      "warning": false,
+      "skipped": false,
+      "maxTokens": 16000,
+      "inputChars": 11491,
+      "evidenceLinks": 19
+    },
+    "plan": {
+      "stage": "plan",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 439,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 19693,
+      "warning": false,
+      "skipped": false,
+      "sectionCount": 7,
+      "maxTokens": 16000
+    },
+    "retrieval": {
+      "stage": "retrieval",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 60,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "evidence": 84,
+      "chunksCovered": 30,
+      "backHalfEvidence": 28
+    },
+    "section_generation": {
+      "stage": "section_generation",
+      "status": "warn",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": true,
+      "fallbackReason": "",
+      "reason": "1/7 节生成失败，已跳过",
+      "durationMs": 346491,
+      "warning": true,
+      "skipped": false,
+      "sections": 7,
+      "failed": 1
+    },
+    "audit": {
+      "stage": "audit",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 65,
+      "warning": false,
+      "skipped": false,
+      "verdict": "failed",
+      "researchMapSource": "model",
+      "failedChecks": [
+        "numbers"
+      ],
+      "warnings": []
+    },
+    "repair": {
+      "stage": "repair",
+      "status": "success",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 24491,
+      "warning": false,
+      "skipped": false,
+      "targets": 1,
+      "applied": 1,
+      "errors": 0
+    },
+    "review": {
+      "stage": "review",
+      "status": "warn",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": "length",
+      "rawContentLength": 0,
+      "parsed": false,
+      "fallback": true,
+      "fallbackReason": "审校返回空内容",
+      "reason": "审校结果被护栏丢弃（保留原稿）：审校返回空内容",
+      "durationMs": 59093,
+      "warning": true,
+      "skipped": false
+    }
+  },
+  "stageSummary": {
+    "total": 8,
+    "withWarnings": 2,
+    "stagesWithWarnings": [
+      "section_generation",
+      "review"
+    ],
+    "fallbacks": [
+      "section_generation",
+      "review"
+    ],
+    "truncated": [],
+    "skipped": [],
+    "failed": []
+  },
+  "evidence": [
+    {
+      "section": "彻底扔掉循环，注意力就是全部",
+      "role": "intro",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8",
+        "c10",
+        "c15",
+        "c142",
+        "c158",
+        "c174",
+        "c175"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "顺序计算卡住并行，循环卷积都别扭",
+      "role": "results",
+      "chunkIds": [
+        "c3",
+        "c15",
+        "c110",
+        "c142",
+        "c143",
+        "c144",
+        "c145",
+        "c146",
+        "c150",
+        "c158",
+        "c162",
+        "c163"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "六层堆叠里只有注意力、FFN、残差和 LayerNorm",
+      "role": "method",
+      "chunkIds": [
+        "c7",
+        "c15",
+        "c17",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c23",
+        "c24",
+        "c25",
+        "c26",
+        "c158"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "缩放点积与多头注意力是全部发动机",
+      "role": "formula",
+      "chunkIds": [
+        "c6",
+        "c7",
+        "c8",
+        "c17",
+        "c18",
+        "c19",
+        "c20",
+        "c23",
+        "c24",
+        "c25",
+        "c26",
+        "c155"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "自注意力每层 O(n²·d)，但顺序操作更少",
+      "role": "method",
+      "chunkIds": [
+        "c7",
+        "c15",
+        "c17",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c23",
+        "c24",
+        "c25",
+        "c26",
+        "c158"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "28.4 与 41.8 BLEU 不是 ensemble 撑出来的",
+      "role": "results",
+      "chunkIds": [
+        "c3",
+        "c15",
+        "c110",
+        "c142",
+        "c143",
+        "c144",
+        "c145",
+        "c146",
+        "c150",
+        "c158",
+        "c162",
+        "c163"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "图像音频视频与 O(n²) 是未竟边界",
+      "role": "method",
+      "chunkIds": [
+        "c7",
+        "c15",
+        "c17",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c23",
+        "c24",
+        "c25",
+        "c26",
+        "c158"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "fail",
+        "detail": "终稿数字 58 个，原文未检到 3 个（匹配方式：精确 46 / 归一化 1 / 近似 8）",
+        "missing": [
+          "2.04b",
+          "0.51",
+          "0.64"
+        ],
+        "matched": [
+          {
+            "value": "6",
+            "method": "exact",
+            "chunkId": "c22"
+          },
+          {
+            "value": "1",
+            "method": "exact",
+            "chunkId": "c5"
+          },
+          {
+            "value": "8",
+            "method": "exact",
+            "chunkId": "c75"
+          },
+          {
+            "value": "100",
+            "method": "exact",
+            "chunkId": "c10"
+          },
+          {
+            "value": "41.8",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "3.5",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "2",
+            "method": "exact",
+            "chunkId": "c4"
+          },
+          {
+            "value": "28.4b",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "41.8b",
+            "method": "approximate",
+            "chunkId": "c3"
+          },
+          {
+            "value": "2.3x",
+            "method": "approximate",
+            "chunkId": "c142"
+          },
+          {
+            "value": "10",
+            "method": "exact",
+            "chunkId": "c16"
+          },
+          {
+            "value": "26.36",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "26.30",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "26.03",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "25.16",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "24.6",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "23.75",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "2b",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "40.56",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "41.29",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "41.16",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "3.3x",
+            "method": "approximate",
+            "chunkId": "c142"
+          },
+          {
+            "value": "27.3",
+            "method": "exact",
+            "chunkId": "c142"
+          },
+          {
+            "value": "38.1b",
+            "method": "approximate",
+            "chunkId": "c142"
+          },
+          {
+            "value": "4",
+            "method": "exact",
+            "chunkId": "c12"
+          },
+          {
+            "value": "91.3",
+            "method": "exact",
+            "chunkId": "c163"
+          },
+          {
+            "value": "92.7",
+            "method": "exact",
+            "chunkId": "c163"
+          },
+          {
+            "value": "9.6x",
+            "method": "approximate",
+            "chunkId": "c142"
+          },
+          {
+            "value": "1.5x",
+            "method": "approximate",
+            "chunkId": "c132"
+          },
+          {
+            "value": "1.4x",
+            "method": "approximate",
+            "chunkId": "c142"
+          },
+          {
+            "value": "512",
+            "method": "exact",
+            "chunkId": "c22"
+          },
+          {
+            "value": "3",
+            "method": "exact",
+            "chunkId": "c44"
+          },
+          {
+            "value": "64",
+            "method": "exact",
+            "chunkId": "c75"
+          },
+          {
+            "value": "0.1",
+            "method": "exact",
+            "chunkId": "c138"
+          },
+          {
+            "value": "100k",
+            "method": "exact",
+            "chunkId": "c158"
+          },
+          {
+            "value": "65x",
+            "method": "approximate",
+            "chunkId": "c158"
+          },
+          {
+            "value": "4.92",
+            "method": "exact",
+            "chunkId": "c158"
+          },
+          {
+            "value": "25.8",
+            "method": "exact",
+            "chunkId": "c158"
+          },
+          {
+            "value": "5.29",
+            "method": "exact",
+            "chunkId": "c158"
+          },
+          {
+            "value": "24.9",
+            "method": "exact",
+            "chunkId": "c158"
+          }
+        ],
+        "methods": {
+          "exact": 46,
+          "normalized": 1,
+          "approximate": 8
+        }
+      },
+      {
+        "name": "entities",
+        "status": "warn",
+        "detail": "地图实体 21 个，原文未出现 5 个，终稿未提及 19 个",
+        "unknown": [
+          "WSJ Section 23",
+          "PPL（dev）",
+          "BLEU（dev）",
+          "params ×10^6",
+          "train steps"
+        ],
+        "notMentioned": [
+          "newstest2014 tests",
+          "Training Cost (FLOPs)",
+          "PPL（dev）",
+          "BLEU（dev）",
+          "WSJ 23 F1",
+          "params ×10^6",
+          "train steps",
+          "ByteNet [18]"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 20 个，终稿覆盖 20 个",
+        "covered": [
+          "28.4b",
+          "2b",
+          "3.5",
+          "41.8",
+          "8",
+          "100",
+          "6",
+          "512",
+          "64",
+          "0.1",
+          "100k",
+          "4.92",
+          "25.8",
+          "65x",
+          "10",
+          "23",
+          "4",
+          "1",
+          "91.3",
+          "92.7"
+        ],
+        "missed": []
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 1 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 2 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 103 条，终稿 152 条，可对应 130 条"
+      },
+      {
+        "name": "figures",
+        "status": "pass",
+        "detail": "可用图 5 张，终稿引用 5 处",
+        "refs": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "badRefs": [],
+        "mismatched": []
+      }
+    ],
+    "issues": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：2.04b、0.51、0.64",
+        "missing": [
+          "2.04b",
+          "0.51",
+          "0.64"
+        ]
+      },
+      {
+        "check": "entities",
+        "severity": "warn",
+        "detail": "地图里的实体在原文中未出现（可能被臆造）：WSJ Section 23、PPL（dev）、BLEU（dev）、params ×10^6、train steps"
+      }
+    ],
+    "serious": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：2.04b、0.51、0.64",
+        "missing": [
+          "2.04b",
+          "0.51",
+          "0.64"
+        ]
+      }
+    ],
+    "repairTargets": [
+      {
+        "heading": "28.4 与 41.8 BLEU 不是 ensemble 撑出来的",
+        "hints": [
+          "核对数字 2.04b：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 0.51：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 0.64：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      }
+    ],
+    "warnings": [],
+    "verdict": "failed",
+    "researchMapStatus": "model_success",
+    "researchMapSource": "model",
+    "stats": {
+      "numbers": 58,
+      "missingNumbers": 3,
+      "numberMatchMethods": {
+        "exact": 46,
+        "normalized": 1,
+        "approximate": 8
+      },
+      "entities": 21,
+      "mainResults": 20,
+      "formulas": 152,
+      "figureRefs": 5
+    },
+    "sourceKey": "https://arxiv.org/abs/1706.03762",
+    "after": {
+      "checks": [
+        {
+          "name": "numbers",
+          "status": "pass",
+          "detail": "终稿数字 53 个，原文未检到 0 个（匹配方式：精确 45 / 归一化 0 / 近似 8）",
+          "missing": [],
+          "matched": [
+            {
+              "value": "6",
+              "method": "exact",
+              "chunkId": "c22"
+            },
+            {
+              "value": "1",
+              "method": "exact",
+              "chunkId": "c5"
+            },
+            {
+              "value": "8",
+              "method": "exact",
+              "chunkId": "c75"
+            },
+            {
+              "value": "100",
+              "method": "exact",
+              "chunkId": "c10"
+            },
+            {
+              "value": "41.8",
+              "method": "exact",
+              "chunkId": "c3"
+            },
+            {
+              "value": "3.5",
+              "method": "exact",
+              "chunkId": "c3"
+            },
+            {
+              "value": "2",
+              "method": "exact",
+              "chunkId": "c4"
+            },
+            {
+              "value": "28.4b",
+              "method": "exact",
+              "chunkId": "c3"
+            },
+            {
+              "value": "41.8b",
+              "method": "approximate",
+              "chunkId": "c3"
+            },
+            {
+              "value": "2.3x",
+              "method": "approximate",
+              "chunkId": "c142"
+            },
+            {
+              "value": "10",
+              "method": "exact",
+              "chunkId": "c16"
+            },
+            {
+              "value": "26.36",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "26.30",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "26.03",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "25.16",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "24.6",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "23.75",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "2b",
+              "method": "exact",
+              "chunkId": "c3"
+            },
+            {
+              "value": "40.56",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "41.29",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "41.16",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "3.3x",
+              "method": "approximate",
+              "chunkId": "c142"
+            },
+            {
+              "value": "27.3",
+              "method": "exact",
+              "chunkId": "c142"
+            },
+            {
+              "value": "38.1b",
+              "method": "approximate",
+              "chunkId": "c142"
+            },
+            {
+              "value": "4",
+              "method": "exact",
+              "chunkId": "c12"
+            },
+            {
+              "value": "91.3",
+              "method": "exact",
+              "chunkId": "c163"
+            },
+            {
+              "value": "92.7",
+              "method": "exact",
+              "chunkId": "c163"
+            },
+            {
+              "value": "9.6x",
+              "method": "approximate",
+              "chunkId": "c142"
+            },
+            {
+              "value": "1.5x",
+              "method": "approximate",
+              "chunkId": "c132"
+            },
+            {
+              "value": "1.4x",
+              "method": "approximate",
+              "chunkId": "c142"
+            },
+            {
+              "value": "512",
+              "method": "exact",
+              "chunkId": "c22"
+            },
+            {
+              "value": "3",
+              "method": "exact",
+              "chunkId": "c44"
+            },
+            {
+              "value": "64",
+              "method": "exact",
+              "chunkId": "c75"
+            },
+            {
+              "value": "0.1",
+              "method": "exact",
+              "chunkId": "c138"
+            },
+            {
+              "value": "100k",
+              "method": "exact",
+              "chunkId": "c158"
+            },
+            {
+              "value": "65x",
+              "method": "approximate",
+              "chunkId": "c158"
+            },
+            {
+              "value": "4.92",
+              "method": "exact",
+              "chunkId": "c158"
+            },
+            {
+              "value": "25.8",
+              "method": "exact",
+              "chunkId": "c158"
+            },
+            {
+              "value": "5.29",
+              "method": "exact",
+              "chunkId": "c158"
+            },
+            {
+              "value": "24.9",
+              "method": "exact",
+              "chunkId": "c158"
+            }
+          ],
+          "methods": {
+            "exact": 45,
+            "normalized": 0,
+            "approximate": 8
+          }
+        },
+        {
+          "name": "entities",
+          "status": "warn",
+          "detail": "地图实体 21 个，原文未出现 5 个，终稿未提及 19 个",
+          "unknown": [
+            "WSJ Section 23",
+            "PPL（dev）",
+            "BLEU（dev）",
+            "params ×10^6",
+            "train steps"
+          ],
+          "notMentioned": [
+            "newstest2014 tests",
+            "Training Cost (FLOPs)",
+            "PPL（dev）",
+            "BLEU（dev）",
+            "WSJ 23 F1",
+            "params ×10^6",
+            "train steps",
+            "ByteNet [18]"
+          ]
+        },
+        {
+          "name": "main_result",
+          "status": "pass",
+          "detail": "主要结果关键数字 20 个，终稿覆盖 20 个",
+          "covered": [
+            "28.4b",
+            "2b",
+            "3.5",
+            "41.8",
+            "8",
+            "100",
+            "6",
+            "512",
+            "64",
+            "0.1",
+            "100k",
+            "4.92",
+            "25.8",
+            "65x",
+            "10",
+            "23",
+            "4",
+            "1",
+            "91.3",
+            "92.7"
+          ],
+          "missed": []
+        },
+        {
+          "name": "ablation",
+          "status": "pass",
+          "detail": "原文有 1 条消融信息，终稿已覆盖"
+        },
+        {
+          "name": "limitation",
+          "status": "pass",
+          "detail": "原文有 2 条局限，终稿已覆盖"
+        },
+        {
+          "name": "formula",
+          "status": "pass",
+          "detail": "原文公式 103 条，终稿 152 条，可对应 130 条"
+        },
+        {
+          "name": "figures",
+          "status": "pass",
+          "detail": "可用图 5 张，终稿引用 5 处",
+          "refs": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "badRefs": [],
+          "mismatched": []
+        }
+      ],
+      "issues": [
+        {
+          "check": "entities",
+          "severity": "warn",
+          "detail": "地图里的实体在原文中未出现（可能被臆造）：WSJ Section 23、PPL（dev）、BLEU（dev）、params ×10^6、train steps"
+        }
+      ],
+      "serious": [],
+      "repairTargets": [],
+      "warnings": [
+        {
+          "code": "research_map_source_unknown",
+          "detail": "研究地图缺少阶段元数据，无法判断它来自模型还是本地兜底"
+        }
+      ],
+      "verdict": "passed_with_warning",
+      "researchMapStatus": "unknown",
+      "researchMapSource": "unknown",
+      "stats": {
+        "numbers": 53,
+        "missingNumbers": 0,
+        "numberMatchMethods": {
+          "exact": 45,
+          "normalized": 0,
+          "approximate": 8
+        },
+        "entities": 21,
+        "mainResults": 20,
+        "formulas": 152,
+        "figureRefs": 5
+      },
+      "sourceKey": "https://arxiv.org/abs/1706.03762"
+    }
+  },
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": 0.3333,
+    "numberEvidenceCoverage": 1,
+    "figureCoverage": 1,
+    "formulaCoverage": 1,
+    "ablationCoverage": 0,
+    "limitationCoverage": 1,
+    "auditMissingRate": 0.0339,
+    "sectionCompleteness": 1,
+    "lengthStability": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 2,
+    "evidenceFromModelMapRate": 0.7333,
+    "auditConfidence": 0.5
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "WMT 2014 英德任务 28.4 BLEU，超过此前最好结果（含 ensemble）2 BLEU 以上",
+        "late": false,
+        "section": "Attention Is All You Need",
+        "ok": true,
+        "keywordHits": [
+          "BLEU",
+          "WMT 2014"
+        ],
+        "missingKeywords": [
+          "English-to-German"
+        ],
+        "numberHits": [
+          "28.4"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "英法任务单模型 41.8 BLEU，8 块 GPU 训练 3.5 天",
+        "late": false,
+        "section": "Attention Is All You Need",
+        "ok": true,
+        "keywordHits": [
+          "BLEU"
+        ],
+        "missingKeywords": [
+          "English-to-French"
+        ],
+        "numberHits": [
+          "41.8",
+          "3.5"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "同一架构迁移到英语成分句法分析，验证跨任务泛化",
+        "late": false,
+        "section": "Attention Is All You Need",
+        "ok": true,
+        "keywordHits": [
+          "constituency parsing"
+        ],
+        "missingKeywords": [
+          "成分句法"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
+        "late": true,
+        "section": "Regularization",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "label smoothing"
+        ],
+        "numberHits": [
+          "0.1"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
+        "late": true,
+        "section": "Regularization",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "residual dropout",
+          "dropout"
+        ],
+        "numberHits": [
+          "0.1"
+        ],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
+        "late": true,
+        "section": "Why Self-Attention",
+        "ok": true,
+        "keywordHits": [
+          "complexity",
+          "复杂度",
+          "path length",
+          "路径长度"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "28.4",
+        "41.8",
+        "3.5",
+        "0.1",
+        "0.1"
+      ],
+      "hits": [
+        "28.4",
+        "41.8",
+        "3.5",
+        "0.1",
+        "0.1"
+      ],
+      "missing": [],
+      "unlocated": [],
+      "located": 5
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "model architecture",
+          "Transformer"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "Scaled Dot-Product Attention",
+          "Multi-Head Attention"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [
+      {
+        "text": "缩放点积注意力 softmax(QK^T/sqrt(d_k))V",
+        "ok": true,
+        "keywordHits": [
+          "softmax",
+          "sqrt"
+        ],
+        "missingKeywords": [],
+        "hasFormula": true
+      },
+      {
+        "text": "正弦位置编码 PE(pos, 2i) = sin(pos/10000^(2i/d_model))",
+        "ok": true,
+        "keywordHits": [
+          "sin"
+        ],
+        "missingKeywords": [
+          "10000"
+        ],
+        "hasFormula": true
+      }
+    ],
+    "lateAnchors": [
+      {
+        "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
+        "ratio": 0.7554347826086957,
+        "section": "Regularization",
+        "ok": false
+      },
+      {
+        "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
+        "ratio": 0.7445652173913043,
+        "section": "Regularization",
+        "ok": false
+      },
+      {
+        "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
+        "ratio": 0.592391304347826,
+        "section": "Why Self-Attention",
+        "ok": true
+      }
+    ],
+    "sections": {
+      "ratio": 1,
+      "planned": 7,
+      "final": 7,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 7,
+      "planned": 7,
+      "chars": 9291,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0339,
+    "reliability": {
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 9229,
+      "researchMapFallbackReason": "",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "section_generation",
+        "review"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 2,
+        "stagesWithWarnings": [
+          "section_generation",
+          "review"
+        ],
+        "fallbacks": [
+          "section_generation",
+          "review"
+        ],
+        "truncated": [],
+        "skipped": [],
+        "failed": []
+      },
+      "evidenceChunks": 30,
+      "evidenceFromModelMap": 22
+    },
+    "audit": {
+      "verdict": "failed",
+      "warnings": [],
+      "researchMapSource": "model"
+    }
+  },
+  "warnings": [
+    "第 5 节生成失败：未知错误"
+  ],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 3666,
+      "lastAtMs": 3667
+    },
+    "research_map": {
+      "firstAtMs": 3667,
+      "lastAtMs": 42096
+    },
+    "plan": {
+      "firstAtMs": 42096,
+      "lastAtMs": 61791
+    },
+    "retrieval": {
+      "firstAtMs": 61851,
+      "lastAtMs": 61851
+    },
+    "section": {
+      "firstAtMs": 61851,
+      "lastAtMs": 388940
+    },
+    "section_done": {
+      "firstAtMs": 85235,
+      "lastAtMs": 408342
+    },
+    "audit": {
+      "firstAtMs": 408343,
+      "lastAtMs": 432903
+    },
+    "repair": {
+      "firstAtMs": 408408,
+      "lastAtMs": 408408
+    },
+    "finalize": {
+      "firstAtMs": 432899,
+      "lastAtMs": 432899
+    }
+  },
+  "markdownChars": 10121,
+  "finishedAt": "2026-09-17T16:06:12.338Z"
+}

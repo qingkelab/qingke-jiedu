@@ -6,6 +6,7 @@ import path from 'node:path';
 import {
   aggregateMetrics,
   anchorPosition,
+  auditConfidenceOf,
   auditMissingRate,
   classifyAnchors,
   collectQualityNotes,
@@ -27,6 +28,7 @@ import {
   renderSummaryMarkdown,
   resolveProviderStatus,
   sectionCompleteness,
+  stageMetaOf,
   validatePaperRecord,
 } from '../src/deepread/benchmark.js';
 import { buildPaperStructure } from '../src/deepread/chunker.js';
@@ -396,6 +398,237 @@ test('collectQualityNotes：低覆盖、疑似截断、静默降级（research m
   assert.ok(notes.some((n) => /b：走了降级流程/.test(n)));
   assert.equal(notes.some((n) => n.startsWith('c：')), false, 'skipped 的论文不进质量清单');
   assert.deepEqual(collectQualityNotes([{ id: 'd', status: 'completed', metrics: { sourceCoverage: 1, auditMissingRate: 0 } }]), []);
+});
+
+// ============ 阶段可靠性指标 ============
+
+function stageFixture(status, source = 'local') {
+  return {
+    stage: 'research_map',
+    status,
+    source,
+    fallback: status !== 'model_success',
+    warning: status !== 'model_success',
+    finishReason: status === 'model_truncated' ? 'length' : null,
+    rawContentLength: status === 'model_truncated' ? 0 : 100,
+    parsed: status === 'model_success',
+  };
+}
+
+function resultWithReliability(markdown, { mapStatus = 'fallback', mapSource = 'local', planStatus = 'parse_failed', verdict = 'passed_with_warning' } = {}) {
+  const result = fixtureResult(markdown);
+  result.meta.stages = {
+    research_map: { ...stageFixture(mapStatus, mapSource), stage: 'research_map' },
+    plan: { stage: 'plan', status: planStatus, source: planStatus === 'model_success' ? 'model' : 'default', fallback: planStatus !== 'model_success', warning: planStatus !== 'model_success', parsed: planStatus === 'model_success' },
+    retrieval: { stage: 'retrieval', status: 'success', source: 'local', fallback: false, warning: false, parsed: true },
+    audit: { stage: 'audit', status: 'success', source: 'local', fallback: false, warning: false, parsed: true },
+  };
+  result.meta.stageSummary = { total: 4, withWarnings: (mapStatus !== 'model_success' ? 1 : 0) + (planStatus !== 'model_success' ? 1 : 0), stagesWithWarnings: ['research_map', 'plan'].filter((n) => (n === 'research_map' ? mapStatus !== 'model_success' : planStatus !== 'model_success')) };
+  result.meta.researchMapEvidenceIds = ['c1'];
+  result.meta.evidence = [{ section: '方法', role: 'method', chunkIds: ['c1', 'c2', 'c9'] }];
+  result.audit = { ...result.audit, verdict, warnings: mapStatus === 'model_success' ? [] : [{ code: 'research_map_unavailable' }] };
+  return result;
+}
+
+test('computeMetrics：阶段可靠性指标来自真实阶段状态（不写死）', () => {
+  const structure = buildPaperStructure({ kind: 'tex', text: longPaperText() });
+  const paper = {
+    id: 'r',
+    title: 'r',
+    category: 'test',
+    url: 'https://arxiv.org/abs/r',
+    expectedEvidence: [normalizeAnchor({ type: 'main_result', text: 't', keywords: ['BLEU'], numbers: ['41.8'] })],
+    expectedFigures: [],
+    expectedFormulas: [],
+    expectedAblations: [],
+    expectedLimitations: [],
+  };
+
+  const degraded = computeMetrics({ paper, result: resultWithReliability(GOOD_MARKDOWN), structure });
+  assert.equal(degraded.metrics.researchMapModelSuccess, 0);
+  assert.equal(degraded.metrics.researchMapFallbackRate, 1);
+  assert.equal(degraded.metrics.planModelSuccess, 0);
+  assert.equal(degraded.metrics.planFallbackRate, 1);
+  assert.equal(degraded.metrics.stagesWithWarnings, 2);
+  assert.equal(degraded.metrics.evidenceFromModelMapRate, 0.3333, '3 条候选证据里 1 条来自模型地图');
+  assert.equal(degraded.metrics.auditConfidence, 0.32, '本地兜底(0.4) × passed_with_warning(0.8)');
+  assert.equal(degraded.detail.reliability.researchMapStatus, 'fallback');
+  assert.equal(degraded.detail.reliability.evidenceFromModelMap, 1);
+
+  const healthy = computeMetrics({
+    paper,
+    result: resultWithReliability(GOOD_MARKDOWN, { mapStatus: 'model_success', mapSource: 'model', planStatus: 'model_success', verdict: 'passed' }),
+    structure,
+  });
+  assert.equal(healthy.metrics.researchMapModelSuccess, 1);
+  assert.equal(healthy.metrics.researchMapFallbackRate, 0);
+  assert.equal(healthy.metrics.planModelSuccess, 1);
+  assert.equal(healthy.metrics.stagesWithWarnings, 0);
+  assert.equal(healthy.metrics.auditConfidence, 1, '地图生效 + 干净通过 = 1');
+});
+
+test('computeMetrics：截断状态的阶段可靠性可被区分（model_truncated ≠ fallback）', () => {
+  const structure = buildPaperStructure({ kind: 'tex', text: longPaperText() });
+  const paper = {
+    id: 't',
+    title: 't',
+    category: 'test',
+    url: 'https://arxiv.org/abs/t',
+    expectedEvidence: [],
+    expectedFigures: [],
+    expectedFormulas: [],
+    expectedAblations: [],
+    expectedLimitations: [],
+  };
+  const res = computeMetrics({
+    paper,
+    result: resultWithReliability(GOOD_MARKDOWN, { mapStatus: 'model_truncated', mapSource: 'local', planStatus: 'model_truncated' }),
+    structure,
+  });
+  assert.equal(res.metrics.researchMapModelSuccess, 0);
+  assert.equal(res.metrics.researchMapFallbackRate, 1);
+  assert.equal(res.detail.reliability.researchMapFinishReason, 'length');
+  assert.equal(res.metrics.auditConfidence, 0.32, '截断(0.5→本地 0.4 兜底) × passed_with_warning(0.8)');
+});
+
+test('stageMetaOf 兼容 v1 旧字段（researchMapStatus: model|fallback）', () => {
+  const legacyModel = stageMetaOf({ meta: { researchMapStatus: 'model' } }, 'research_map');
+  assert.equal(legacyModel.status, 'model_success');
+  assert.equal(legacyModel.source, 'model');
+  const legacyFallback = stageMetaOf({ meta: { researchMapStatus: 'fallback' } }, 'research_map');
+  assert.equal(legacyFallback.status, 'fallback');
+  assert.equal(legacyFallback.fallback, true);
+  assert.equal(stageMetaOf({ meta: {} }, 'research_map'), null);
+  assert.equal(stageMetaOf({ meta: { planStatus: 'model_success', planSource: 'model' } }, 'plan').status, 'model_success');
+});
+
+test('auditConfidenceOf：地图系数 × 结论系数，缺信息返回 null', () => {
+  assert.equal(auditConfidenceOf({ researchMapStatus: 'model_success', verdict: 'passed' }), 1);
+  assert.equal(auditConfidenceOf({ researchMapStatus: 'model_success', verdict: 'failed' }), 0.5);
+  assert.equal(auditConfidenceOf({ researchMapStatus: 'parse_failed', researchMapSource: 'local', verdict: 'passed_with_warning' }), 0.32);
+  assert.equal(auditConfidenceOf({ researchMapStatus: 'model_truncated', researchMapSource: 'local', verdict: 'passed' }), 0.4);
+  assert.equal(auditConfidenceOf({}), null);
+});
+
+test('aggregateMetrics：阶段可靠性指标同样参与均值聚合', () => {
+  const agg = aggregateMetrics([
+    {
+      status: 'completed',
+      metrics: {
+        researchMapModelSuccess: 1,
+        researchMapFallbackRate: 0,
+        planModelSuccess: 1,
+        planFallbackRate: 0,
+        stagesWithWarnings: 0,
+        evidenceFromModelMapRate: 0.5,
+        auditConfidence: 1,
+      },
+    },
+    {
+      status: 'completed',
+      metrics: {
+        researchMapModelSuccess: 0,
+        researchMapFallbackRate: 1,
+        planModelSuccess: 0,
+        planFallbackRate: 1,
+        stagesWithWarnings: 2,
+        evidenceFromModelMapRate: 0,
+        auditConfidence: 0.4,
+      },
+    },
+    { status: 'skipped', reason: 'no key' },
+  ]);
+  assert.equal(agg.metrics.researchMapModelSuccess, 0.5);
+  assert.equal(agg.metrics.researchMapFallbackRate, 0.5);
+  assert.equal(agg.metrics.planModelSuccess, 0.5);
+  assert.equal(agg.metrics.planFallbackRate, 0.5);
+  assert.equal(agg.metrics.stagesWithWarnings, 1, '平均每篇告警阶段数');
+  assert.equal(agg.metrics.evidenceFromModelMapRate, 0.25);
+  assert.equal(agg.metrics.auditConfidence, 0.7);
+});
+
+test('CLI summary：分三组展示，并显式点名阶段降级', () => {
+  const summary = {
+    version: 'v1',
+    total: 2,
+    completed: 2,
+    skipped: 0,
+    failed: 0,
+    metrics: {
+      sourceCoverage: 0.9,
+      latePaperCoverage: 0.8,
+      numberEvidenceCoverage: 1,
+      figureCoverage: 1,
+      formulaCoverage: 1,
+      ablationCoverage: 0.8,
+      limitationCoverage: 0.5,
+      auditMissingRate: 0.01,
+      sectionCompleteness: 1,
+      lengthStability: 1,
+      researchMapModelSuccess: 0,
+      researchMapFallbackRate: 1,
+      planModelSuccess: 0,
+      planFallbackRate: 1,
+      stagesWithWarnings: 2.5,
+      evidenceFromModelMapRate: 0,
+      auditConfidence: 0.32,
+    },
+    papers: [
+      { id: '1706.03762', status: 'completed', researchMapStatus: 'fallback', planStatus: 'parse_failed', metrics: { sourceCoverage: 0.9 } },
+      { id: '2501.12948', status: 'completed', researchMapStatus: 'model_success', planStatus: 'model_success', metrics: { sourceCoverage: 0.9 } },
+    ],
+  };
+  const cli = renderCliSummary(summary);
+  assert.match(cli, /## 内容覆盖指标/);
+  assert.match(cli, /## 阶段可靠性指标/);
+  assert.match(cli, /## 审计可信度指标/);
+  assert.match(cli, /Research map model success: 0%/);
+  assert.match(cli, /Plan fallback rate: 100%/);
+  assert.match(cli, /Stages with warnings \(avg\/papers\): 2\.5/, '非百分比指标按原值展示');
+  assert.match(cli, /Audit confidence: 32%/);
+  assert.match(cli, /阶段降级明细：/);
+  assert.match(cli, /1706\.03762: research_map=fallback、plan=parse_failed/);
+  assert.equal(/2501\.12948: research_map/.test(cli), false, '模型阶段生效的论文不进降级明细');
+});
+
+test('Markdown summary：分组表 + 逐篇阶段列', () => {
+  const md = renderSummaryMarkdown({
+    version: 'v1',
+    startedAt: '2026-09-17T00:00:00Z',
+    provider: 'deepseek',
+    model: 'm',
+    total: 1,
+    completed: 1,
+    skipped: 0,
+    failed: 0,
+    metrics: { sourceCoverage: 0.9, researchMapFallbackRate: 1, auditConfidence: 0.32 },
+    papers: [{ id: '1706.03762', category: 'LLM', status: 'completed', researchMapStatus: 'model_truncated', planStatus: 'fallback', runtimeMs: 1000, metrics: { sourceCoverage: 0.9 } }],
+  });
+  assert.match(md, /\| 分组 \| 指标 \| 数值 \|/);
+  assert.match(md, /阶段可靠性指标 \| Research map fallback rate \| 100\.0%/);
+  assert.match(md, /research_map \| plan/);
+  assert.match(md, /model_truncated/);
+});
+
+test('collectQualityNotes：截断/解析失败/计划降级/审计可信度偏低都会被告警', () => {
+  const notes = collectQualityNotes([
+    {
+      id: 'a',
+      status: 'completed',
+      metrics: { sourceCoverage: 1, auditMissingRate: 0, auditConfidence: 0.32 },
+      lengthStability: 1,
+      researchMapStatus: 'model_truncated',
+      planStatus: 'fallback',
+      stagesWithWarnings: 2,
+      stageWarnings: ['research_map', 'plan'],
+    },
+    { id: 'b', status: 'completed', metrics: { sourceCoverage: 1, auditMissingRate: 0, auditConfidence: 1 }, researchMapStatus: 'model_success', planStatus: 'model_success', stagesWithWarnings: 0 },
+  ]);
+  assert.ok(notes.some((n) => /a：research map 未产出模型地图（输出被 max_tokens 截断/.test(n)));
+  assert.ok(notes.some((n) => /a：计划阶段未使用模型大纲（fallback）/.test(n)));
+  assert.ok(notes.some((n) => /a：2 个阶段带告警/.test(n)));
+  assert.ok(notes.some((n) => /a：审计可信度偏低（32%）/.test(n)));
+  assert.equal(notes.some((n) => n.startsWith('b：')), false);
 });
 
 test('compareWithBaseline：识别 improved / regressed / unchanged（auditMissingRate 反向）', () => {

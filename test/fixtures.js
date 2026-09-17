@@ -36,6 +36,34 @@ export function longPaperText() {
   return parts.join('\n\n');
 }
 
+/**
+ * 可靠性 / 召回率专用素材：把「主结果表、消融变体、失败案例、局限、伦理、附录」
+ * 都放在**后半篇**，用来验证检索不会只看前半篇、以及 audit 的表格数字归一化。
+ *
+ * 前半篇是方法铺垫（大量 filler），后半篇才是实验与边界结论。
+ */
+export function reliabilityPaperText() {
+  const parts = [];
+  parts.push(`## 摘要\n我们提出 Atlas，一个把检索与规划耦合的 agent 框架，在 ToolBench 上把成功率从 41.8% 提到 52.4%。${filler(20)}`);
+  parts.push(`## 1 Introduction\n长程任务的成功率受限于规划误差累积，既有做法先规划再执行，误差无法回滚。${filler(40)}`);
+  parts.push(`## 2 Method\n### 2.1 Planner\n规划器把任务拆成子目标，并在每一步重新评估剩余预算。${filler(45)}`);
+  parts.push(`### 2.2 Executor\n执行器把子目标翻译成工具调用，失败时回退到上一个稳定状态。${filler(45)}`);
+  parts.push(`### 2.3 Memory\n记忆模块缓存已经验证过的中间结果，避免重复调用。${filler(45)}`);
+  parts.push(`## 3 Experiments\n### 3.1 Setup\n在 ToolBench 与 AgentBench 上评测，基线是 Reflexion 与 ReAct，指标为成功率。${filler(30)}`);
+  parts.push(`### 3.2 Main Results\n表 1：ToolBench 主结果。ReAct 41.8%，Reflexion 45.2%，Atlas 52.4%，提升 10.6 个百分点。分列汇总表里三档模型的成功率分别是 05.19%、01.30% 与 02.60%。${filler(35)}`);
+  parts.push(`表 2：AgentBench 分域结果。Atlas 在检索类任务上 63.7%，规划类 58.1%，长程任务 44.9%。${filler(25)}`);
+  parts.push(`### 3.3 Ablation Study\n消融实验：去掉重规划后成功率掉到 46.1%，去掉记忆缓存后掉到 48.9%，两者都去掉只剩 40.2%。参数敏感性分析显示子目标数超过 6 之后收益消失。${filler(30)}`);
+  parts.push(`### 3.4 Model Variations\n模型变体对照：把 planner 换成更小的模型时成功率 49.3%，只保留 w/o memory 变体是 48.9%，说明规划器容量比记忆更关键。${filler(25)}`);
+  parts.push(`## 4 Discussion\n结果表明重规划是主要贡献来源，但代价是调用次数增加 1.8 倍。${filler(30)}`);
+  parts.push(`## 5 Limitations\n我们的方法只在文本工具上验证，未在多模态工具与真实物理环境中测试；长程任务的评测只有 3 个数据集，跨领域迁移仍未验证。${filler(30)}`);
+  parts.push(`## 6 Failure Cases\n失败案例分析：63% 的失败来自工具返回格式异常，21% 来自子目标被错误分解，剩余部分集中在超长任务的预算耗尽。典型失败模式是无法从错误的中间状态恢复。${filler(30)}`);
+  parts.push(`## 7 Ethics and Broader Impacts\n能被自动调用工具的 agent 存在滥用风险：可用于批量生成垃圾信息或探测系统边界。我们建议在执行侧加入人工确认与速率限制，并呼吁社区关注安全与更广泛的社会影响。${filler(30)}`);
+  parts.push(`## Appendix A Additional Analysis\n附录 A 给出逐任务分解与 unsuccessful attempts：在 12% 的任务上模型无法给出可执行计划，这些任务的成功率接近 0。${filler(30)}`);
+  parts.push(`## Appendix B Implementation Details\n附录 B 记录超参、prompt 模板与算力开销。${filler(30)}`);
+  parts.push(`## References\n[1] Yao et al. ReAct. [2] Shinn et al. Reflexion. ${filler(20)}`);
+  return parts.join('\n\n');
+}
+
 /** arXiv HTML 风格 DOM 片段。 */
 export function paperHtml() {
   return `<!doctype html><html><body>

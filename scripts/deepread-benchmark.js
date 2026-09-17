@@ -314,7 +314,14 @@ async function main() {
           degraded: result.degraded === true,
           structure: result.meta?.structure || null,
           researchMapStatus: result.meta?.researchMapStatus || null,
+          researchMapStageStatus: result.meta?.researchMapStageStatus || null,
+          researchMapSource: result.meta?.researchMapSource || null,
           researchMapStats: result.meta?.researchMapStats || null,
+          planStatus: result.meta?.planStatus || null,
+          planSource: result.meta?.planSource || null,
+          auditVerdict: result.meta?.auditVerdict || null,
+          stages: result.meta?.stages || null,
+          stageSummary: result.meta?.stageSummary || null,
           evidence: result.meta?.evidence || null,
           audit: result.audit || null,
           metrics,
@@ -327,10 +334,17 @@ async function main() {
         await fs.writeFile(path.join(runDir, 'papers', `${paper.id}.json`), JSON.stringify(record, null, 2));
         await fs.writeFile(path.join(runDir, 'papers', `${paper.id}.md`), result.markdown || '');
         entries.push(record);
+        const degradedStages = Object.values(record.stages || {})
+          .filter((s) => s && s.warning)
+          .map((s) => `${s.stage}=${s.status}`);
         process.stdout.write(
           `  ✓ 完成：${runtimeMs / 1000}s | coverage ${
             metrics.sourceCoverage == null ? 'n/a' : `${(metrics.sourceCoverage * 100).toFixed(0)}%`
-          } | late ${metrics.latePaperCoverage == null ? 'n/a' : `${(metrics.latePaperCoverage * 100).toFixed(0)}%`}\n`,
+          } | late ${metrics.latePaperCoverage == null ? 'n/a' : `${(metrics.latePaperCoverage * 100).toFixed(0)}%`} | map ${
+            record.researchMapStageStatus || 'n/a'
+          } | plan ${record.planStatus || 'n/a'} | audit ${record.auditVerdict || 'n/a'}${
+            degradedStages.length ? ` | 告警阶段 ${degradedStages.join(',')}` : ''
+          }\n`,
         );
       } catch (err) {
         const record = {
@@ -371,7 +385,14 @@ async function main() {
       degraded: e.degraded || false,
       resumed: e.resumed === true,
       pipeline: e.pipeline || '',
-      researchMapStatus: e.researchMapStatus || null,
+      // 阶段可靠性：researchMapStatus 取统一阶段状态（model_success / model_truncated / parse_failed / provider_error / fallback）
+      researchMapStatus: e.researchMapStageStatus || e.researchMapStatus || null,
+      researchMapSource: e.researchMapSource || null,
+      planStatus: e.planStatus || null,
+      planSource: e.planSource || null,
+      auditVerdict: e.auditVerdict || null,
+      stagesWithWarnings: e.stageSummary?.withWarnings ?? null,
+      stageWarnings: e.stageSummary?.stagesWithWarnings || [],
       researchMapStats: e.researchMapStats || null,
       metrics: e.metrics || null,
       lengthStability: e.metrics?.lengthStability ?? null,

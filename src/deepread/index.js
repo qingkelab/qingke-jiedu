@@ -28,6 +28,14 @@ import {
 } from './prompts.js';
 import { buildResearchMap } from './researchMap.js';
 import { buildGlobalContext, retrieveForSection, sectionRole } from './retrieval.js';
+import {
+  STAGE_SOURCE,
+  STAGE_STATUS,
+  classifyModelOutput,
+  fallbackStage,
+  makeStage,
+  summarizeStages,
+} from './stages.js';
 
 /** 把 figures 与 chunks/section 关联（图注文本在哪个 chunk 出现，就归到那个 section）。 */
 export function mapFiguresToChunks(figures = [], structure) {
@@ -90,12 +98,17 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
     }
   };
   const warnings = [];
+  // 统一阶段元数据：每个阶段都留一条可观测记录（status/source/finishReason/fallbackReason/duration）
+  const stages = {};
+  const providerName = options.providerName || null;
+  const modelName = options.model || null;
   const maxChunkChars = options.chunkChars || config.deepreadChunkChars;
   const evidenceBudget = options.evidenceChars || config.deepreadEvidenceChars;
   const maxChunks = options.maxEvidenceChunks || config.deepreadMaxChunks;
 
   // 1) 全文结构化切片
   emit({ stage: 'chunking', detail: '正在结构化切片全文…' });
+  const chunkingStartedAt = Date.now();
   const structure = buildPaperStructure({
     kind: source.kind || (source.textLines ? 'pdf' : 'html'),
     text: source.text || '',
@@ -106,9 +119,17 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
   });
   const summary = structureSummary(structure);
   emit({ stage: 'chunking', detail: `全文切片完成：${summary}` });
+  stages.chunking = makeStage({
+    stage: 'chunking',
+    status: STAGE_STATUS.SUCCESS,
+    source: STAGE_SOURCE.LOCAL,
+    parsed: true,
+    durationMs: Date.now() - chunkingStartedAt,
+    extra: { sections: structure.stats?.sectionCount || 0, chunks: structure.stats?.chunkCount || 0, chars: structure.stats?.chars || 0 },
+  });
 
   if ((structure.chunks || []).length < 3) {
-    return { degraded: true, reason: `切片不足（${summary}）`, warnings, structure };
+    return { degraded: true, reason: `切片不足（${summary}）`, warnings, structure, meta: { stages, stageSummary: summarizeStages(stages) } };
   }
 
   const figs = mapFiguresToChunks(figures, structure);
@@ -123,35 +144,106 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
       figures: figs,
       onProgress: emit,
       maxChars: options.mapChars || config.deepreadMapChars,
+      maxTokens: options.mapTokens || config.deepreadMapTokens,
+      provider: providerName,
+      model: modelName,
     });
   } catch (err) {
     warnings.push(`research map 异常：${(err && err.message) || err}`);
-    mapResult = { map: null, status: 'fallback', warnings, stats: {} };
+    mapResult = {
+      map: null,
+      status: 'fallback',
+      warnings,
+      stats: {},
+      evidenceChunkIds: [],
+      stage: fallbackStage({
+        stage: 'research_map',
+        reason: `research map 异常：${(err && err.message) || err}`,
+        source: STAGE_SOURCE.LOCAL,
+        provider: providerName,
+        model: modelName,
+      }),
+    };
   }
   const researchMap = mapResult.map || null;
+  stages.research_map = mapResult.stage || fallbackStage({ stage: 'research_map', reason: '未返回阶段元数据', source: STAGE_SOURCE.LOCAL });
   warnings.push(...(mapResult.warnings || []));
   emit({
     stage: 'research_map',
-    detail: `研究地图：${mapResult.status === 'model' ? '模型产出' : '本地关键词兜底'}（主张 ${mapResult.stats?.keyClaims || 0} / 结果 ${mapResult.stats?.mainResults || 0} / 消融 ${mapResult.stats?.ablations || 0} / 局限 ${mapResult.stats?.limitations || 0}）`,
+    detail: `研究地图：${mapResult.status === 'model' ? '模型产出' : `本地关键词兜底 · ${stages.research_map.status}`}（主张 ${mapResult.stats?.keyClaims || 0} / 结果 ${mapResult.stats?.mainResults || 0} / 消融 ${mapResult.stats?.ablations || 0} / 局限 ${mapResult.stats?.limitations || 0}）`,
   });
 
   // 3) 大纲（基于全文结构 + 研究地图）
   emit({ stage: 'plan', detail: '正在规划大纲…' });
   let plan = [];
+  let planResponse = null;
+  let planError = '';
+  const planStartedAt = Date.now();
   try {
-    const planRaw = await chat(buildPlanMessages({ source, structure, researchMap, figures: figs }), 4096);
-    plan = parseDeepReadPlan(planRaw?.content);
+    planResponse = await chat(
+      buildPlanMessages({ source, structure, researchMap, figures: figs }),
+      options.planTokens || config.deepreadPlanTokens,
+    );
+    plan = parseDeepReadPlan(planResponse?.content);
   } catch (err) {
-    warnings.push(`大纲生成失败：${(err && err.message) || err}`);
+    planError = (err && err.message) || String(err);
+    warnings.push(`大纲生成失败：${planError}`);
   }
-  if (plan.length < 3) plan = defaultDeepReadPlan();
+  // 模型大纲只有在「真的解析出 ≥3 节」时才算生效；否则用默认骨架，并把真实调用状态记下来
+  // （不能靠「标题是否等于默认大纲」反推，那是猜测不是证据）
+  const planFromModel = plan.length >= 3;
+  stages.plan = classifyModelOutput({
+    stage: 'plan',
+    response: planResponse,
+    parsed: planFromModel,
+    providerError: planError,
+    source: planFromModel ? STAGE_SOURCE.MODEL : STAGE_SOURCE.DEFAULT,
+    fallbackSource: STAGE_SOURCE.DEFAULT,
+    model: modelName,
+    provider: providerName,
+    durationMs: Date.now() - planStartedAt,
+    extra: { sectionCount: planFromModel ? plan.length : defaultDeepReadPlan().length, maxTokens: options.planTokens || config.deepreadPlanTokens },
+  });
+  if (!planFromModel) {
+    if (!planError) {
+      warnings.push(
+        planResponse
+          ? `大纲解析不出来（可见正文 ${String(planResponse.content || '').length} 字，finish_reason=${planResponse.finishReason || 'unknown'}），已用默认大纲`
+          : '大纲未返回内容，已用默认大纲',
+      );
+    }
+    plan = defaultDeepReadPlan();
+    stages.plan = { ...stages.plan, fallbackReason: stages.plan.fallbackReason || '模型大纲不可用，使用默认大纲', reason: stages.plan.reason || '使用默认大纲' };
+  }
   plan = plan.map((s) => ({ ...s, role: sectionRole(s.title, s.note) }));
-  emit({ stage: 'plan', detail: `大纲 ${plan.length} 节` });
+  emit({
+    stage: 'plan',
+    detail: `大纲 ${plan.length} 节（${planFromModel ? '模型产出' : `默认骨架 · ${stages.plan.status}`}）`,
+  });
 
   // 4) 逐节检索 evidence
+  const retrievalStartedAt = Date.now();
   const globalContext = buildGlobalContext({ structure, researchMap, figures: figs });
   const retrievals = plan.map((s) => safeRetrieve({ structure, section: s, researchMap, figures: figs, budgetChars: evidenceBudget, maxChunks }));
   const evidenceCount = retrievals.reduce((n, r) => n + r.evidence.length, 0);
+  const fallbackSections = retrievals.filter((r) => r.roles === 'fallback').length;
+  stages.retrieval = makeStage({
+    stage: 'retrieval',
+    status: fallbackSections ? STAGE_STATUS.WARN : STAGE_STATUS.SUCCESS,
+    source: STAGE_SOURCE.LOCAL,
+    parsed: true,
+    durationMs: Date.now() - retrievalStartedAt,
+    reason: fallbackSections ? `${fallbackSections} 节检索异常，回退为「本节 chunks」` : '',
+    extra: {
+      sections: plan.length,
+      evidence: evidenceCount,
+      chunksCovered: new Set(retrievals.flatMap((r) => r.chunkIds)).size,
+      backHalfEvidence: retrievals.flatMap((r) => r.chunkIds).filter((id) => {
+        const c = structure.chunks.find((x) => x.id === id);
+        return c && structure.chunks.length > 1 && c.index / (structure.chunks.length - 1) >= 0.5;
+      }).length,
+    },
+  });
   emit({
     stage: 'retrieval',
     detail: `已从 ${structure.chunks.length} 个切片中为 ${plan.length} 节召回 ${evidenceCount} 条证据（覆盖 ${new Set(retrievals.flatMap((r) => r.chunkIds)).size} 个 chunk）`,
@@ -161,6 +253,7 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
   const sections = [];
   const reasoningParts = [];
   const evidenceLog = [];
+  const sectionStartedAt = Date.now();
   let failedSections = 0;
   let prev = '';
   for (let i = 0; i < plan.length; i++) {
@@ -204,26 +297,72 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
 
   // 所有小节都写不出来：交给 provider 回退旧流程（multipass / 整篇生成）再试一次
   if (failedSections >= plan.length) {
-    return { degraded: true, reason: '逐节写作全部失败', warnings, structure };
+    stages.section_generation = makeStage({
+      stage: 'section_generation',
+      status: STAGE_STATUS.FAILED,
+      source: STAGE_SOURCE.MODEL,
+      parsed: false,
+      durationMs: Date.now() - sectionStartedAt,
+      reason: '逐节写作全部失败',
+      extra: { sections: plan.length, failed: failedSections },
+    });
+    return { degraded: true, reason: '逐节写作全部失败', warnings, structure, meta: { stages, stageSummary: summarizeStages(stages) } };
   }
+
+  stages.section_generation = makeStage({
+    stage: 'section_generation',
+    status: failedSections ? STAGE_STATUS.WARN : STAGE_STATUS.SUCCESS,
+    source: STAGE_SOURCE.MODEL,
+    parsed: true,
+    durationMs: Date.now() - sectionStartedAt,
+    reason: failedSections ? `${failedSections}/${plan.length} 节生成失败，已跳过` : '',
+    extra: { sections: plan.length, failed: failedSections },
+  });
 
   let markdown = `# ${source.title || '深度解读'}\n\n${sections.join('\n\n').replace(/^(## [^\n]+)\n\n(?=## \1\n)/gm, '')}`.trim() + '\n';
 
   // 6) 证据审计（失败不阻断）
   let audit = null;
+  const auditStartedAt = Date.now();
+  const researchMapMeta = {
+    status: stages.research_map.status,
+    source: stages.research_map.source,
+    finishReason: stages.research_map.finishReason ?? null,
+    fallbackReason: stages.research_map.fallbackReason || '',
+  };
   if (config.deepreadAudit) {
     emit({ stage: 'audit', detail: '正在做证据审计…' });
     try {
-      audit = auditDraft({ markdown, structure, researchMap, figures: figs, source });
+      audit = auditDraft({ markdown, structure, researchMap, figures: figs, source, researchMapMeta });
       emit({ stage: 'audit', detail: auditSummary(audit) });
     } catch (err) {
       warnings.push(`证据审计失败（已跳过）：${(err && err.message) || err}`);
       audit = null;
     }
   }
+  stages.audit = config.deepreadAudit
+    ? makeStage({
+        stage: 'audit',
+        status: audit ? STAGE_STATUS.SUCCESS : STAGE_STATUS.FAILED,
+        source: STAGE_SOURCE.LOCAL,
+        parsed: !!audit,
+        durationMs: Date.now() - auditStartedAt,
+        reason: audit ? '' : '审计执行失败，已跳过（不阻断报告）',
+        extra: audit
+          ? {
+              verdict: audit.verdict,
+              researchMapSource: audit.researchMapSource,
+              failedChecks: audit.checks.filter((c) => c.status === 'fail').map((c) => c.name),
+              warnings: (audit.warnings || []).map((w) => w.code),
+            }
+          : null,
+      })
+    : makeStage({ stage: 'audit', status: STAGE_STATUS.SKIPPED, source: STAGE_SOURCE.LOCAL, parsed: null, reason: 'DEEPREAD_AUDIT=0，按配置跳过证据审计' });
 
   // 7) 定点修复：只重写有问题的个别小节
   const repairs = [];
+  const repairStartedAt = Date.now();
+  let repairErrors = 0;
   if (audit?.serious?.length && audit.repairTargets?.length && config.deepreadRepair) {
     const limit = options.maxRepairs || 2;
     const targets = audit.repairTargets.slice(0, limit);
@@ -261,6 +400,7 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
           repairs.push({ heading: target.heading, role, hints: target.hints });
         }
       } catch (err) {
+        repairErrors += 1;
         warnings.push(`定点修复失败（保留原稿）：${(err && err.message) || err}`);
       }
     }
@@ -271,6 +411,28 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
         /* 复检失败忽略 */
       }
     }
+    stages.repair = makeStage({
+      stage: 'repair',
+      status: repairErrors ? STAGE_STATUS.WARN : STAGE_STATUS.SUCCESS,
+      source: STAGE_SOURCE.MODEL,
+      parsed: true,
+      durationMs: Date.now() - repairStartedAt,
+      reason: repairErrors ? `${repairErrors} 节修复失败，保留原稿` : '',
+      extra: { targets: Math.min(audit.repairTargets.length, options.maxRepairs || 2), applied: repairs.length, errors: repairErrors },
+    });
+  } else {
+    stages.repair = makeStage({
+      stage: 'repair',
+      status: STAGE_STATUS.SKIPPED,
+      source: STAGE_SOURCE.LOCAL,
+      parsed: null,
+      reason: !config.deepreadRepair
+        ? 'DEEPREAD_REPAIR=0，按配置跳过定点修复'
+        : audit?.serious?.length
+          ? '审计未通过但没有可定位的小节'
+          : '审计无需修复',
+      extra: { targets: 0, applied: 0 },
+    });
   }
 
   emit({ stage: 'finalize', detail: `成稿 ${(markdown || '').replace(/\s/g, '').length} 字` });
@@ -300,10 +462,19 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
       pipeline: 'structured',
       structure: structure.stats,
       sections: structure.sections.map((s) => ({ id: s.id, title: s.title, chunks: s.chunkIds.length })),
+      stages,
+      stageSummary: summarizeStages(stages),
       researchMapStatus: mapResult.status,
+      researchMapStageStatus: stages.research_map.status,
+      researchMapSource: stages.research_map.source,
       researchMapStats: mapResult.stats,
+      researchMapEvidenceIds: mapResult.evidenceChunkIds || [],
+      planStatus: stages.plan.status,
+      planSource: stages.plan.source,
       plan: plan.map((s) => ({ title: s.title, note: s.note, role: s.role })),
       evidence: evidenceLog,
+      auditVerdict: audit?.verdict || null,
+      auditWarnings: (audit?.warnings || []).map((w) => w.code),
       evidenceText: evidenceLines.join('\n\n'),
       repairs,
       warnings,

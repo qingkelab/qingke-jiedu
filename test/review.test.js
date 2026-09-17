@@ -18,9 +18,14 @@ const DRAFT = `# 论文
 `;
 
 test('token 预算随稿件长度增长且有上下限', () => {
-  assert.equal(reviewBudgetTokens(''), 6000);
-  assert.ok(reviewBudgetTokens('字'.repeat(20000)) > 20000, '长稿要更大的预算');
-  assert.equal(reviewBudgetTokens('字'.repeat(100000)), 32000, '预算有上限');
+  assert.equal(reviewBudgetTokens(''), 30000, '短稿也要留出 reasoning 余量');
+  assert.ok(reviewBudgetTokens('字'.repeat(20000)) > 30000, '长稿要更大的预算');
+  assert.equal(reviewBudgetTokens('字'.repeat(100000)), 48000, '预算有上限（实测该上限被 provider 接受）');
+  // 预算是「正文 + reasoning 余量」，不是单纯的字符放大：12.6k 字终稿要 48000 才够
+  const draft = '字'.repeat(12600);
+  assert.ok(reviewBudgetTokens(draft) >= 40000, `12.6k 字稿子的预算应接近上限（实际 ${reviewBudgetTokens(draft)}）`);
+  // 关掉 reasoning 余量后退回旧行为（供不支持大预算的 provider 使用）
+  assert.equal(reviewBudgetTokens('字'.repeat(20000), { min: 6000, max: 16000, factor: 1.6, reasoningAllowance: 0 }), 16000);
 });
 
 test('正常审校结果被接受', () => {

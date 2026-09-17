@@ -1,0 +1,908 @@
+{
+  "id": "2501.12948",
+  "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+  "category": "RL / RLVR",
+  "url": "https://arxiv.org/abs/2501.12948",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 383750,
+  "source": {
+    "kind": "html",
+    "chars": 225351,
+    "textLines": 0,
+    "figures": 21,
+    "sections": 54,
+    "chunks": 337
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 54,
+    "chunkCount": 337,
+    "chars": 210203,
+    "coverage": 210203,
+    "truncated": false
+  },
+  "researchMapStatus": "fallback",
+  "researchMapStageStatus": "model_truncated",
+  "researchMapSource": "local",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 8,
+    "equations": 8,
+    "mainResults": 8,
+    "ablations": 6,
+    "limitations": 6,
+    "figures": 17,
+    "evidenceLinks": 27
+  },
+  "planStatus": "model_success",
+  "planSource": "model",
+  "auditVerdict": "passed_with_warning",
+  "stages": {
+    "chunking": {
+      "stage": "chunking",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 0,
+      "warning": false,
+      "skipped": false,
+      "sections": 54,
+      "chunks": 337,
+      "chars": 210203
+    },
+    "research_map": {
+      "stage": "research_map",
+      "status": "model_truncated",
+      "source": "local",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "length",
+      "rawContentLength": 2183,
+      "parsed": false,
+      "fallback": true,
+      "fallbackReason": "模型输出被截断（finish_reason=length）",
+      "reason": "输出被 max_tokens 截断（finish_reason=length，可见正文 2183 字）",
+      "durationMs": 59772,
+      "warning": true,
+      "skipped": false,
+      "maxTokens": 16000,
+      "inputChars": 24000,
+      "evidenceLinks": null
+    },
+    "plan": {
+      "stage": "plan",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 467,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 33397,
+      "warning": false,
+      "skipped": false,
+      "sectionCount": 7,
+      "maxTokens": 16000
+    },
+    "retrieval": {
+      "stage": "retrieval",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 127,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "evidence": 76,
+      "chunksCovered": 36,
+      "backHalfEvidence": 13
+    },
+    "section_generation": {
+      "stage": "section_generation",
+      "status": "success",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 208268,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "failed": 0
+    },
+    "audit": {
+      "stage": "audit",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 41,
+      "warning": false,
+      "skipped": false,
+      "verdict": "passed_with_warning",
+      "researchMapSource": "local",
+      "failedChecks": [],
+      "warnings": [
+        "research_map_unavailable"
+      ]
+    },
+    "repair": {
+      "stage": "repair",
+      "status": "skipped",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": null,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "审计无需修复",
+      "durationMs": null,
+      "warning": false,
+      "skipped": true,
+      "targets": 0,
+      "applied": 0
+    },
+    "review": {
+      "stage": "review",
+      "status": "model_success",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": "stop",
+      "rawContentLength": 14883,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 72068,
+      "warning": false,
+      "skipped": false
+    }
+  },
+  "stageSummary": {
+    "total": 8,
+    "withWarnings": 1,
+    "stagesWithWarnings": [
+      "research_map"
+    ],
+    "fallbacks": [
+      "research_map"
+    ],
+    "truncated": [
+      "research_map"
+    ],
+    "skipped": [
+      "repair"
+    ],
+    "failed": []
+  },
+  "evidence": [
+    {
+      "section": "🚀 纯 RL 就能逼出推理能力",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c11",
+        "c12",
+        "c13",
+        "c32",
+        "c45",
+        "c67",
+        "c292",
+        "c298"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🧱 旧范式卡在人类轨迹与 CoT 提示",
+      "role": "intro",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c6",
+        "c11",
+        "c14",
+        "c67",
+        "c78",
+        "c292",
+        "c293"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "⚙️ GRPO 与奖励设计是 R1 的发动机",
+      "role": "method",
+      "chunkIds": [
+        "c13",
+        "c14",
+        "c15",
+        "c16",
+        "c44",
+        "c45",
+        "c47",
+        "c48",
+        "c49",
+        "c100",
+        "c106",
+        "c107"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🧬 从 R1-Zero 到 R1：冷启动、两阶段 RL 与蒸馏",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c11",
+        "c13",
+        "c19",
+        "c41",
+        "c67",
+        "c72",
+        "c292",
+        "c298"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "📈 主结果、训练动态与消融要一起看",
+      "role": "method",
+      "chunkIds": [
+        "c13",
+        "c14",
+        "c15",
+        "c16",
+        "c44",
+        "c45",
+        "c47",
+        "c48",
+        "c49",
+        "c100",
+        "c106",
+        "c107"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🚧 奖励黑客、语言混用与未成功尝试划出边界",
+      "role": "limitation",
+      "chunkIds": [
+        "c72",
+        "c73",
+        "c75",
+        "c78",
+        "c79",
+        "c80",
+        "c81",
+        "c181",
+        "c182",
+        "c231",
+        "c235",
+        "c289"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🌍 开源权重与低成本让 R1 成为社区拐点",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c11",
+        "c12",
+        "c13",
+        "c14",
+        "c45",
+        "c67",
+        "c75",
+        "c292",
+        "c298"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "warn",
+        "detail": "终稿数字 31 个，原文未检到 2 个（匹配方式：精确 27 / 归一化 1 / 近似 1）",
+        "missing": [
+          "0.5",
+          "10.6万"
+        ],
+        "matched": [
+          {
+            "value": "1",
+            "method": "exact",
+            "chunkId": "c5"
+          },
+          {
+            "value": "16",
+            "method": "exact",
+            "chunkId": "c23"
+          },
+          {
+            "value": "2",
+            "method": "exact",
+            "chunkId": "c5"
+          },
+          {
+            "value": "3",
+            "method": "exact",
+            "chunkId": "c5"
+          },
+          {
+            "value": "4",
+            "method": "exact",
+            "chunkId": "c28"
+          },
+          {
+            "value": "11",
+            "method": "exact",
+            "chunkId": "c100"
+          },
+          {
+            "value": "00",
+            "method": "normalized",
+            "chunkId": "c34"
+          },
+          {
+            "value": "0",
+            "method": "exact",
+            "chunkId": "c34"
+          },
+          {
+            "value": "5",
+            "method": "exact",
+            "chunkId": "c44"
+          },
+          {
+            "value": "7",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "66000",
+            "method": "exact",
+            "chunkId": "c44"
+          },
+          {
+            "value": "256",
+            "method": "exact",
+            "chunkId": "c45"
+          },
+          {
+            "value": "6",
+            "method": "exact",
+            "chunkId": "c23"
+          },
+          {
+            "value": "8192",
+            "method": "exact",
+            "chunkId": "c23"
+          },
+          {
+            "value": "3b",
+            "method": "exact",
+            "chunkId": "c39"
+          },
+          {
+            "value": "9",
+            "method": "exact",
+            "chunkId": "c37"
+          },
+          {
+            "value": "2.0",
+            "method": "exact",
+            "chunkId": "c64"
+          },
+          {
+            "value": "25%",
+            "method": "exact",
+            "chunkId": "c67"
+          },
+          {
+            "value": "17%",
+            "method": "exact",
+            "chunkId": "c67"
+          },
+          {
+            "value": "14",
+            "method": "exact",
+            "chunkId": "c243"
+          },
+          {
+            "value": "10",
+            "method": "exact",
+            "chunkId": "c33"
+          },
+          {
+            "value": "8",
+            "method": "exact",
+            "chunkId": "c56"
+          },
+          {
+            "value": "7b",
+            "method": "exact",
+            "chunkId": "c176"
+          },
+          {
+            "value": "17",
+            "method": "exact",
+            "chunkId": "c160"
+          },
+          {
+            "value": "18",
+            "method": "exact",
+            "chunkId": "c196"
+          },
+          {
+            "value": "21",
+            "method": "exact",
+            "chunkId": "c307"
+          },
+          {
+            "value": "15",
+            "method": "exact",
+            "chunkId": "c252"
+          },
+          {
+            "value": "24",
+            "method": "exact",
+            "chunkId": "c139"
+          },
+          {
+            "value": "75",
+            "method": "approximate",
+            "chunkId": "c258"
+          }
+        ],
+        "methods": {
+          "exact": 27,
+          "normalized": 1,
+          "approximate": 1
+        }
+      },
+      {
+        "name": "entities",
+        "status": "pass",
+        "detail": "地图实体 18 个，原文未出现 0 个，终稿未提及 4 个",
+        "unknown": [],
+        "notMentioned": [
+          "Dev1",
+          "IF-Eval",
+          "Dev1",
+          "Compared"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 4 个，终稿覆盖 4 个",
+        "covered": [
+          "3",
+          "1",
+          "2",
+          "2.0"
+        ],
+        "missed": []
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 6 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 6 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 70 条，终稿 34 条，可对应 29 条"
+      },
+      {
+        "name": "figures",
+        "status": "warn",
+        "detail": "可用图 21 张，终稿引用 15 处，疑似错配 1 处",
+        "refs": [
+          1,
+          5,
+          7,
+          4,
+          9,
+          14,
+          10,
+          11,
+          6,
+          8,
+          17,
+          18,
+          21,
+          15,
+          16
+        ],
+        "badRefs": [],
+        "mismatched": [
+          {
+            "section": "🚧 奖励黑客、语言混用与未成功尝试划出边界",
+            "num": 1
+          }
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "check": "numbers",
+        "severity": "warn",
+        "detail": "数字无法在原文定位：0.5、10.6万",
+        "missing": [
+          "0.5",
+          "10.6万"
+        ]
+      },
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「🚧 奖励黑客、语言混用与未成功尝试划出边界」节引用的图1 与图注内容不符"
+      }
+    ],
+    "serious": [],
+    "repairTargets": [
+      {
+        "heading": "⚙️ GRPO 与奖励设计是 R1 的发动机",
+        "hints": [
+          "核对数字 0.5：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 10.6万：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      },
+      {
+        "heading": "🚧 奖励黑客、语言混用与未成功尝试划出边界",
+        "hints": [
+          "图 1 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      }
+    ],
+    "warnings": [
+      {
+        "code": "research_map_unavailable",
+        "detail": "研究地图未产出模型结果（model_truncated：模型输出被截断（finish_reason=length））：本次审计的实体 / 主要结果 / 消融 / 局限 结论基于本地关键词地图，不能当作高可信通过"
+      }
+    ],
+    "verdict": "passed_with_warning",
+    "researchMapStatus": "model_truncated",
+    "researchMapSource": "local",
+    "stats": {
+      "numbers": 31,
+      "missingNumbers": 2,
+      "numberMatchMethods": {
+        "exact": 27,
+        "normalized": 1,
+        "approximate": 1
+      },
+      "entities": 18,
+      "mainResults": 4,
+      "formulas": 34,
+      "figureRefs": 15
+    },
+    "sourceKey": "https://arxiv.org/abs/2501.12948"
+  },
+  "metrics": {
+    "sourceCoverage": 0.5,
+    "latePaperCoverage": 1,
+    "numberEvidenceCoverage": 0,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0.5,
+    "auditMissingRate": 0.0204,
+    "sectionCompleteness": 0.7778,
+    "lengthStability": 1,
+    "researchMapModelSuccess": 0,
+    "researchMapFallbackRate": 1,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0,
+    "auditConfidence": 0.32
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "DeepSeek-R1 在 AIME 2024 上 pass@1 达 79.8，MATH-500 达 97.3",
+        "late": false,
+        "section": "Training Details of the Second RL Stage",
+        "ok": false,
+        "keywordHits": [
+          "AIME",
+          "Pass@1"
+        ],
+        "missingKeywords": [
+          "MATH-500"
+        ],
+        "numberHits": [],
+        "missingNumbers": [
+          "79.8",
+          "97.3"
+        ]
+      },
+      {
+        "text": "Codeforces 评分 2029（Percentile 96.3）",
+        "late": false,
+        "section": "Training Details of the Second RL Stage",
+        "ok": false,
+        "keywordHits": [
+          "Codeforces"
+        ],
+        "missingKeywords": [
+          "Rating"
+        ],
+        "numberHits": [],
+        "missingNumbers": [
+          "2029"
+        ]
+      },
+      {
+        "text": "用 Group Relative Policy Optimization（GRPO）替代 PPO 作为 RL 框架，奖励只来自规则正确性",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "GRPO",
+          "reward"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "把 R1 的推理能力蒸馏到小模型（Qwen / Llama 系列）",
+        "late": true,
+        "section": "B.4.3 Hyper-Parameters of Distillation",
+        "ok": true,
+        "keywordHits": [
+          "distill"
+        ],
+        "missingKeywords": [
+          "distillation"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "不含 SFT 冷启动的 R1-Zero 与含冷启动的 R1 的差别（可读性与性能的取舍）",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "cold start",
+          "冷启动",
+          "R1-Zero"
+        ],
+        "missingKeywords": [
+          "readability"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "存在语言混用（language mixing）与可读性问题",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "language mixing",
+          "语言混用"
+        ],
+        "missingKeywords": [
+          "readability",
+          "可读性"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "奖励模型易被 reward hacking，且失败尝试经验（Unsuccessful Attempts）",
+        "late": false,
+        "section": "Reward Design",
+        "ok": false,
+        "keywordHits": [
+          "reward hacking"
+        ],
+        "missingKeywords": [
+          "奖励作弊",
+          "Unsuccessful Attempts",
+          "失败的尝试"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "79.8",
+        "97.3",
+        "2029"
+      ],
+      "hits": [],
+      "missing": [
+        "79.8",
+        "97.3",
+        "2029"
+      ],
+      "unlocated": [],
+      "located": 0
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "AIME accuracy",
+          "training"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "pipeline",
+          "DeepSeek-R1"
+        ],
+        "ok": true,
+        "by": "caption",
+        "keywordHits": [
+          "pipeline",
+          "DeepSeek-R1"
+        ],
+        "missingKeywords": []
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [
+      {
+        "text": "把 R1 的推理能力蒸馏到小模型（Qwen / Llama 系列）",
+        "ratio": 0.5178571428571429,
+        "section": "B.4.3 Hyper-Parameters of Distillation",
+        "ok": true
+      }
+    ],
+    "sections": {
+      "ratio": 0.7778,
+      "planned": 7,
+      "final": 9,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 9,
+      "planned": 7,
+      "chars": 13803,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0204,
+    "reliability": {
+      "researchMapStatus": "model_truncated",
+      "researchMapSource": "local",
+      "researchMapFinishReason": "length",
+      "researchMapRawContentLength": 2183,
+      "researchMapFallbackReason": "模型输出被截断（finish_reason=length）",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "research_map"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 1,
+        "stagesWithWarnings": [
+          "research_map"
+        ],
+        "fallbacks": [
+          "research_map"
+        ],
+        "truncated": [
+          "research_map"
+        ],
+        "skipped": [
+          "repair"
+        ],
+        "failed": []
+      },
+      "evidenceChunks": 36,
+      "evidenceFromModelMap": 0
+    },
+    "audit": {
+      "verdict": "passed_with_warning",
+      "warnings": [
+        "research_map_unavailable"
+      ],
+      "researchMapSource": "local"
+    }
+  },
+  "warnings": [
+    "research map 输出无法解析为 JSON，已用本地关键词地图兜底",
+    "research map 输出被截断（finish_reason=length，可见正文 2183 字 / 预算 16000 token）：可提高 DEEPREAD_MAP_TOKENS，或把 LLM_REASONING_EFFORT 调低/换非 reasoning 模型"
+  ],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 10008,
+      "lastAtMs": 10008
+    },
+    "research_map": {
+      "firstAtMs": 10012,
+      "lastAtMs": 69808
+    },
+    "plan": {
+      "firstAtMs": 69808,
+      "lastAtMs": 103206
+    },
+    "retrieval": {
+      "firstAtMs": 103333,
+      "lastAtMs": 103334
+    },
+    "section": {
+      "firstAtMs": 103334,
+      "lastAtMs": 289052
+    },
+    "section_done": {
+      "firstAtMs": 127040,
+      "lastAtMs": 311602
+    },
+    "audit": {
+      "firstAtMs": 311602,
+      "lastAtMs": 311645
+    },
+    "finalize": {
+      "firstAtMs": 311643,
+      "lastAtMs": 311643
+    }
+  },
+  "markdownChars": 14883,
+  "finishedAt": "2026-09-17T16:29:13.239Z"
+}

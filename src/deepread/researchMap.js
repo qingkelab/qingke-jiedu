@@ -11,7 +11,9 @@
  */
 
 import { parseJsonLoose } from '../ai/json.js';
+import { config } from '../config.js';
 import { tokenize } from './chunker.js';
+import { STAGE_SOURCE, STAGE_STATUS, classifyModelOutput, fallbackStage } from './stages.js';
 
 const MAX_ITEMS = 12;
 const MAX_TEXT = 420;
@@ -319,9 +321,22 @@ export function fallbackResearchMap({ structure, figures = [], source = {} } = {
   return normalized;
 }
 
+/** 地图中点名的证据 chunk id（供检索加权与 benchmark 的「证据来自模型地图」比例统计）。 */
+export function researchMapEvidenceIds(map) {
+  const ids = new Set();
+  for (const item of (map && map.evidence) || []) {
+    for (const id of item?.chunkIds || []) ids.add(String(id));
+  }
+  return [...ids];
+}
+
 /**
  * 构建 Research Map。
- * @returns {{map:object, status:'model'|'fallback'|'skipped', warnings:string[], stats:object, mapInputChars:number}}
+ *
+ * 输出预算默认取 config.deepreadMapTokens：reasoning 模型会把思考 token 计入 max_tokens，
+ * 4096 实测会让可见 JSON 变成 0 字（finish_reason=length），必须给足并如实上报截断。
+ *
+ * @returns {{map:object, status:'model'|'fallback', stage:object, warnings:string[], stats:object, mapInputChars:number, evidenceChunkIds:string[]}}
  */
 export async function buildResearchMap({
   chat,
@@ -330,36 +345,87 @@ export async function buildResearchMap({
   figures = [],
   onProgress,
   maxChars = 22000,
-  maxTokens = 4096,
+  maxTokens = config.deepreadMapTokens,
+  provider = null,
+  model = null,
 } = {}) {
   const warnings = [];
   const mapInput = buildMapInput({ structure, figures, maxChars });
+  const hasChat = typeof chat === 'function';
+  const enoughChunks = (structure?.chunks?.length || 0) >= 3;
+  let stage = null;
 
-  if (typeof chat === 'function' && (structure?.chunks?.length || 0) >= 3) {
+  if (hasChat && enoughChunks) {
+    const startedAt = Date.now();
+    let response = null;
+    let parsed = null;
+    let providerError = '';
     try {
       onProgress?.({ stage: 'research_map', detail: `分析 ${structure.chunks.length} 个切片` });
       const res = await chat(buildResearchMapMessages({ source, structure, figures, mapInput }), maxTokens);
-      const parsed = parseJsonLoose(res?.content);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const { map, stats } = normalizeResearchMap(parsed, { structure, figures });
-        const filled =
-          map.key_claims.length + map.method_components.length + map.main_results.length + map.limitations.length;
-        if (filled > 0) {
-          return { map, status: 'model', warnings, stats, mapInputChars: mapInput.length };
-        }
-        warnings.push('research map 解析结果为空，已用本地关键词地图兜底');
-      } else {
-        warnings.push('research map 输出无法解析为 JSON，已用本地关键词地图兜底');
-      }
+      response = res;
+      parsed = parseJsonLoose(res?.content);
     } catch (err) {
-      warnings.push(`research map 调用失败：${(err && err.message) || err}`);
+      providerError = (err && err.message) || String(err);
     }
-  } else if ((structure?.chunks?.length || 0) > 0) {
-    warnings.push('未提供可用 chat，使用本地关键词地图');
+
+    const parsedObject = parsed && typeof parsed === 'object' && !Array.isArray(parsed);
+    const normalized = parsedObject ? normalizeResearchMap(parsed, { structure, figures }) : null;
+    const filled = normalized
+      ? normalized.map.key_claims.length +
+        normalized.map.method_components.length +
+        normalized.map.main_results.length +
+        normalized.map.limitations.length
+      : 0;
+    const usable = !!normalized && filled > 0;
+
+    stage = classifyModelOutput({
+      stage: 'research_map',
+      response,
+      parsed: usable,
+      providerError,
+      source: STAGE_SOURCE.MODEL,
+      fallbackSource: STAGE_SOURCE.LOCAL,
+      model,
+      provider,
+      durationMs: Date.now() - startedAt,
+      extra: {
+        maxTokens,
+        inputChars: mapInput.length,
+        evidenceLinks: normalized ? normalized.stats.evidenceLinks : null,
+      },
+    });
+
+    if (usable) {
+      return {
+        map: normalized.map,
+        status: 'model',
+        stage,
+        warnings,
+        stats: normalized.stats,
+        mapInputChars: mapInput.length,
+        evidenceChunkIds: researchMapEvidenceIds(normalized.map),
+      };
+    }
+
+    // 降级：原因必须留下（截断 / 空输出 / 解析失败 / 调用失败四种要分得清）
+    if (providerError) warnings.push(`research map 调用失败：${providerError}`);
+    else if (!parsedObject) warnings.push('research map 输出无法解析为 JSON，已用本地关键词地图兜底');
+    else warnings.push('research map 解析结果为空，已用本地关键词地图兜底');
+    if (stage.status === STAGE_STATUS.MODEL_TRUNCATED) {
+      warnings.push(
+        `research map 输出被截断（finish_reason=length，可见正文 ${stage.rawContentLength} 字 / 预算 ${maxTokens} token）：` +
+          '可提高 DEEPREAD_MAP_TOKENS，或把 LLM_REASONING_EFFORT 调低/换非 reasoning 模型',
+      );
+    }
+  } else {
+    const reason = hasChat ? '切片不足（<3），使用本地关键词地图' : '未提供可用 chat，使用本地关键词地图';
+    warnings.push(reason);
+    stage = fallbackStage({ stage: 'research_map', reason, source: STAGE_SOURCE.LOCAL, extra: { maxTokens, inputChars: mapInput.length } });
   }
 
   const { map, stats } = fallbackResearchMap({ structure, figures, source });
-  return { map, status: 'fallback', warnings, stats, mapInputChars: mapInput.length };
+  return { map, status: 'fallback', stage, warnings, stats, mapInputChars: mapInput.length, evidenceChunkIds: [] };
 }
 
 /** 地图的精简文本视图（注入逐节写作与审计提示词）。 */

@@ -80,6 +80,81 @@ test('模型调用抛错时也不阻塞（回退本地地图）', async () => {
   assert.ok(res.map);
 });
 
+test('研究地图输出被截断（finish_reason=length）时状态为 model_truncated，且保留原因', async () => {
+  const { structure, figures } = setup();
+  // 真实事故：max_tokens=4096 被 reasoning 吃满 → 可见正文 0 字、finish_reason=length
+  const chat = async () => ({ content: '', finishReason: 'length', model: 'deepseek-v4-flash' });
+  const res = await buildResearchMap({ chat, source: { title: 'LoopFormer' }, structure, figures, provider: 'deepseek' });
+  assert.equal(res.status, 'fallback');
+  assert.equal(res.stage.status, 'model_truncated');
+  assert.equal(res.stage.source, 'local');
+  assert.equal(res.stage.finishReason, 'length');
+  assert.equal(res.stage.rawContentLength, 0);
+  assert.equal(res.stage.fallback, true);
+  assert.equal(res.stage.provider, 'deepseek');
+  assert.match(res.stage.fallbackReason, /截断/);
+  assert.ok(res.warnings.some((w) => /截断/.test(w)), '降级原因必须保留');
+  assert.ok(res.warnings.some((w) => /DEEPREAD_MAP_TOKENS/.test(w)), '应给出可执行的修复提示');
+  assert.ok(res.map, '仍然回退到本地地图，不阻塞主流程');
+  assert.deepEqual(res.evidenceChunkIds, [], '兜底地图没有模型证据定位');
+});
+
+test('研究地图返回空正文时状态为 parse_failed（不是截断）', async () => {
+  const { structure, figures } = setup();
+  const chat = async () => ({ content: '   ', finishReason: 'stop' });
+  const res = await buildResearchMap({ chat, source: {}, structure, figures });
+  assert.equal(res.stage.status, 'parse_failed');
+  assert.equal(res.stage.source, 'local');
+  assert.notEqual(res.stage.status, 'model_truncated');
+});
+
+test('研究地图成功时给出 model_success 元数据与证据 chunk 列表', async () => {
+  const { structure, figures } = setup();
+  const chat = async () => ({
+    content: JSON.stringify({
+      problem: '长上下文注意力开销',
+      key_claims: [{ text: '循环状态替代全局注意力', chunkIds: ['c1'] }],
+      main_results: [{ text: 'BLEU 41.8', chunkIds: ['c3'] }],
+      evidence: [{ text: '主结果 41.8', chunkIds: ['c3', 'c4'] }],
+    }),
+    finishReason: 'stop',
+    model: 'test-model',
+  });
+  const res = await buildResearchMap({ chat, source: {}, structure, figures, provider: 'deepseek', model: 'test-model' });
+  assert.equal(res.status, 'model');
+  assert.equal(res.stage.status, 'model_success');
+  assert.equal(res.stage.source, 'model');
+  assert.equal(res.stage.fallback, false);
+  assert.equal(res.stage.warning, false);
+  assert.equal(res.stage.finishReason, 'stop');
+  assert.ok(res.stage.rawContentLength > 0);
+  // 地图里所有条目关联的 chunkId 都会被聚合（含 key_claims 的 c1）
+  assert.ok(res.evidenceChunkIds.includes('c3'));
+  assert.ok(res.evidenceChunkIds.includes('c4'));
+});
+
+test('研究地图不再用 4096 这种会被 reasoning 吃满的预算，且可用参数覆盖', async () => {
+  const { structure, figures } = setup();
+  const seen = [];
+  const chat = async (messages, maxTokens) => {
+    seen.push(maxTokens);
+    return { content: JSON.stringify({ problem: 'x', key_claims: [{ text: 'y', chunkIds: ['c1'] }] }), finishReason: 'stop' };
+  };
+  await buildResearchMap({ chat, source: {}, structure, figures });
+  await buildResearchMap({ chat, source: {}, structure, figures, maxTokens: 24000 });
+  assert.ok(seen[0] > 4096, `默认预算必须给足（实际 ${seen[0]}）`);
+  assert.equal(seen[1], 24000, '调用方可以覆盖预算');
+});
+
+test('没有 chat 时直接标记 fallback（未调用模型）', async () => {
+  const { structure, figures } = setup();
+  const res = await buildResearchMap({ chat: null, source: {}, structure, figures });
+  assert.equal(res.status, 'fallback');
+  assert.equal(res.stage.status, 'fallback');
+  assert.equal(res.stage.fallback, true);
+  assert.match(res.stage.fallbackReason, /未提供可用 chat/);
+});
+
 test('本地地图包含消融与局限（供审计覆盖检查）', () => {
   const { structure, figures } = setup();
   const { map, stats } = fallbackResearchMap({ structure, figures, source: { title: 'LoopFormer' } });

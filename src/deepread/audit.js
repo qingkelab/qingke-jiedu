@@ -69,6 +69,58 @@ export function numberKey(raw) {
     .toLowerCase();
 }
 
+/** Unicode 减号 / 各种连字符统一成 ASCII '-'。 */
+const DASH_RE = /[\u2212\u2010\u2011\u2012\u2013\u2014\u2015\uFE63\uFF0D]/g;
+
+/**
+ * 数字格式归一化（**只做有明确规则的格式归一化**，不做数值近似，也不删任意前导数字）：
+ *   - 千位逗号：4,200 → 4200
+ *   - 百分号/乘号前后空格与全角形态：41.8 % → 41.8%、10× → 10x
+ *   - 整数部分前导零：01.30% → 1.30%、007 → 7（0.8 保持不变）
+ *   - 小数尾零：41.80 → 41.8、0.00 → 0
+ *   - Unicode 减号与连字符：−1.2 → -1.2
+ *   - arXiv HTML 表格展平造成的列粘连（"01.30%"）靠上面的前导零规则覆盖
+ *
+ * 用途：audit 判断「终稿的数字能否在原文定位」时，先精确匹配、再走这层归一化匹配；
+ * 只有两者都不中，才算「原文查不到」（避免把格式差异误判成编造，同时不影响抓真编造）。
+ */
+export function normalizeNumberToken(raw) {
+  const s = numberKey(raw).replace(DASH_RE, '-');
+  const m = s.match(/^(\d+(?:\.\d+)?)(.*)$/);
+  if (!m) return s;
+  const [intPart, fracPart] = m[1].split('.');
+  const int = intPart.replace(/^0+(?=\d)/, '');
+  const frac = (fracPart || '').replace(/0+$/, '');
+  return `${int}${frac ? `.${frac}` : ''}${m[2]}`;
+}
+
+/** 归一化后的数值部分（用于「数值相同、单位写法不同」的近似匹配）。 */
+export function numberValue(raw) {
+  const m = normalizeNumberToken(raw).match(/^-?\d+(?:\.\d+)?/);
+  return m ? Number(m[0]) : null;
+}
+
+/** 归一化后的单位后缀。 */
+export function numberUnit(raw) {
+  const m = normalizeNumberToken(raw).match(/^-?\d+(?:\.\d+)?(.*)$/);
+  return m ? m[1] : '';
+}
+
+/**
+ * 用三种方式判定「终稿数字是否能在原文定位」：
+ *   exact       字面（numberKey）一致
+ *   normalized  格式归一化后一致（01.30% ≡ 1.30%、4,200 ≡ 4200、41.80 ≡ 41.8）
+ *   approximate 数值一致但单位写法不同（10.7 ≡ 10.7%）
+ */
+export function matchNumberToken(draftKey, index) {
+  if (index.exact.has(draftKey)) return { method: 'exact', chunkId: index.exact.get(draftKey) };
+  const norm = normalizeNumberToken(draftKey);
+  if (index.normalized.has(norm)) return { method: 'normalized', chunkId: index.normalized.get(norm) };
+  const value = numberValue(draftKey);
+  if (value != null && index.numeric.has(value)) return { method: 'approximate', chunkId: index.numeric.get(value) };
+  return null;
+}
+
 /** 从文本里抽数字 token（含小数、百分比、规模后缀）。 */
 export function extractNumberTokens(text) {
   const out = [];
@@ -83,15 +135,23 @@ export function extractNumberTokens(text) {
   return out;
 }
 
-/** 原文证据索引：数字 → chunkId，方便定位「终稿数字是否来自原文」。 */
+/** 原文证据索引：数字 → chunkId（精确 / 归一化 / 数值三种索引），方便定位「终稿数字是否来自原文」。 */
 function evidenceLookup(structure) {
   const chunks = structure?.chunks || [];
-  const numbers = new Map();
+  const exact = new Map();
+  const normalized = new Map();
+  const numeric = new Map();
   for (const c of chunks) {
-    for (const n of extractNumberTokens(c.text)) if (!numbers.has(n)) numbers.set(n, c.id);
+    for (const n of extractNumberTokens(c.text)) {
+      if (!exact.has(n)) exact.set(n, c.id);
+      const norm = normalizeNumberToken(n);
+      if (!normalized.has(norm)) normalized.set(norm, c.id);
+      const value = numberValue(n);
+      if (value != null && !numeric.has(value)) numeric.set(value, c.id);
+    }
   }
   const text = chunks.map((c) => c.text).join('\n').toLowerCase();
-  return { chunks, numbers, text };
+  return { chunks, numbers: exact, normalized, numeric, text };
 }
 
 const FORMULA_RE = /\$\$([\s\S]+?)\$\$|\$([^$\n]+?)\$/g;
@@ -173,12 +233,40 @@ function sectionsContaining(markdown, needle) {
  * 审计终稿。
  * @returns {{checks:Array, issues:Array, serious:Array, repairTargets:Array, stats:Object}}
  */
-export function auditDraft({ markdown, structure, researchMap, figures = [], source = {}, minFigureRefs = 3 } = {}) {
+export function auditDraft({ markdown, structure, researchMap, figures = [], source = {}, minFigureRefs = 3, researchMapMeta = null } = {}) {
   const md = String(markdown || '');
   const look = evidenceLookup(structure);
   const checks = [];
   const issues = [];
+  const warnings = [];
   const repairTargets = new Map(); // heading -> Set(hint)
+
+  // 0) 上游地图可信度：地图不生效时，实体 / 主结果 / 消融 / 局限 这类「依赖地图」的检查
+  //    仍然照跑（确定性检查不该被关掉），但结论不能被当成高可信通过。
+  const mapStatus = String(researchMapMeta?.status || (researchMap ? 'unknown' : 'none'));
+  const mapSource = String(researchMapMeta?.source || (researchMap ? 'unknown' : 'none'));
+  const mapReason = String(researchMapMeta?.fallbackReason || researchMapMeta?.reason || '');
+  if (!researchMap) {
+    warnings.push({
+      code: 'research_map_unavailable',
+      detail: '没有研究地图：实体 / 主要结果 / 消融 / 局限 覆盖检查退化为纯关键词匹配',
+    });
+  } else if (!researchMapMeta) {
+    warnings.push({
+      code: 'research_map_source_unknown',
+      detail: '研究地图缺少阶段元数据，无法判断它来自模型还是本地兜底',
+    });
+  } else if (['model_truncated', 'parse_failed', 'provider_error'].includes(mapStatus)) {
+    warnings.push({
+      code: 'research_map_unavailable',
+      detail: `研究地图未产出模型结果（${mapStatus}${mapReason ? `：${mapReason}` : ''}）：本次审计的实体 / 主要结果 / 消融 / 局限 结论基于本地关键词地图，不能当作高可信通过`,
+    });
+  } else if (mapSource === 'local') {
+    warnings.push({
+      code: 'research_map_local_fallback',
+      detail: '研究地图来自本地关键词兜底：覆盖率类「通过」只说明关键词层面没发现问题，不代表模型地图生效',
+    });
+  }
 
   const addRepair = (heading, hint) => {
     if (!heading) return;
@@ -188,21 +276,30 @@ export function auditDraft({ markdown, structure, researchMap, figures = [], sou
 
   // 1) 数字 / 百分比
   const draftNumbers = [...new Set(extractNumberTokens(md))];
-  const keySet = look.numbers;
-  const bareSet = new Set([...keySet.keys()].map((k) => k.replace(/[^\d.]/g, '')).filter(Boolean));
-  const missingNumbers = draftNumbers.filter((n) => {
-    if (keySet.has(n)) return false;
-    const bare = n.replace(/[^\d.]/g, '');
-    if (bare && bareSet.has(bare)) return false;
-    return true;
-  });
+  const numberIndex = { exact: look.numbers, normalized: look.normalized, numeric: look.numeric };
+  const numberMatches = [];
+  const missingNumbers = [];
+  const matchMethods = { exact: 0, normalized: 0, approximate: 0 };
+  for (const n of draftNumbers) {
+    const hit = matchNumberToken(n, numberIndex);
+    if (hit) {
+      numberMatches.push({ value: n, method: hit.method, chunkId: hit.chunkId });
+      matchMethods[hit.method] += 1;
+    } else {
+      missingNumbers.push(n);
+    }
+  }
   const numberStatus =
     !draftNumbers.length ? 'warn' : !missingNumbers.length ? 'pass' : missingNumbers.length <= 2 ? 'warn' : 'fail';
   checks.push({
     name: 'numbers',
     status: numberStatus,
-    detail: `终稿数字 ${draftNumbers.length} 个，原文未检到 ${missingNumbers.length} 个`,
+    detail:
+      `终稿数字 ${draftNumbers.length} 个，原文未检到 ${missingNumbers.length} 个` +
+      `（匹配方式：精确 ${matchMethods.exact} / 归一化 ${matchMethods.normalized} / 近似 ${matchMethods.approximate}）`,
     missing: missingNumbers.slice(0, 12),
+    matched: numberMatches.slice(0, 40),
+    methods: matchMethods,
   });
   if (numberStatus !== 'pass') {
     issues.push({
@@ -368,14 +465,22 @@ export function auditDraft({ markdown, structure, researchMap, figures = [], sou
   }
 
   const serious = issues.filter((i) => i.severity === 'fail');
+  const warned = issues.filter((i) => i.severity === 'warn');
+  // 三级结论：地图不生效 / 有 warning 级问题 → 不能算「高可信通过」
+  const verdict = serious.length ? 'failed' : warnings.length || warned.length ? 'passed_with_warning' : 'passed';
   return {
     checks,
     issues,
     serious,
     repairTargets: [...repairTargets.entries()].map(([heading, hints]) => ({ heading, hints: [...hints] })),
+    warnings,
+    verdict,
+    researchMapStatus: mapStatus,
+    researchMapSource: mapSource,
     stats: {
       numbers: draftNumbers.length,
       missingNumbers: missingNumbers.length,
+      numberMatchMethods: matchMethods,
       entities: entityNames.length,
       mainResults: mainKeys.length,
       formulas: draftFormulas.length,
@@ -390,9 +495,13 @@ export function auditSummary(audit) {
   if (!audit) return '';
   const failed = audit.checks.filter((c) => c.status === 'fail');
   const warned = audit.checks.filter((c) => c.status === 'warn');
-  if (!failed.length && !warned.length) return '证据审计通过';
+  const mapWarnings = audit.warnings || [];
+  if (!failed.length && !warned.length) {
+    return mapWarnings.length ? `证据审计通过（${mapWarnings.length} 条可信度提示）` : '证据审计通过';
+  }
   const parts = [];
   if (failed.length) parts.push(`未通过 ${failed.map((c) => c.name).join('/')}`);
   if (warned.length) parts.push(`提示 ${warned.map((c) => c.name).join('/')}`);
+  if (mapWarnings.length) parts.push(`可信度 ${mapWarnings.map((w) => w.code).join('/')}`);
   return `证据审计：${parts.join('；')}`;
 }

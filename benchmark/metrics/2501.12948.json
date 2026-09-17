@@ -1,19 +1,26 @@
 {
   "id": "2501.12948",
-  "at": "2026-09-17T05:30:23.239Z",
+  "at": "2026-09-17T16:29:13.241Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
-    "sourceCoverage": 0.75,
+    "sourceCoverage": 0.5,
     "latePaperCoverage": 1,
-    "numberEvidenceCoverage": 0.3333,
+    "numberEvidenceCoverage": 0,
     "figureCoverage": 1,
     "formulaCoverage": null,
-    "ablationCoverage": 0,
+    "ablationCoverage": 1,
     "limitationCoverage": 0.5,
-    "auditMissingRate": 0,
-    "sectionCompleteness": 1,
-    "lengthStability": 1
+    "auditMissingRate": 0.0204,
+    "sectionCompleteness": 0.7778,
+    "lengthStability": 1,
+    "researchMapModelSuccess": 0,
+    "researchMapFallbackRate": 1,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0,
+    "auditConfidence": 0.32
   },
   "detail": {
     "evidence": [
@@ -21,7 +28,7 @@
         "text": "DeepSeek-R1 在 AIME 2024 上 pass@1 达 79.8，MATH-500 达 97.3",
         "late": false,
         "section": "Training Details of the Second RL Stage",
-        "ok": true,
+        "ok": false,
         "keywordHits": [
           "AIME",
           "Pass@1"
@@ -29,10 +36,9 @@
         "missingKeywords": [
           "MATH-500"
         ],
-        "numberHits": [
-          "79.8"
-        ],
+        "numberHits": [],
         "missingNumbers": [
+          "79.8",
           "97.3"
         ]
       },
@@ -42,10 +48,11 @@
         "section": "Training Details of the Second RL Stage",
         "ok": false,
         "keywordHits": [
-          "Codeforces",
+          "Codeforces"
+        ],
+        "missingKeywords": [
           "Rating"
         ],
-        "missingKeywords": [],
         "numberHits": [],
         "missingNumbers": [
           "2029"
@@ -84,13 +91,13 @@
         "text": "不含 SFT 冷启动的 R1-Zero 与含冷启动的 R1 的差别（可读性与性能的取舍）",
         "late": false,
         "section": "Introduction",
-        "ok": false,
+        "ok": true,
         "keywordHits": [
+          "cold start",
+          "冷启动",
           "R1-Zero"
         ],
         "missingKeywords": [
-          "cold start",
-          "冷启动",
           "readability"
         ],
         "numberHits": [],
@@ -104,12 +111,12 @@
         "section": "Introduction",
         "ok": true,
         "keywordHits": [
-          "语言混用",
-          "可读性"
+          "language mixing",
+          "语言混用"
         ],
         "missingKeywords": [
-          "language mixing",
-          "readability"
+          "readability",
+          "可读性"
         ],
         "numberHits": [],
         "missingNumbers": []
@@ -137,15 +144,14 @@
         "97.3",
         "2029"
       ],
-      "hits": [
-        "79.8"
-      ],
+      "hits": [],
       "missing": [
+        "79.8",
         "97.3",
         "2029"
       ],
       "unlocated": [],
-      "located": 1
+      "located": 0
     },
     "figures": [
       {
@@ -166,11 +172,10 @@
         "ok": true,
         "by": "caption",
         "keywordHits": [
+          "pipeline",
           "DeepSeek-R1"
         ],
-        "missingKeywords": [
-          "pipeline"
-        ]
+        "missingKeywords": []
       }
     ],
     "formulas": [],
@@ -183,20 +188,59 @@
       }
     ],
     "sections": {
-      "ratio": 1,
-      "planned": 6,
-      "final": 6,
+      "ratio": 0.7778,
+      "planned": 7,
+      "final": 9,
       "missing": []
     },
     "stability": {
       "stable": true,
       "score": 1,
-      "sections": 6,
-      "planned": 6,
-      "chars": 10367,
+      "sections": 9,
+      "planned": 7,
+      "chars": 13803,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0
+    "auditMissingRate": 0.0204,
+    "reliability": {
+      "researchMapStatus": "model_truncated",
+      "researchMapSource": "local",
+      "researchMapFinishReason": "length",
+      "researchMapRawContentLength": 2183,
+      "researchMapFallbackReason": "模型输出被截断（finish_reason=length）",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "research_map"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 1,
+        "stagesWithWarnings": [
+          "research_map"
+        ],
+        "fallbacks": [
+          "research_map"
+        ],
+        "truncated": [
+          "research_map"
+        ],
+        "skipped": [
+          "repair"
+        ],
+        "failed": []
+      },
+      "evidenceChunks": 36,
+      "evidenceFromModelMap": 0
+    },
+    "audit": {
+      "verdict": "passed_with_warning",
+      "warnings": [
+        "research_map_unavailable"
+      ],
+      "researchMapSource": "local"
+    }
   }
 }

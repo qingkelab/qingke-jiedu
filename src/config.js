@@ -40,6 +40,8 @@ export const config = {
   ollamaBaseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434/v1',
   ollamaModel: process.env.OLLAMA_MODEL || 'qwen2.5:7b',
   llmTimeoutMs: Number(process.env.LLM_TIMEOUT_MS || 300000),
+  // reasoning 模型把思考 token 也算进 max_tokens：留空表示不发送该字段（兼容不支持的服务端）
+  llmReasoningEffort: String(process.env.LLM_REASONING_EFFORT || '').trim(),
 
   // 文案约束
   maxCopyChars: Number(process.env.MAX_COPY_CHARS || 1000), // 解读文案字数上限
@@ -55,6 +57,10 @@ export const config = {
   deepreadEvidenceChars: Number(process.env.DEEPREAD_EVIDENCE_CHARS || 6000), // 每节检索注入的证据字数预算
   deepreadMaxChunks: Number(process.env.DEEPREAD_MAX_CHUNKS || 12), // 每节最多注入多少个 chunk
   deepreadMapChars: Number(process.env.DEEPREAD_MAP_CHARS || 22000), // 研究地图阶段的输入预算
+  // 研究地图 / 大纲阶段的输出预算：reasoning 模型会把思考 token 计入 max_tokens，
+  // 4096 实测会把可见 JSON 挤成 0 字（finish_reason=length），所以默认给足。
+  deepreadMapTokens: Number(process.env.DEEPREAD_MAP_TOKENS || 16000),
+  deepreadPlanTokens: Number(process.env.DEEPREAD_PLAN_TOKENS || 16000),
   deepreadAudit: process.env.DEEPREAD_AUDIT !== '0', // 终稿证据审计
   deepreadRepair: process.env.DEEPREAD_REPAIR !== '0', // 审计不通过时定点修复（只重写问题小节）
 

@@ -1,0 +1,984 @@
+{
+  "id": "2405.15793",
+  "title": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+  "category": "Agent",
+  "url": "https://arxiv.org/abs/2405.15793",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 319968,
+  "source": {
+    "kind": "html",
+    "chars": 274329,
+    "textLines": 0,
+    "figures": 26,
+    "sections": 41,
+    "chunks": 574
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 41,
+    "chunkCount": 574,
+    "chars": 270979,
+    "coverage": 270979,
+    "truncated": false
+  },
+  "researchMapStatus": "model",
+  "researchMapStageStatus": "model_success",
+  "researchMapSource": "model",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 9,
+    "equations": 12,
+    "mainResults": 8,
+    "ablations": 3,
+    "limitations": 4,
+    "figures": 20,
+    "evidenceLinks": 13
+  },
+  "planStatus": "model_success",
+  "planSource": "model",
+  "auditVerdict": "passed_with_warning",
+  "stages": {
+    "chunking": {
+      "stage": "chunking",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 0,
+      "warning": false,
+      "skipped": false,
+      "sections": 41,
+      "chunks": 574,
+      "chars": 270979
+    },
+    "research_map": {
+      "stage": "research_map",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 13090,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 43834,
+      "warning": false,
+      "skipped": false,
+      "maxTokens": 16000,
+      "inputChars": 18424,
+      "evidenceLinks": 13
+    },
+    "plan": {
+      "stage": "plan",
+      "status": "model_success",
+      "source": "model",
+      "model": "deepseek-v4-flash",
+      "provider": "deepseek",
+      "finishReason": "stop",
+      "rawContentLength": 517,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 18233,
+      "warning": false,
+      "skipped": false,
+      "sectionCount": 7,
+      "maxTokens": 16000
+    },
+    "retrieval": {
+      "stage": "retrieval",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 171,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "evidence": 84,
+      "chunksCovered": 34,
+      "backHalfEvidence": 27
+    },
+    "section_generation": {
+      "stage": "section_generation",
+      "status": "success",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 178276,
+      "warning": false,
+      "skipped": false,
+      "sections": 7,
+      "failed": 0
+    },
+    "audit": {
+      "stage": "audit",
+      "status": "success",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": true,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "",
+      "durationMs": 38,
+      "warning": false,
+      "skipped": false,
+      "verdict": "passed_with_warning",
+      "researchMapSource": "model",
+      "failedChecks": [],
+      "warnings": []
+    },
+    "repair": {
+      "stage": "repair",
+      "status": "skipped",
+      "source": "local",
+      "model": null,
+      "provider": null,
+      "finishReason": null,
+      "rawContentLength": null,
+      "parsed": null,
+      "fallback": false,
+      "fallbackReason": "",
+      "reason": "审计无需修复",
+      "durationMs": null,
+      "warning": false,
+      "skipped": true,
+      "targets": 0,
+      "applied": 0
+    },
+    "review": {
+      "stage": "review",
+      "status": "warn",
+      "source": "model",
+      "model": null,
+      "provider": null,
+      "finishReason": "length",
+      "rawContentLength": 0,
+      "parsed": false,
+      "fallback": true,
+      "fallbackReason": "审校返回空内容",
+      "reason": "审校结果被护栏丢弃（保留原稿）：审校返回空内容",
+      "durationMs": 63784,
+      "warning": true,
+      "skipped": false
+    }
+  },
+  "stageSummary": {
+    "total": 8,
+    "withWarnings": 1,
+    "stagesWithWarnings": [
+      "review"
+    ],
+    "fallbacks": [
+      "review"
+    ],
+    "truncated": [],
+    "skipped": [
+      "repair"
+    ],
+    "failed": []
+  },
+  "evidence": [
+    {
+      "section": "🚀 为什么现在读 SWE-agent：LM 需要专属界面而非 shell",
+      "role": "intro",
+      "chunkIds": [
+        "c2",
+        "c7",
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13",
+        "c14",
+        "c17",
+        "c37",
+        "c571",
+        "c572"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🧱 旧界面卡住：Linux shell 与 RAG 都不懂 LM 的短板",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c7",
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13",
+        "c37",
+        "c46",
+        "c66",
+        "c572",
+        "c573"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🛠️ ACI 设计：查看、搜索、编辑加护栏，错误少反馈准",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c7",
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13",
+        "c37",
+        "c46",
+        "c66",
+        "c572",
+        "c573"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c7",
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13",
+        "c37",
+        "c46",
+        "c66",
+        "c572",
+        "c573"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "📊 关键证据：12.47%/10.5% 与 Lite 消融 +10.7 点",
+      "role": "results",
+      "chunkIds": [
+        "c10",
+        "c37",
+        "c38",
+        "c51",
+        "c52",
+        "c96",
+        "c200",
+        "c298",
+        "c303",
+        "c311",
+        "c319",
+        "c367"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "⚠️ 失效边界：编辑失败、手工 ACI、只限软件工程",
+      "role": "limitation",
+      "chunkIds": [
+        "c288",
+        "c289",
+        "c290",
+        "c291",
+        "c292",
+        "c293",
+        "c566",
+        "c569",
+        "c571",
+        "c572",
+        "c573",
+        "c574"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "🌍 社区判断：可复现、伦理与定性案例，ACI 能走多远",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c7",
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13",
+        "c37",
+        "c46",
+        "c66",
+        "c572",
+        "c573"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "warn",
+        "detail": "终稿数字 83 个，原文未检到 1 个（匹配方式：精确 67 / 归一化 1 / 近似 14）",
+        "missing": [
+          "0.49"
+        ],
+        "matched": [
+          {
+            "value": "4",
+            "method": "exact",
+            "chunkId": "c10"
+          },
+          {
+            "value": "1",
+            "method": "exact",
+            "chunkId": "c3"
+          },
+          {
+            "value": "2",
+            "method": "exact",
+            "chunkId": "c10"
+          },
+          {
+            "value": "2294",
+            "method": "exact",
+            "chunkId": "c311"
+          },
+          {
+            "value": "12",
+            "method": "exact",
+            "chunkId": "c39"
+          },
+          {
+            "value": "12.47%",
+            "method": "approximate",
+            "chunkId": "c11"
+          },
+          {
+            "value": "3.8%",
+            "method": "approximate",
+            "chunkId": "c13"
+          },
+          {
+            "value": "3",
+            "method": "exact",
+            "chunkId": "c10"
+          },
+          {
+            "value": "10.5%",
+            "method": "approximate",
+            "chunkId": "c16"
+          },
+          {
+            "value": "300",
+            "method": "exact",
+            "chunkId": "c14"
+          },
+          {
+            "value": "10.7",
+            "method": "exact",
+            "chunkId": "c15"
+          },
+          {
+            "value": "87.7%",
+            "method": "approximate",
+            "chunkId": "c5"
+          },
+          {
+            "value": "128k",
+            "method": "approximate",
+            "chunkId": "c43"
+          },
+          {
+            "value": "200k",
+            "method": "approximate",
+            "chunkId": "c44"
+          },
+          {
+            "value": "25",
+            "method": "exact",
+            "chunkId": "c45"
+          },
+          {
+            "value": "13",
+            "method": "exact",
+            "chunkId": "c60"
+          },
+          {
+            "value": "5",
+            "method": "exact",
+            "chunkId": "c25"
+          },
+          {
+            "value": "26",
+            "method": "exact",
+            "chunkId": "c111"
+          },
+          {
+            "value": "9",
+            "method": "exact",
+            "chunkId": "c97"
+          },
+          {
+            "value": "10",
+            "method": "exact",
+            "chunkId": "c27"
+          },
+          {
+            "value": "17",
+            "method": "exact",
+            "chunkId": "c117"
+          },
+          {
+            "value": "21",
+            "method": "exact",
+            "chunkId": "c97"
+          },
+          {
+            "value": "23",
+            "method": "exact",
+            "chunkId": "c114"
+          },
+          {
+            "value": "8",
+            "method": "exact",
+            "chunkId": "c42"
+          },
+          {
+            "value": "16",
+            "method": "exact",
+            "chunkId": "c117"
+          },
+          {
+            "value": "14",
+            "method": "exact",
+            "chunkId": "c41"
+          },
+          {
+            "value": "15",
+            "method": "exact",
+            "chunkId": "c97"
+          },
+          {
+            "value": "19",
+            "method": "exact",
+            "chunkId": "c111"
+          },
+          {
+            "value": "22",
+            "method": "exact",
+            "chunkId": "c85"
+          },
+          {
+            "value": "11",
+            "method": "exact",
+            "chunkId": "c2"
+          },
+          {
+            "value": "18",
+            "method": "exact",
+            "chunkId": "c111"
+          },
+          {
+            "value": "6",
+            "method": "exact",
+            "chunkId": "c41"
+          },
+          {
+            "value": "1.31",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "2.67",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "0.13",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "3.79",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "4.33",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "0.25",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "11.00",
+            "method": "exact",
+            "chunkId": "c51"
+          },
+          {
+            "value": "1.46",
+            "method": "exact",
+            "chunkId": "c51"
+          }
+        ],
+        "methods": {
+          "exact": 67,
+          "normalized": 1,
+          "approximate": 14
+        }
+      },
+      {
+        "name": "entities",
+        "status": "warn",
+        "detail": "地图实体 2 个，原文未出现 2 个，终稿未提及 2 个",
+        "unknown": [
+          "HumanEvalFix。",
+          "先前最佳非交互式检索增强系统 resolve rate 3.8%。"
+        ],
+        "notMentioned": [
+          "HumanEvalFix。",
+          "先前最佳非交互式检索增强系统 resolve rate 3.8%。"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 11 个，终稿覆盖 11 个",
+        "covered": [
+          "4",
+          "12.47%",
+          "2294",
+          "3.8%",
+          "3",
+          "10.5%",
+          "300",
+          "10.7",
+          "12",
+          "128k",
+          "200k"
+        ],
+        "missed": []
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 3 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 4 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "warn",
+        "detail": "原文公式 166 条，终稿 5 条，可对应 0 条"
+      },
+      {
+        "name": "figures",
+        "status": "warn",
+        "detail": "可用图 26 张，终稿引用 24 处，疑似错配 9 处",
+        "refs": [
+          1,
+          2,
+          13,
+          3,
+          4,
+          5,
+          26,
+          12,
+          9,
+          10,
+          17,
+          21,
+          23,
+          16,
+          14,
+          25,
+          15,
+          19,
+          22,
+          11,
+          18,
+          6,
+          8,
+          7
+        ],
+        "badRefs": [],
+        "mismatched": [
+          {
+            "section": "🛠️ ACI 设计：查看、搜索、编辑加护栏，错误少反馈准",
+            "num": 5
+          },
+          {
+            "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+            "num": 17
+          },
+          {
+            "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+            "num": 23
+          },
+          {
+            "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+            "num": 14
+          },
+          {
+            "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+            "num": 25
+          },
+          {
+            "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+            "num": 19
+          },
+          {
+            "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+            "num": 22
+          },
+          {
+            "section": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+            "num": 18
+          },
+          {
+            "section": "⚠️ 失效边界：编辑失败、手工 ACI、只限软件工程",
+            "num": 18
+          }
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "check": "numbers",
+        "severity": "warn",
+        "detail": "数字无法在原文定位：0.49",
+        "missing": [
+          "0.49"
+        ]
+      },
+      {
+        "check": "entities",
+        "severity": "warn",
+        "detail": "地图里的实体在原文中未出现（可能被臆造）：HumanEvalFix。、先前最佳非交互式检索增强系统 resolve rate 3.8%。"
+      },
+      {
+        "check": "formula",
+        "severity": "warn",
+        "detail": "终稿公式与原文对不上（可能被改写）"
+      },
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「🛠️ ACI 设计：查看、搜索、编辑加护栏，错误少反馈准」节引用的图5 与图注内容不符"
+      },
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住」节引用的图17 与图注内容不符"
+      }
+    ],
+    "serious": [],
+    "repairTargets": [
+      {
+        "heading": "📊 关键证据：12.47%/10.5% 与 Lite 消融 +10.7 点",
+        "hints": [
+          "核对数字 0.49：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      },
+      {
+        "heading": "🌍 社区判断：可复现、伦理与定性案例，ACI 能走多远",
+        "hints": [
+          "核对公式符号与下标是否与原文一致（保留 LaTeX 原样，不改写下标/符号）"
+        ]
+      },
+      {
+        "heading": "🛠️ ACI 设计：查看、搜索、编辑加护栏，错误少反馈准",
+        "hints": [
+          "图 5 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      },
+      {
+        "heading": "🔁 轨迹与行为：agent 怎么一步步改代码、花钱和卡住",
+        "hints": [
+          "图 17 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      }
+    ],
+    "warnings": [],
+    "verdict": "passed_with_warning",
+    "researchMapStatus": "model_success",
+    "researchMapSource": "model",
+    "stats": {
+      "numbers": 83,
+      "missingNumbers": 1,
+      "numberMatchMethods": {
+        "exact": 67,
+        "normalized": 1,
+        "approximate": 14
+      },
+      "entities": 2,
+      "mainResults": 11,
+      "formulas": 5,
+      "figureRefs": 24
+    },
+    "sourceKey": "https://arxiv.org/abs/2405.15793"
+  },
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": null,
+    "numberEvidenceCoverage": 0.6667,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0.0263,
+    "sectionCompleteness": 1,
+    "lengthStability": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0.4118,
+    "auditConfidence": 0.8
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "SWE-bench 上 pass@1 达 12.5%，HumanEvalFix 达 87.7%，超过此前的非交互式 SOTA",
+        "late": false,
+        "section": "Experimental Setup",
+        "ok": true,
+        "keywordHits": [
+          "SWE-bench",
+          "HumanEvalFix",
+          "pass@"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "87.7"
+        ],
+        "missingNumbers": [
+          "12.5"
+        ]
+      },
+      {
+        "text": "核心是给 LM 设计 Agent-Computer Interface（ACI）：文件查看器 / 搜索 / 语法检查等专用命令",
+        "late": false,
+        "section": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+        "ok": true,
+        "keywordHits": [
+          "Agent-Computer Interface",
+          "ACI"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "在 SWE-bench Lite 上比较不同 ACI 设计，验证界面设计本身带来的收益",
+        "late": false,
+        "section": "Experimental Setup",
+        "ok": true,
+        "keywordHits": [
+          "SWE-bench Lite",
+          "interface"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "ACI 消融：SWE-agent 比基线 agent 多解决 10.7 个百分点（SWE-bench Lite 300 例子集）",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "10.7"
+        ],
+        "missingKeywords": [
+          "ablation"
+        ],
+        "numberHits": [
+          "10.7"
+        ],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "末尾的 Ethics & Broader Impacts：可写代码的 LM 带来的三类风险",
+        "late": false,
+        "section": "",
+        "ok": false,
+        "keywordHits": [
+          "伦理"
+        ],
+        "missingKeywords": [
+          "Broader Impacts",
+          "Ethics",
+          "社会影响"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "12.5",
+        "87.7",
+        "10.7"
+      ],
+      "hits": [
+        "87.7",
+        "10.7"
+      ],
+      "missing": [
+        "12.5"
+      ],
+      "unlocated": [],
+      "located": 2
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "agent-computer interface",
+          "ACI"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 5,
+        "keywords": [
+          "Search interfaces",
+          "Shell-only"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [],
+    "sections": {
+      "ratio": 1,
+      "planned": 7,
+      "final": 7,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 7,
+      "planned": 7,
+      "chars": 10439,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0263,
+    "reliability": {
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 13090,
+      "researchMapFallbackReason": "",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "review"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 1,
+        "stagesWithWarnings": [
+          "review"
+        ],
+        "fallbacks": [
+          "review"
+        ],
+        "truncated": [],
+        "skipped": [
+          "repair"
+        ],
+        "failed": []
+      },
+      "evidenceChunks": 34,
+      "evidenceFromModelMap": 14
+    },
+    "audit": {
+      "verdict": "passed_with_warning",
+      "warnings": [],
+      "researchMapSource": "model"
+    }
+  },
+  "warnings": [],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 15575,
+      "lastAtMs": 15575
+    },
+    "research_map": {
+      "firstAtMs": 15588,
+      "lastAtMs": 59422
+    },
+    "plan": {
+      "firstAtMs": 59422,
+      "lastAtMs": 77655
+    },
+    "retrieval": {
+      "firstAtMs": 77827,
+      "lastAtMs": 77827
+    },
+    "section": {
+      "firstAtMs": 77827,
+      "lastAtMs": 229557
+    },
+    "section_done": {
+      "firstAtMs": 103604,
+      "lastAtMs": 256103
+    },
+    "audit": {
+      "firstAtMs": 256104,
+      "lastAtMs": 256145
+    },
+    "finalize": {
+      "firstAtMs": 256143,
+      "lastAtMs": 256143
+    }
+  },
+  "markdownChars": 11470,
+  "finishedAt": "2026-09-17T16:11:32.308Z"
+}

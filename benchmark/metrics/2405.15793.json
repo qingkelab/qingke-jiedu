@@ -1,19 +1,26 @@
 {
   "id": "2405.15793",
-  "at": "2026-09-17T05:30:23.239Z",
+  "at": "2026-09-17T16:29:13.241Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
     "sourceCoverage": 1,
     "latePaperCoverage": null,
-    "numberEvidenceCoverage": 1,
+    "numberEvidenceCoverage": 0.6667,
     "figureCoverage": 1,
     "formulaCoverage": null,
     "ablationCoverage": 1,
     "limitationCoverage": 0,
-    "auditMissingRate": 0.0278,
+    "auditMissingRate": 0.0263,
     "sectionCompleteness": 1,
-    "lengthStability": 1
+    "lengthStability": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0.4118,
+    "auditConfidence": 0.8
   },
   "detail": {
     "evidence": [
@@ -29,10 +36,11 @@
         ],
         "missingKeywords": [],
         "numberHits": [
-          "12.5",
           "87.7"
         ],
-        "missingNumbers": []
+        "missingNumbers": [
+          "12.5"
+        ]
       },
       {
         "text": "核心是给 LM 设计 Agent-Computer Interface（ACI）：文件查看器 / 搜索 / 语法检查等专用命令",
@@ -85,11 +93,12 @@
         "late": false,
         "section": "",
         "ok": false,
-        "keywordHits": [],
+        "keywordHits": [
+          "伦理"
+        ],
         "missingKeywords": [
           "Broader Impacts",
           "Ethics",
-          "伦理",
           "社会影响"
         ],
         "numberHits": [],
@@ -103,13 +112,14 @@
         "10.7"
       ],
       "hits": [
-        "12.5",
         "87.7",
         "10.7"
       ],
-      "missing": [],
+      "missing": [
+        "12.5"
+      ],
       "unlocated": [],
-      "located": 3
+      "located": 2
     },
     "figures": [
       {
@@ -135,19 +145,54 @@
     "lateAnchors": [],
     "sections": {
       "ratio": 1,
-      "planned": 6,
-      "final": 6,
+      "planned": 7,
+      "final": 7,
       "missing": []
     },
     "stability": {
       "stable": true,
       "score": 1,
-      "sections": 6,
-      "planned": 6,
-      "chars": 9944,
+      "sections": 7,
+      "planned": 7,
+      "chars": 10439,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0.0278
+    "auditMissingRate": 0.0263,
+    "reliability": {
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 13090,
+      "researchMapFallbackReason": "",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "review"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 1,
+        "stagesWithWarnings": [
+          "review"
+        ],
+        "fallbacks": [
+          "review"
+        ],
+        "truncated": [],
+        "skipped": [
+          "repair"
+        ],
+        "failed": []
+      },
+      "evidenceChunks": 34,
+      "evidenceFromModelMap": 14
+    },
+    "audit": {
+      "verdict": "passed_with_warning",
+      "warnings": [],
+      "researchMapSource": "model"
+    }
   }
 }

@@ -12,6 +12,58 @@
 
 import { tokenize } from './chunker.js';
 
+/**
+ * 证据类别：给「主结果 / 消融 / 局限 / 失败案例 / 伦理 / broader impacts / 附录」建独立召回规则。
+ *
+ * 动机（Benchmark v1 实测）：论文真正值钱的内容常常在**后半篇**——失败案例、消融变体、局限、
+ * ethics / broader impacts 附录。只看小节标题做词法召回时这些片段容易整段缺席，
+ * 于是终稿看起来结构完整，却漏掉了论文的边界结论。
+ *
+ * 规则只有正则，不引入 embedding / 向量库，保持确定性。
+ */
+export const EVIDENCE_CATEGORIES = {
+  main_results: /result|results|table|table\s*\d|benchmark|leaderboard|score|accuracy|bleu|f1|sota|state[- ]of[- ]the[- ]art|结果|实验|指标|得分|表格|准确率/i,
+  ablations:
+    /ablation|ablate|variant|variation|model variations|component analysis|component removal|w\/o|without\s+the|sensitivity|comparison|compare|参数|变体|组件分析|消融|去掉|移除|不加|对比/i,
+  limitations: /limitation|limitations|boundary|caveat|constraint|局限|边界|失效|限制/i,
+  failure_cases: /failure case|failure mode|failed to|fails to|behavior analysis|error analysis|taxonomy|失败案例|失败模式|失败原因|失效案例/i,
+  ethics: /ethic|ethics|ethical|misuse|malicious|harmful|safety|harm\b|伦理|滥用|安全|有害/i,
+  broader_impacts: /broader impact|broader impacts|societal|social impact|impact statement|更广泛的影响|社会影响|影响声明/i,
+  appendix: /\bappendix\b|appendix\s+[a-z]|附录|^[a-z]\.\d|[a-z]\.\d+\s/i,
+  future_work: /future work|future direction|open question|unsuccessful|attempts|limitations and future|后续工作|未来工作|开放问题|失败的尝试/i,
+  discussion: /discussion|conclusion|结论|讨论|分析/i,
+};
+
+/** 判断 chunk 命中的证据类别集合。 */
+export function chunkCategories(chunk) {
+  const hay = `${chunk?.sectionTitle || ''} ${chunk?.sectionPath || ''} ${chunk?.text || ''}`;
+  const out = new Set();
+  for (const [name, re] of Object.entries(EVIDENCE_CATEGORIES)) {
+    if (re.test(hay)) out.add(name);
+  }
+  return out;
+}
+
+/** 各章节角色对证据类别的偏好权重（结果 / 消融 / 局限各自的召回重点）。 */
+const ROLE_CATEGORY_BOOST = {
+  results: { main_results: 1.2, ablations: 0.8, appendix: 0.4 },
+  limitation: { limitations: 1.4, failure_cases: 1.3, ethics: 1.2, broader_impacts: 1.1, future_work: 0.9, appendix: 0.8 },
+  method: { appendix: 0.2 },
+  intro: { main_results: 0.6, limitations: 0.4 },
+  formula: { main_results: 0.2 },
+  general: {},
+};
+
+/** 需要「后半篇最低召回保障」的角色：方法与公式节不做，避免把机制解释挤掉。 */
+const LATE_GUARANTEE_ROLES = new Set(['results', 'limitation', 'general', 'intro']);
+
+const NOISE_SECTION_RE = /references|bibliography|acknowledg|参考文献|致谢/i;
+
+function positionRatio(chunk, total) {
+  if (!total || total <= 1) return 0;
+  return chunk.index / (total - 1);
+}
+
 /** 章节角色：决定召回偏好。 */
 export const SECTION_ROLES = {
   method: {
@@ -128,8 +180,19 @@ export function scoreChunk(chunk, ctx) {
   if (ctx.evidenceIds?.has(chunk.id)) score += 2.2;
   // 图注与当前节要引用的图相关时加权
   if (ctx.figureIds?.has(chunk.id)) score += 1.2;
+  // 证据类别加权：结果节偏主结果/表格，局限节偏局限/失败案例/伦理/broader impacts/附录
+  const categories = ctx.categories?.get(chunk.id);
+  if (categories) {
+    const boost = ROLE_CATEGORY_BOOST[ctx.role] || {};
+    for (const [name, weight] of Object.entries(boost)) if (categories.has(name)) score += weight;
+  }
+  // 结果 / 局限类小节：后半篇的实证内容（实验、消融、附录）优先于前半篇的方法铺垫
+  if (ctx.totalChunks && (ctx.role === 'results' || ctx.role === 'limitation')) {
+    const pos = positionRatio(chunk, ctx.totalChunks);
+    if (pos >= 0.5) score += ctx.role === 'results' ? 0.6 : 0.7;
+  }
   // 参考文献 / 致谢这类噪声降权
-  if (/references|bibliography|acknowledg|参考文献|致谢/i.test(chunk.sectionTitle || '')) score -= 3;
+  if (NOISE_SECTION_RE.test(chunk.sectionTitle || '')) score -= 3;
 
   return score;
 }
@@ -147,6 +210,7 @@ export function retrieveForSection({
   budgetChars = 6000,
   maxChunks = 12,
   minChunks = 4,
+  lateQuota = null,
 } = {}) {
   const chunks = structure?.chunks || [];
   if (!chunks.length) return { evidence: [], chunkIds: [], figureNums: [], roles: 'none', chars: 0 };
@@ -157,6 +221,8 @@ export function retrieveForSection({
   for (const item of researchMap?.evidence || []) {
     for (const id of item?.chunkIds || []) evidenceIds.add(id);
   }
+  const categories = new Map();
+  for (const c of chunks) categories.set(c.id, chunkCategories(c));
 
   // 当前小节附近（按标题匹配）的 chunk 优先：先保证「本节原文」在场
   const sameSection = chunks.filter((c) => matchesSection(c, section));
@@ -170,7 +236,12 @@ export function retrieveForSection({
   }
 
   const scored = chunks
-    .map((c) => ({ chunk: c, score: scoreChunk(c, { queryTerms: terms, role, evidenceIds, figureIds }) + (sameSection.includes(c) ? 1.4 : 0) }))
+    .map((c) => ({
+      chunk: c,
+      score:
+        scoreChunk(c, { queryTerms: terms, role, evidenceIds, figureIds, categories, totalChunks: chunks.length }) +
+        (sameSection.includes(c) ? 1.4 : 0),
+    }))
     .sort((a, b) => b.score - a.score || a.chunk.index - b.chunk.index);
 
   const picked = [];
@@ -189,9 +260,24 @@ export function retrieveForSection({
   };
   // 先放本节原文，再按得分补全（保持原文档顺序输出，方便模型理解）
   take(sameSection.map((c) => ({ chunk: c, score: 99 })));
+  // 后半篇最低召回保障：结果 / 局限类小节至少带 1~2 个后半篇片段，
+  // 避免「所有证据都来自前半篇」——这是 Benchmark v1 里 latePaperCoverage 掉的直接原因。
+  const quota =
+    lateQuota != null
+      ? Math.max(0, Number(lateQuota) || 0)
+      : LATE_GUARANTEE_ROLES.has(role)
+        ? Math.min(2, Math.max(1, Math.floor(maxChunks / 6)))
+        : 0;
+  if (quota > 0 && chunks.length > 1) {
+    const backHalf = scored.filter(
+      (s) => positionRatio(s.chunk, chunks.length) >= 0.5 && !NOISE_SECTION_RE.test(s.chunk.sectionTitle || ''),
+    );
+    take(backHalf.slice(0, quota));
+  }
   take(scored);
 
   const ordered = picked.map((p) => p.chunk).sort((a, b) => a.index - b.index);
+  const backHalf = ordered.filter((c) => positionRatio(c, chunks.length) >= 0.5);
   return {
     evidence: ordered.map((c) => ({
       id: c.id,
@@ -204,6 +290,8 @@ export function retrieveForSection({
     figureNums,
     roles: role,
     chars,
+    backHalfChunks: backHalf.length,
+    lateQuota: quota,
   };
 }
 

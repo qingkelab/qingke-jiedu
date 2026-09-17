@@ -85,9 +85,14 @@ Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy 
 - **降级**：切片不足 / 结构化流程整体失败 → 回退旧流程（Ollama 走 multipass、API 模型走整篇生成）；
   研究地图失败 → 本地地图；检索失败 → 本节 chunks；审计失败 → 只记 warning，不阻断报告。
   相关开关：`DEEPREAD_STRUCTURED`、`DEEPREAD_CHUNK_CHARS`、`DEEPREAD_EVIDENCE_CHARS`、
-  `DEEPREAD_MAX_CHUNKS`、`DEEPREAD_MAP_CHARS`、`DEEPREAD_AUDIT`、`DEEPREAD_REPAIR`。
+  `DEEPREAD_MAX_CHUNKS`、`DEEPREAD_MAP_CHARS`、`DEEPREAD_MAP_TOKENS`、`DEEPREAD_PLAN_TOKENS`、
+  `DEEPREAD_AUDIT`、`DEEPREAD_REPAIR`；reasoning 模型可用 `LLM_REASONING_EFFORT` 把思考预算与可见输出分开。
+- **阶段可靠性（v2）**：每个阶段都留一条统一的元数据（`status` / `source` / `finishReason` /
+  `rawContentLength` / `fallbackReason` / `durationMs`），`model_truncated` 与 `parse_failed`
+  严格区分；`audit` 会结合上游地图可信度给出 `passed` / `passed_with_warning` / `failed`，
+  避免「地图没生效但审计说通过」被当成结论。
 
-### 质量基准测试（Benchmark v1）
+### 质量基准测试（Benchmark）
 
 深度解读的质量不再只靠「功能测试通过」判断：`benchmark/` 维护了 5 篇 seed 论文
 （LLM / RL / Agent / VLM / 具身智能）与人工定义的**关键事实锚点**，用确定性指标衡量
@@ -102,7 +107,10 @@ npm run benchmark -- --update-baseline # 把本次结果写成新 baseline
 
 指标：`sourceCoverage` / `latePaperCoverage` / `numberEvidenceCoverage` / `figureCoverage` /
 `formulaCoverage` / `ablationCoverage` / `limitationCoverage` / `auditMissingRate` /
-`sectionCompleteness` / `lengthStability`。每次运行的 `summary.json` + 逐篇明细写入
+`sectionCompleteness` / `lengthStability`，外加**阶段可靠性指标**（`researchMapModelSuccess` /
+`researchMapFallbackRate` / `planModelSuccess` / `planFallbackRate` / `stagesWithWarnings` /
+`evidenceFromModelMapRate` / `auditConfidence`）——CLI 与 summary 会把「内容覆盖」「阶段可靠性」
+「审计可信度」分开列出，research map 没生效时显式点名。每次运行的 `summary.json` + 逐篇明细写入
 `benchmark/runs/<timestamp>/`，并与 `benchmark/baseline.json` 对比输出 improved / regressed / unchanged。
 
 **注意**：benchmark 衡量的是证据覆盖与结构完整性，**不是对文章文学质量的绝对评分**；第一版不使用 LLM judge。

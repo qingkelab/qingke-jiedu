@@ -1,19 +1,26 @@
 {
   "id": "1706.03762",
-  "at": "2026-09-17T05:30:23.239Z",
+  "at": "2026-09-17T16:29:13.241Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
     "sourceCoverage": 1,
-    "latePaperCoverage": 1,
+    "latePaperCoverage": 0.3333,
     "numberEvidenceCoverage": 1,
     "figureCoverage": 1,
     "formulaCoverage": 1,
-    "ablationCoverage": 1,
+    "ablationCoverage": 0,
     "limitationCoverage": 1,
-    "auditMissingRate": 0,
+    "auditMissingRate": 0.0339,
     "sectionCompleteness": 1,
-    "lengthStability": 1
+    "lengthStability": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
+    "planModelSuccess": 1,
+    "planFallbackRate": 0,
+    "stagesWithWarnings": 2,
+    "evidenceFromModelMapRate": 0.7333,
+    "auditConfidence": 0.5
   },
   "detail": {
     "evidence": [
@@ -71,11 +78,11 @@
         "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
         "late": true,
         "section": "Regularization",
-        "ok": true,
-        "keywordHits": [
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
           "label smoothing"
         ],
-        "missingKeywords": [],
         "numberHits": [
           "0.1"
         ],
@@ -85,12 +92,11 @@
         "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
         "late": true,
         "section": "Regularization",
-        "ok": true,
-        "keywordHits": [
-          "dropout"
-        ],
+        "ok": false,
+        "keywordHits": [],
         "missingKeywords": [
-          "residual dropout"
+          "residual dropout",
+          "dropout"
         ],
         "numberHits": [
           "0.1"
@@ -105,13 +111,12 @@
         "section": "Why Self-Attention",
         "ok": true,
         "keywordHits": [
+          "complexity",
           "复杂度",
+          "path length",
           "路径长度"
         ],
-        "missingKeywords": [
-          "complexity",
-          "path length"
-        ],
+        "missingKeywords": [],
         "numberHits": [],
         "missingNumbers": []
       }
@@ -170,10 +175,11 @@
         "text": "正弦位置编码 PE(pos, 2i) = sin(pos/10000^(2i/d_model))",
         "ok": true,
         "keywordHits": [
-          "10000",
           "sin"
         ],
-        "missingKeywords": [],
+        "missingKeywords": [
+          "10000"
+        ],
         "hasFormula": true
       }
     ],
@@ -182,13 +188,13 @@
         "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
         "ratio": 0.7554347826086957,
         "section": "Regularization",
-        "ok": true
+        "ok": false
       },
       {
         "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
         "ratio": 0.7445652173913043,
         "section": "Regularization",
-        "ok": true
+        "ok": false
       },
       {
         "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
@@ -208,10 +214,46 @@
       "score": 1,
       "sections": 7,
       "planned": 7,
-      "chars": 11833,
+      "chars": 9291,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0
+    "auditMissingRate": 0.0339,
+    "reliability": {
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 9229,
+      "researchMapFallbackReason": "",
+      "planStatus": "model_success",
+      "planSource": "model",
+      "planFallbackReason": "",
+      "stagesWithWarnings": [
+        "section_generation",
+        "review"
+      ],
+      "stageSummary": {
+        "total": 8,
+        "withWarnings": 2,
+        "stagesWithWarnings": [
+          "section_generation",
+          "review"
+        ],
+        "fallbacks": [
+          "section_generation",
+          "review"
+        ],
+        "truncated": [],
+        "skipped": [],
+        "failed": []
+      },
+      "evidenceChunks": 30,
+      "evidenceFromModelMap": 22
+    },
+    "audit": {
+      "verdict": "failed",
+      "warnings": [],
+      "researchMapSource": "model"
+    }
   }
 }
