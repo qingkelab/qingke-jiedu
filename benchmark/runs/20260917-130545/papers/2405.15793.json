@@ -1,0 +1,681 @@
+{
+  "id": "2405.15793",
+  "title": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+  "category": "Agent",
+  "url": "https://arxiv.org/abs/2405.15793",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 287914,
+  "source": {
+    "kind": "html",
+    "chars": 274329,
+    "textLines": 0,
+    "figures": 26,
+    "sections": 41,
+    "chunks": 574
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 41,
+    "chunkCount": 574,
+    "chars": 270979,
+    "coverage": 270979,
+    "truncated": false
+  },
+  "researchMapStatus": "fallback",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 8,
+    "equations": 8,
+    "mainResults": 8,
+    "ablations": 6,
+    "limitations": 3,
+    "figures": 20,
+    "evidenceLinks": 27
+  },
+  "evidence": [
+    {
+      "section": "为什么值得读这篇论文？",
+      "role": "intro",
+      "chunkIds": [
+        "c2",
+        "c6",
+        "c8",
+        "c9",
+        "c10",
+        "c11",
+        "c12",
+        "c13",
+        "c14",
+        "c17",
+        "c118",
+        "c569"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "旧方法卡在哪，作者换了个什么思路",
+      "role": "method",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c12",
+        "c38",
+        "c117",
+        "c118",
+        "c195",
+        "c196",
+        "c197"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "核心机制：组件怎么从输入走到输出",
+      "role": "method",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c12",
+        "c38",
+        "c117",
+        "c118",
+        "c195",
+        "c196",
+        "c197"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "关键公式与实验证据有多硬",
+      "role": "results",
+      "chunkIds": [
+        "c10",
+        "c37",
+        "c38",
+        "c41",
+        "c51",
+        "c96",
+        "c196",
+        "c200",
+        "c201",
+        "c367",
+        "c438"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "失效边界与可以继续追的问题",
+      "role": "limitation",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c9",
+        "c10",
+        "c12",
+        "c25",
+        "c38",
+        "c41",
+        "c119",
+        "c197",
+        "c572",
+        "c574"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "社区视角：它值不值得跟进",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c6",
+        "c8",
+        "c9",
+        "c37",
+        "c118",
+        "c569",
+        "c572"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "fail",
+        "detail": "终稿数字 101 个，原文未检到 4 个",
+        "missing": [
+          "1.30%",
+          "10.67",
+          "4.00",
+          "7.58%"
+        ]
+      },
+      {
+        "name": "entities",
+        "status": "pass",
+        "detail": "地图实体 18 个，原文未出现 0 个，终稿未提及 5 个",
+        "unknown": [],
+        "notMentioned": [
+          "Although",
+          "Although",
+          "Jimenez",
+          "Following",
+          "InterCode"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 17 个，终稿覆盖 7 个",
+        "covered": [
+          "2",
+          "294",
+          "4",
+          "1106",
+          "3",
+          "20240229",
+          "6"
+        ],
+        "missed": [
+          "2942",
+          "1212",
+          "20",
+          "300300",
+          "32",
+          "34",
+          "14",
+          "88k"
+        ]
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 6 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 3 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 166 条，终稿 7 条，可对应 1 条"
+      },
+      {
+        "name": "figures",
+        "status": "warn",
+        "detail": "可用图 26 张，终稿引用 18 处，疑似错配 2 处",
+        "refs": [
+          2,
+          1,
+          3,
+          5,
+          13,
+          15,
+          8,
+          12,
+          26,
+          23,
+          19,
+          22,
+          9,
+          17,
+          24,
+          6,
+          7,
+          11
+        ],
+        "badRefs": [],
+        "mismatched": [
+          {
+            "section": "关键公式与实验证据有多硬",
+            "num": 22
+          },
+          {
+            "section": "失效边界与可以继续追的问题",
+            "num": 22
+          }
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：1.30%、10.67、4.00、7.58%",
+        "missing": [
+          "1.30%",
+          "10.67",
+          "4.00",
+          "7.58%"
+        ]
+      },
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「关键公式与实验证据有多硬」节引用的图22 与图注内容不符"
+      },
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「失效边界与可以继续追的问题」节引用的图22 与图注内容不符"
+      }
+    ],
+    "serious": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：1.30%、10.67、4.00、7.58%",
+        "missing": [
+          "1.30%",
+          "10.67",
+          "4.00",
+          "7.58%"
+        ]
+      }
+    ],
+    "repairTargets": [
+      {
+        "heading": "旧方法卡在哪，作者换了个什么思路",
+        "hints": [
+          "核对数字 1.30%：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      },
+      {
+        "heading": "关键公式与实验证据有多硬",
+        "hints": [
+          "核对数字 10.67：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 4.00：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "图 22 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      },
+      {
+        "heading": "失效边界与可以继续追的问题",
+        "hints": [
+          "核对数字 7.58%：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "图 22 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      }
+    ],
+    "stats": {
+      "numbers": 101,
+      "missingNumbers": 4,
+      "entities": 18,
+      "mainResults": 17,
+      "formulas": 7,
+      "figureRefs": 18
+    },
+    "sourceKey": "https://arxiv.org/abs/2405.15793",
+    "after": {
+      "checks": [
+        {
+          "name": "numbers",
+          "status": "fail",
+          "detail": "终稿数字 100 个，原文未检到 3 个",
+          "missing": [
+            "1.30%",
+            "4.00",
+            "7.58%"
+          ]
+        },
+        {
+          "name": "entities",
+          "status": "pass",
+          "detail": "地图实体 18 个，原文未出现 0 个，终稿未提及 5 个",
+          "unknown": [],
+          "notMentioned": [
+            "Although",
+            "Although",
+            "Jimenez",
+            "Following",
+            "InterCode"
+          ]
+        },
+        {
+          "name": "main_result",
+          "status": "pass",
+          "detail": "主要结果关键数字 17 个，终稿覆盖 8 个",
+          "covered": [
+            "2",
+            "294",
+            "20",
+            "4",
+            "1106",
+            "3",
+            "20240229",
+            "6"
+          ],
+          "missed": [
+            "2942",
+            "1212",
+            "300300",
+            "32",
+            "34",
+            "14",
+            "88k",
+            "128128k"
+          ]
+        },
+        {
+          "name": "ablation",
+          "status": "pass",
+          "detail": "原文有 6 条消融信息，终稿已覆盖"
+        },
+        {
+          "name": "limitation",
+          "status": "pass",
+          "detail": "原文有 3 条局限，终稿已覆盖"
+        },
+        {
+          "name": "formula",
+          "status": "pass",
+          "detail": "原文公式 166 条，终稿 7 条，可对应 1 条"
+        },
+        {
+          "name": "figures",
+          "status": "warn",
+          "detail": "可用图 26 张，终稿引用 18 处，疑似错配 2 处",
+          "refs": [
+            2,
+            1,
+            3,
+            5,
+            13,
+            15,
+            8,
+            12,
+            26,
+            23,
+            19,
+            22,
+            9,
+            17,
+            24,
+            6,
+            7,
+            11
+          ],
+          "badRefs": [],
+          "mismatched": [
+            {
+              "section": "关键公式与实验证据有多硬",
+              "num": 22
+            },
+            {
+              "section": "失效边界与可以继续追的问题",
+              "num": 22
+            }
+          ]
+        }
+      ],
+      "issues": [
+        {
+          "check": "numbers",
+          "severity": "fail",
+          "detail": "数字无法在原文定位：1.30%、4.00、7.58%",
+          "missing": [
+            "1.30%",
+            "4.00",
+            "7.58%"
+          ]
+        },
+        {
+          "check": "figures",
+          "severity": "warn",
+          "detail": "第「关键公式与实验证据有多硬」节引用的图22 与图注内容不符"
+        },
+        {
+          "check": "figures",
+          "severity": "warn",
+          "detail": "第「失效边界与可以继续追的问题」节引用的图22 与图注内容不符"
+        }
+      ],
+      "serious": [
+        {
+          "check": "numbers",
+          "severity": "fail",
+          "detail": "数字无法在原文定位：1.30%、4.00、7.58%",
+          "missing": [
+            "1.30%",
+            "4.00",
+            "7.58%"
+          ]
+        }
+      ],
+      "repairTargets": [
+        {
+          "heading": "旧方法卡在哪，作者换了个什么思路",
+          "hints": [
+            "核对数字 1.30%：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+          ]
+        },
+        {
+          "heading": "关键公式与实验证据有多硬",
+          "hints": [
+            "核对数字 4.00：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+            "图 22 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+          ]
+        },
+        {
+          "heading": "失效边界与可以继续追的问题",
+          "hints": [
+            "核对数字 7.58%：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+            "图 22 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+          ]
+        }
+      ],
+      "stats": {
+        "numbers": 100,
+        "missingNumbers": 3,
+        "entities": 18,
+        "mainResults": 17,
+        "formulas": 7,
+        "figureRefs": 18
+      },
+      "sourceKey": "https://arxiv.org/abs/2405.15793"
+    }
+  },
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": null,
+    "numberEvidenceCoverage": 1,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0.0278,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "SWE-bench 上 pass@1 达 12.5%，HumanEvalFix 达 87.7%，超过此前的非交互式 SOTA",
+        "late": false,
+        "section": "Experimental Setup",
+        "ok": true,
+        "keywordHits": [
+          "SWE-bench",
+          "HumanEvalFix",
+          "pass@"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "12.5",
+          "87.7"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "核心是给 LM 设计 Agent-Computer Interface（ACI）：文件查看器 / 搜索 / 语法检查等专用命令",
+        "late": false,
+        "section": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+        "ok": true,
+        "keywordHits": [
+          "Agent-Computer Interface",
+          "ACI"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "在 SWE-bench Lite 上比较不同 ACI 设计，验证界面设计本身带来的收益",
+        "late": false,
+        "section": "Experimental Setup",
+        "ok": true,
+        "keywordHits": [
+          "SWE-bench Lite",
+          "interface"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "ACI 消融：SWE-agent 比基线 agent 多解决 10.7 个百分点（SWE-bench Lite 300 例子集）",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "10.7"
+        ],
+        "missingKeywords": [
+          "ablation"
+        ],
+        "numberHits": [
+          "10.7"
+        ],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "末尾的 Ethics & Broader Impacts：可写代码的 LM 带来的三类风险",
+        "late": false,
+        "section": "",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "Broader Impacts",
+          "Ethics",
+          "伦理",
+          "社会影响"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "12.5",
+        "87.7",
+        "10.7"
+      ],
+      "hits": [
+        "12.5",
+        "87.7",
+        "10.7"
+      ],
+      "missing": [],
+      "unlocated": [],
+      "located": 3
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "agent-computer interface",
+          "ACI"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 5,
+        "keywords": [
+          "Search interfaces",
+          "Shell-only"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 9944,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0278
+  },
+  "warnings": [
+    "research map 输出无法解析为 JSON，已用本地关键词地图兜底"
+  ],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 8281,
+      "lastAtMs": 8281
+    },
+    "research_map": {
+      "firstAtMs": 8295,
+      "lastAtMs": 26755
+    },
+    "plan": {
+      "firstAtMs": 26755,
+      "lastAtMs": 47031
+    },
+    "retrieval": {
+      "firstAtMs": 47111,
+      "lastAtMs": 47111
+    },
+    "section": {
+      "firstAtMs": 47111,
+      "lastAtMs": 168137
+    },
+    "section_done": {
+      "firstAtMs": 60318,
+      "lastAtMs": 184953
+    },
+    "audit": {
+      "firstAtMs": 184953,
+      "lastAtMs": 220259
+    },
+    "repair": {
+      "firstAtMs": 184980,
+      "lastAtMs": 184980
+    },
+    "finalize": {
+      "firstAtMs": 220256,
+      "lastAtMs": 220256
+    }
+  },
+  "markdownChars": 10804,
+  "finishedAt": "2026-09-17T05:16:24.553Z"
+}

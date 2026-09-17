@@ -1,0 +1,102 @@
+{
+  "version": "v1",
+  "updatedAt": "2026-09-17T05:30:23.239Z",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "total": 5,
+  "completed": 5,
+  "metrics": {
+    "sourceCoverage": 0.8833,
+    "latePaperCoverage": 0.6667,
+    "numberEvidenceCoverage": 0.75,
+    "figureCoverage": 0.9,
+    "formulaCoverage": 1,
+    "ablationCoverage": 0.7,
+    "limitationCoverage": 0.3,
+    "auditMissingRate": 0.0104,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "papers": [
+    {
+      "id": "1706.03762",
+      "category": "LLM",
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": 1,
+        "numberEvidenceCoverage": 1,
+        "figureCoverage": 1,
+        "formulaCoverage": 1,
+        "ablationCoverage": 1,
+        "limitationCoverage": 1,
+        "auditMissingRate": 0,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      }
+    },
+    {
+      "id": "2405.15793",
+      "category": "Agent",
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": null,
+        "numberEvidenceCoverage": 1,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0.0278,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      }
+    },
+    {
+      "id": "2406.09246",
+      "category": "Embodied AI / Robotics",
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": 0,
+        "numberEvidenceCoverage": 0.75,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 0.5,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      }
+    },
+    {
+      "id": "2409.12191",
+      "category": "Multimodal / VLM",
+      "metrics": {
+        "sourceCoverage": 0.6667,
+        "latePaperCoverage": null,
+        "numberEvidenceCoverage": 0.6667,
+        "figureCoverage": 0.5,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0.0241,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      }
+    },
+    {
+      "id": "2501.12948",
+      "category": "RL / RLVR",
+      "metrics": {
+        "sourceCoverage": 0.75,
+        "latePaperCoverage": 1,
+        "numberEvidenceCoverage": 0.3333,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 0,
+        "limitationCoverage": 0.5,
+        "auditMissingRate": 0,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "id": "2405.15793",
+  "title": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+  "category": "Agent",
+  "url": "https://arxiv.org/abs/2405.15793",
+  "expectedSections": [
+    "Introduction",
+    "The Agent-Computer Interface",
+    "Experimental Setup",
+    "Results",
+    "Analysis of ACI Design"
+  ],
+  "expectedEvidence": [
+    {
+      "type": "main_result",
+      "text": "SWE-bench 上 pass@1 达 12.5%，HumanEvalFix 达 87.7%，超过此前的非交互式 SOTA",
+      "keywords": [
+        "SWE-bench",
+        "HumanEvalFix",
+        "pass@"
+      ],
+      "numbers": [
+        "12.5",
+        "87.7"
+      ],
+      "strict": false
+    },
+    {
+      "type": "method",
+      "text": "核心是给 LM 设计 Agent-Computer Interface（ACI）：文件查看器 / 搜索 / 语法检查等专用命令",
+      "keywords": [
+        "Agent-Computer Interface",
+        "ACI"
+      ],
+      "numbers": [],
+      "strict": false
+    },
+    {
+      "type": "main_result",
+      "text": "在 SWE-bench Lite 上比较不同 ACI 设计，验证界面设计本身带来的收益",
+      "keywords": [
+        "SWE-bench Lite",
+        "interface"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ],
+  "expectedFigures": [
+    {
+      "num": 1,
+      "captionKeywords": [
+        "agent-computer interface",
+        "ACI"
+      ],
+      "fallbackIndex": 1
+    },
+    {
+      "num": 5,
+      "captionKeywords": [
+        "Search interfaces",
+        "Shell-only"
+      ],
+      "fallbackIndex": 2
+    }
+  ],
+  "expectedFormulas": [],
+  "expectedAblations": [
+    {
+      "type": "ablation",
+      "text": "ACI 消融：SWE-agent 比基线 agent 多解决 10.7 个百分点（SWE-bench Lite 300 例子集）",
+      "keywords": [
+        "ablation",
+        "10.7"
+      ],
+      "numbers": [
+        "10.7"
+      ],
+      "strict": false
+    }
+  ],
+  "expectedLimitations": [
+    {
+      "type": "limitation",
+      "text": "末尾的 Ethics & Broader Impacts：可写代码的 LM 带来的三类风险",
+      "keywords": [
+        "Broader Impacts",
+        "Ethics",
+        "伦理",
+        "社会影响"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ]
+}

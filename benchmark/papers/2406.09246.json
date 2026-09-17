@@ -1,0 +1,55 @@
+{
+  "id": "2406.09246",
+  "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+  "category": "Embodied AI / Robotics",
+  "url": "https://arxiv.org/abs/2406.09246",
+  "notes": "具身智能方向代表工作。锚点覆盖 7B 模型 / 970k 真机轨迹 / 比 RT-2-X 高 16.5%、LoRA 微调对比（后半篇）与失败案例分析（约 58% 处）。",
+  "expectedSections": ["Introduction", "The OpenVLA Model", "Training Data", "OpenVLA Design Decisions", "Parameter-Efficient Fine-Tuning"],
+  "expectedEvidence": [
+    {
+      "type": "main_result",
+      "text": "OpenVLA 是 7B 参数开源 VLA，用 970k 真机机器人示教数据训练",
+      "keywords": ["7B", "970k", "demonstrations"],
+      "numbers": ["7", "970"]
+    },
+    {
+      "type": "main_result",
+      "text": "跨 29 个任务、多机器人平台上比闭源 RT-2-X (55B) 绝对成功率高出 16.5%，参数少 7 倍",
+      "keywords": ["RT-2-X", "task success rate"],
+      "numbers": ["16.5"]
+    },
+    {
+      "type": "method",
+      "text": "参数高效微调：LoRA 微调效果优于全量微调与 sandwich 方案",
+      "keywords": ["LoRA", "parameter-efficient"],
+      "numbers": []
+    }
+  ],
+  "expectedFigures": [
+    { "num": 1, "captionKeywords": ["7B-parameter", "open-source"] },
+    { "num": 2, "captionKeywords": ["architecture", "image observation"] }
+  ],
+  "expectedFormulas": [],
+  "expectedAblations": [
+    {
+      "type": "ablation",
+      "text": "Table 1 微调方法对比：LoRA(rank=32/64) 成功率 68.2%，优于全量微调",
+      "keywords": ["LoRA", "fine-tuning"],
+      "numbers": ["68.2"]
+    },
+    {
+      "type": "ablation",
+      "text": "设计决策消融（视觉编码器冻结 / sandwich 方案 / 数据配比）",
+      "keywords": ["Design Decisions", "frozen", "冻结", "消融"],
+      "numbers": []
+    }
+  ],
+  "expectedLimitations": [
+    {
+      "type": "limitation",
+      "text": "失败模式与局限：困难任务上的部分成功、推理速度与显存约束",
+      "keywords": ["failure", "失败", "partial successes", "部分成功"],
+      "numbers": []
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# 单篇终稿（Markdown 正文）较大且可由 benchmark 复现，默认不入库；
+# 每次运行仍保留 summary.json / README.md / papers/<id>.json（指标、审计与阶段时间）。
+# 注意：模式相对本文件所在目录（benchmark/runs/），所以是 */papers/*.md。
+*/papers/*.md

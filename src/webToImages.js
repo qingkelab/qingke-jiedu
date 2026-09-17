@@ -10,6 +10,7 @@ async function getBrowser() {
       .launch({
         executablePath: config.chromePath,
         headless: true,
+        timeout: 30000, // 启动卡住时直接失败，避免调用方无限等待
         args: [
           '--no-sandbox',
           '--disable-gpu',
@@ -91,34 +92,45 @@ export async function webToImages(url) {
  * @param {{svgPath?: string, scale?: number}} [opts]
  */
 export async function svgToPng(input, opts = {}) {
+  const timeoutMs = Number(opts.timeoutMs || 25000);
   const markup = opts.svgPath
     ? await fs.readFile(opts.svgPath, 'utf-8')
     : String(input || '');
   const scale = opts.scale || 2;
-  const browser = await getBrowser();
-  const page = await browser.newPage();
-  try {
-    await page.setViewport({ width: 1600, height: 1200, deviceScaleFactor: scale });
-    await page.setContent(
-      `<!doctype html><html><body style="margin:0;padding:0;background:#fff">${markup}</body></html>`,
-      { waitUntil: 'load' },
-    );
-    const box = await page.evaluate(() => {
-      const el = document.querySelector('svg');
-      if (!el) return null;
-      const r = el.getBoundingClientRect();
-      return { width: Math.ceil(r.width || 0), height: Math.ceil(r.height || 0) };
-    });
-    if (!box || !box.width || !box.height) return null;
-    const buf = await page.screenshot({
-      clip: { x: 0, y: 0, width: box.width, height: box.height },
-      captureBeyondViewport: true,
-    });
-    return { buffer: buf, width: box.width * scale, height: box.height * scale };
-  } catch {
-    return null;
-  } finally {
-    await page.close();
+  // 单张 SVG 栅格化加超时：个别超大/异常图会让 Chrome 卡住（实测会挂住整轮取源）
+  let timer;
+  const guard = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('svg 栅格化超时')), timeoutMs);
+  });
+  return Promise.race([renderSvg(), guard]).finally(() => clearTimeout(timer));
+
+  async function renderSvg() {
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    page.setDefaultTimeout(timeoutMs);
+    try {
+      await page.setViewport({ width: 1600, height: 1200, deviceScaleFactor: scale });
+      await page.setContent(
+        `<!doctype html><html><body style="margin:0;padding:0;background:#fff">${markup}</body></html>`,
+        { waitUntil: 'load', timeout: timeoutMs },
+      );
+      const box = await page.evaluate(() => {
+        const el = document.querySelector('svg');
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { width: Math.ceil(r.width || 0), height: Math.ceil(r.height || 0) };
+      });
+      if (!box || !box.width || !box.height) return null;
+      const buf = await page.screenshot({
+        clip: { x: 0, y: 0, width: box.width, height: box.height },
+        captureBeyondViewport: true,
+      });
+      return { buffer: buf, width: box.width * scale, height: box.height * scale };
+    } catch {
+      return null;
+    } finally {
+      await page.close().catch(() => {});
+    }
   }
 }
 

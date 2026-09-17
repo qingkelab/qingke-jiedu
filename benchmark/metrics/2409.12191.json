@@ -1,0 +1,162 @@
+{
+  "id": "2409.12191",
+  "at": "2026-09-17T05:30:23.239Z",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "metrics": {
+    "sourceCoverage": 0.6667,
+    "latePaperCoverage": null,
+    "numberEvidenceCoverage": 0.6667,
+    "figureCoverage": 0.5,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0.0241,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "Qwen2-VL 提供 2B / 8B / 72B 三个规模，并统一图像与视频处理范式",
+        "late": false,
+        "section": "Qwen2-VL: Enhancing Vision-Language Model’s Perception of the World at Any Resolution",
+        "ok": true,
+        "keywordHits": [
+          "2B",
+          "72B",
+          "Qwen2-VL"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "2",
+          "72"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "M-RoPE（Multimodal Rotary Position Embedding）统一文本 / 图像 / 视频的位置信息",
+        "late": false,
+        "section": "Qwen2-VL: Enhancing Vision-Language Model’s Perception of the World at Any Resolution",
+        "ok": true,
+        "keywordHits": [
+          "M-RoPE",
+          "Rotary Position Embedding"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "在 DocVQA、MathVista 等视觉 benchmark 上取得领先，并支持 20 分钟以上长视频理解",
+        "late": false,
+        "section": "Introduction",
+        "ok": false,
+        "keywordHits": [
+          "DocVQA",
+          "MathVista",
+          "video"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": [
+          "20"
+        ]
+      }
+    ],
+    "ablations": [
+      {
+        "text": "消融验证关键组件（动态分辨率 / M-RoPE / 数据规模）对性能的贡献",
+        "late": false,
+        "section": "Ablation Study",
+        "ok": true,
+        "keywordHits": [
+          "消融",
+          "动态分辨率",
+          "M-RoPE"
+        ],
+        "missingKeywords": [
+          "ablation"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "能力边界与后续工作（视频理解、位置外推的限制）",
+        "late": false,
+        "section": "Introduction",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "limitations",
+          "局限",
+          "future work",
+          "后续工作"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "2",
+        "72",
+        "20"
+      ],
+      "hits": [
+        "2",
+        "72"
+      ],
+      "missing": [
+        "20"
+      ],
+      "unlocated": [],
+      "located": 2
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "capabilities",
+          "video analysis"
+        ],
+        "ok": false,
+        "by": "caption",
+        "keywordHits": [],
+        "missingKeywords": [
+          "capabilities",
+          "video analysis"
+        ]
+      },
+      {
+        "num": 5,
+        "keywords": [
+          "length extrapolation",
+          "Video-MME"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 9044,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0241
+  }
+}

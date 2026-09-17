@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test \"test/*.test.js\""
+    "test": "node --test \"test/*.test.js\"",
+    "benchmark": "node scripts/deepread-benchmark.js"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",

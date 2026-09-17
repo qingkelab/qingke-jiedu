@@ -1,0 +1,130 @@
+{
+  "id": "1706.03762",
+  "title": "Attention Is All You Need",
+  "category": "LLM",
+  "url": "https://arxiv.org/abs/1706.03762",
+  "expectedSections": [
+    "Introduction",
+    "Model Architecture",
+    "Attention",
+    "Training",
+    "Results"
+  ],
+  "expectedEvidence": [
+    {
+      "type": "main_result",
+      "text": "WMT 2014 英德任务 28.4 BLEU，超过此前最好结果（含 ensemble）2 BLEU 以上",
+      "keywords": [
+        "BLEU",
+        "WMT 2014",
+        "English-to-German"
+      ],
+      "numbers": [
+        "28.4"
+      ],
+      "strict": false
+    },
+    {
+      "type": "main_result",
+      "text": "英法任务单模型 41.8 BLEU，8 块 GPU 训练 3.5 天",
+      "keywords": [
+        "BLEU",
+        "English-to-French"
+      ],
+      "numbers": [
+        "41.8",
+        "3.5"
+      ],
+      "strict": false
+    },
+    {
+      "type": "adaptation",
+      "text": "同一架构迁移到英语成分句法分析，验证跨任务泛化",
+      "keywords": [
+        "constituency parsing",
+        "成分句法"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ],
+  "expectedFigures": [
+    {
+      "num": 1,
+      "captionKeywords": [
+        "model architecture",
+        "Transformer"
+      ],
+      "fallbackIndex": 1
+    },
+    {
+      "num": 2,
+      "captionKeywords": [
+        "Scaled Dot-Product Attention",
+        "Multi-Head Attention"
+      ],
+      "fallbackIndex": 2
+    }
+  ],
+  "expectedFormulas": [
+    {
+      "type": "formula",
+      "text": "缩放点积注意力 softmax(QK^T/sqrt(d_k))V",
+      "keywords": [
+        "softmax",
+        "sqrt"
+      ],
+      "numbers": [],
+      "strict": false
+    },
+    {
+      "type": "formula",
+      "text": "正弦位置编码 PE(pos, 2i) = sin(pos/10000^(2i/d_model))",
+      "keywords": [
+        "10000",
+        "sin"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ],
+  "expectedAblations": [
+    {
+      "type": "ablation",
+      "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
+      "keywords": [
+        "label smoothing"
+      ],
+      "numbers": [
+        "0.1"
+      ],
+      "strict": false
+    },
+    {
+      "type": "ablation",
+      "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
+      "keywords": [
+        "residual dropout",
+        "dropout"
+      ],
+      "numbers": [
+        "0.1"
+      ],
+      "strict": false
+    }
+  ],
+  "expectedLimitations": [
+    {
+      "type": "limitation",
+      "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
+      "keywords": [
+        "complexity",
+        "复杂度",
+        "path length",
+        "路径长度"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ]
+}

@@ -1,0 +1,202 @@
+{
+  "id": "2501.12948",
+  "at": "2026-09-17T05:30:23.239Z",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "metrics": {
+    "sourceCoverage": 0.75,
+    "latePaperCoverage": 1,
+    "numberEvidenceCoverage": 0.3333,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 0,
+    "limitationCoverage": 0.5,
+    "auditMissingRate": 0,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "DeepSeek-R1 在 AIME 2024 上 pass@1 达 79.8，MATH-500 达 97.3",
+        "late": false,
+        "section": "Training Details of the Second RL Stage",
+        "ok": true,
+        "keywordHits": [
+          "AIME",
+          "Pass@1"
+        ],
+        "missingKeywords": [
+          "MATH-500"
+        ],
+        "numberHits": [
+          "79.8"
+        ],
+        "missingNumbers": [
+          "97.3"
+        ]
+      },
+      {
+        "text": "Codeforces 评分 2029（Percentile 96.3）",
+        "late": false,
+        "section": "Training Details of the Second RL Stage",
+        "ok": false,
+        "keywordHits": [
+          "Codeforces",
+          "Rating"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": [
+          "2029"
+        ]
+      },
+      {
+        "text": "用 Group Relative Policy Optimization（GRPO）替代 PPO 作为 RL 框架，奖励只来自规则正确性",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "GRPO",
+          "reward"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "把 R1 的推理能力蒸馏到小模型（Qwen / Llama 系列）",
+        "late": true,
+        "section": "B.4.3 Hyper-Parameters of Distillation",
+        "ok": true,
+        "keywordHits": [
+          "distill"
+        ],
+        "missingKeywords": [
+          "distillation"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "不含 SFT 冷启动的 R1-Zero 与含冷启动的 R1 的差别（可读性与性能的取舍）",
+        "late": false,
+        "section": "Introduction",
+        "ok": false,
+        "keywordHits": [
+          "R1-Zero"
+        ],
+        "missingKeywords": [
+          "cold start",
+          "冷启动",
+          "readability"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "存在语言混用（language mixing）与可读性问题",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "语言混用",
+          "可读性"
+        ],
+        "missingKeywords": [
+          "language mixing",
+          "readability"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "奖励模型易被 reward hacking，且失败尝试经验（Unsuccessful Attempts）",
+        "late": false,
+        "section": "Reward Design",
+        "ok": false,
+        "keywordHits": [
+          "reward hacking"
+        ],
+        "missingKeywords": [
+          "奖励作弊",
+          "Unsuccessful Attempts",
+          "失败的尝试"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "79.8",
+        "97.3",
+        "2029"
+      ],
+      "hits": [
+        "79.8"
+      ],
+      "missing": [
+        "97.3",
+        "2029"
+      ],
+      "unlocated": [],
+      "located": 1
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "AIME accuracy",
+          "training"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "pipeline",
+          "DeepSeek-R1"
+        ],
+        "ok": true,
+        "by": "caption",
+        "keywordHits": [
+          "DeepSeek-R1"
+        ],
+        "missingKeywords": [
+          "pipeline"
+        ]
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [
+      {
+        "text": "把 R1 的推理能力蒸馏到小模型（Qwen / Llama 系列）",
+        "ratio": 0.5178571428571429,
+        "section": "B.4.3 Hyper-Parameters of Distillation",
+        "ok": true
+      }
+    ],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 10367,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0
+  }
+}

@@ -1,0 +1,624 @@
+{
+  "id": "2409.12191",
+  "title": "Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution",
+  "category": "Multimodal / VLM",
+  "url": "https://arxiv.org/abs/2409.12191",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 298904,
+  "source": {
+    "kind": "html",
+    "chars": 115376,
+    "textLines": 0,
+    "figures": 29,
+    "sections": 30,
+    "chunks": 138
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 30,
+    "chunkCount": 138,
+    "chars": 92036,
+    "coverage": 92036,
+    "truncated": false
+  },
+  "researchMapStatus": "fallback",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 8,
+    "equations": 8,
+    "mainResults": 8,
+    "ablations": 6,
+    "limitations": 0,
+    "figures": 20,
+    "evidenceLinks": 19
+  },
+  "evidence": [
+    {
+      "section": "为什么值得读这篇论文？",
+      "role": "intro",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c10",
+        "c11",
+        "c12",
+        "c15",
+        "c19",
+        "c43",
+        "c64"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "旧方法卡在哪，作者换了个什么思路",
+      "role": "method",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c18",
+        "c19",
+        "c20",
+        "c32",
+        "c68",
+        "c69"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "核心机制：组件怎么从输入走到输出",
+      "role": "method",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c18",
+        "c19",
+        "c20",
+        "c32",
+        "c68",
+        "c69"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "关键公式与实验证据有多硬",
+      "role": "results",
+      "chunkIds": [
+        "c19",
+        "c41",
+        "c42",
+        "c43",
+        "c44",
+        "c56",
+        "c65",
+        "c71",
+        "c110"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "失效边界与可以继续追的问题",
+      "role": "limitation",
+      "chunkIds": [
+        "c5",
+        "c41",
+        "c56",
+        "c64",
+        "c65",
+        "c67",
+        "c68",
+        "c69",
+        "c70",
+        "c71",
+        "c129"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "社区视角：它值不值得跟进",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c11",
+        "c42",
+        "c43",
+        "c49",
+        "c64",
+        "c129"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "fail",
+        "detail": "终稿数字 114 个，原文未检到 4 个",
+        "missing": [
+          "256",
+          "448",
+          "1024",
+          "258"
+        ]
+      },
+      {
+        "name": "entities",
+        "status": "pass",
+        "detail": "地图实体 18 个，原文未出现 0 个，终稿未提及 8 个",
+        "unknown": [],
+        "notMentioned": [
+          "Notably",
+          "Liu",
+          "Notably",
+          "Performance",
+          "Furthermore",
+          "LLMs",
+          "LVLMs",
+          "Compared"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 46 个，终稿覆盖 30 个",
+        "covered": [
+          "2",
+          "3",
+          "4",
+          "87.8",
+          "88.3",
+          "74.1",
+          "96.8",
+          "75.9",
+          "72b",
+          "94.5",
+          "94.1",
+          "89.8",
+          "97.2",
+          "70.7",
+          "1.5",
+          "7b",
+          "2b",
+          "69.6",
+          "73.6",
+          "66.9",
+          "68.0",
+          "62.0",
+          "72.2",
+          "77.9",
+          "66.7",
+          "66.3",
+          "75.0",
+          "81.3",
+          "71.2",
+          "77.8"
+        ],
+        "missed": [
+          "89.7",
+          "72.0",
+          "93.4",
+          "91.5",
+          "73.0",
+          "67.0",
+          "63.2",
+          "62.3"
+        ]
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 6 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "info",
+        "detail": "原文未见明确局限"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 9 条，终稿 28 条，可对应 18 条"
+      },
+      {
+        "name": "figures",
+        "status": "pass",
+        "detail": "可用图 29 张，终稿引用 6 处",
+        "refs": [
+          2,
+          3,
+          6,
+          4,
+          5,
+          24
+        ],
+        "badRefs": [],
+        "mismatched": []
+      }
+    ],
+    "issues": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：256、448、1024、258",
+        "missing": [
+          "256",
+          "448",
+          "1024",
+          "258"
+        ]
+      }
+    ],
+    "serious": [
+      {
+        "check": "numbers",
+        "severity": "fail",
+        "detail": "数字无法在原文定位：256、448、1024、258",
+        "missing": [
+          "256",
+          "448",
+          "1024",
+          "258"
+        ]
+      }
+    ],
+    "repairTargets": [
+      {
+        "heading": "旧方法卡在哪，作者换了个什么思路",
+        "hints": [
+          "核对数字 256：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      },
+      {
+        "heading": "核心机制：组件怎么从输入走到输出",
+        "hints": [
+          "核对数字 256：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 448：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 1024：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）",
+          "核对数字 258：原文里没有这个值，改成原文数值或补齐坐标（模型/数据集/设置/基线）"
+        ]
+      }
+    ],
+    "stats": {
+      "numbers": 114,
+      "missingNumbers": 4,
+      "entities": 18,
+      "mainResults": 46,
+      "formulas": 28,
+      "figureRefs": 6
+    },
+    "sourceKey": "https://arxiv.org/abs/2409.12191",
+    "after": {
+      "checks": [
+        {
+          "name": "numbers",
+          "status": "pass",
+          "detail": "终稿数字 107 个，原文未检到 0 个",
+          "missing": []
+        },
+        {
+          "name": "entities",
+          "status": "pass",
+          "detail": "地图实体 18 个，原文未出现 0 个，终稿未提及 8 个",
+          "unknown": [],
+          "notMentioned": [
+            "Notably",
+            "Liu",
+            "Notably",
+            "Performance",
+            "Furthermore",
+            "LLMs",
+            "LVLMs",
+            "Compared"
+          ]
+        },
+        {
+          "name": "main_result",
+          "status": "pass",
+          "detail": "主要结果关键数字 46 个，终稿覆盖 30 个",
+          "covered": [
+            "2",
+            "3",
+            "4",
+            "87.8",
+            "88.3",
+            "74.1",
+            "96.8",
+            "75.9",
+            "72b",
+            "94.5",
+            "94.1",
+            "89.8",
+            "97.2",
+            "70.7",
+            "1.5",
+            "7b",
+            "2b",
+            "69.6",
+            "73.6",
+            "66.9",
+            "68.0",
+            "62.0",
+            "72.2",
+            "77.9",
+            "66.7",
+            "66.3",
+            "75.0",
+            "81.3",
+            "71.2",
+            "77.8"
+          ],
+          "missed": [
+            "89.7",
+            "72.0",
+            "93.4",
+            "91.5",
+            "73.0",
+            "67.0",
+            "63.2",
+            "62.3"
+          ]
+        },
+        {
+          "name": "ablation",
+          "status": "pass",
+          "detail": "原文有 6 条消融信息，终稿已覆盖"
+        },
+        {
+          "name": "limitation",
+          "status": "info",
+          "detail": "原文未见明确局限"
+        },
+        {
+          "name": "formula",
+          "status": "pass",
+          "detail": "原文公式 9 条，终稿 23 条，可对应 19 条"
+        },
+        {
+          "name": "figures",
+          "status": "pass",
+          "detail": "可用图 29 张，终稿引用 6 处",
+          "refs": [
+            2,
+            3,
+            6,
+            4,
+            5,
+            24
+          ],
+          "badRefs": [],
+          "mismatched": []
+        }
+      ],
+      "issues": [],
+      "serious": [],
+      "repairTargets": [],
+      "stats": {
+        "numbers": 107,
+        "missingNumbers": 0,
+        "entities": 18,
+        "mainResults": 46,
+        "formulas": 23,
+        "figureRefs": 6
+      },
+      "sourceKey": "https://arxiv.org/abs/2409.12191"
+    }
+  },
+  "metrics": {
+    "sourceCoverage": 0.6667,
+    "latePaperCoverage": null,
+    "numberEvidenceCoverage": 0.6667,
+    "figureCoverage": 0.5,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0.0241,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "Qwen2-VL 提供 2B / 8B / 72B 三个规模，并统一图像与视频处理范式",
+        "late": false,
+        "section": "Qwen2-VL: Enhancing Vision-Language Model’s Perception of the World at Any Resolution",
+        "ok": true,
+        "keywordHits": [
+          "2B",
+          "72B",
+          "Qwen2-VL"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "2",
+          "72"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "M-RoPE（Multimodal Rotary Position Embedding）统一文本 / 图像 / 视频的位置信息",
+        "late": false,
+        "section": "Qwen2-VL: Enhancing Vision-Language Model’s Perception of the World at Any Resolution",
+        "ok": true,
+        "keywordHits": [
+          "M-RoPE",
+          "Rotary Position Embedding"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "在 DocVQA、MathVista 等视觉 benchmark 上取得领先，并支持 20 分钟以上长视频理解",
+        "late": false,
+        "section": "Introduction",
+        "ok": false,
+        "keywordHits": [
+          "DocVQA",
+          "MathVista",
+          "video"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": [
+          "20"
+        ]
+      }
+    ],
+    "ablations": [
+      {
+        "text": "消融验证关键组件（动态分辨率 / M-RoPE / 数据规模）对性能的贡献",
+        "late": false,
+        "section": "Ablation Study",
+        "ok": true,
+        "keywordHits": [
+          "消融",
+          "动态分辨率",
+          "M-RoPE"
+        ],
+        "missingKeywords": [
+          "ablation"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "能力边界与后续工作（视频理解、位置外推的限制）",
+        "late": false,
+        "section": "Introduction",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "limitations",
+          "局限",
+          "future work",
+          "后续工作"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "2",
+        "72",
+        "20"
+      ],
+      "hits": [
+        "2",
+        "72"
+      ],
+      "missing": [
+        "20"
+      ],
+      "unlocated": [],
+      "located": 2
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "capabilities",
+          "video analysis"
+        ],
+        "ok": false,
+        "by": "caption",
+        "keywordHits": [],
+        "missingKeywords": [
+          "capabilities",
+          "video analysis"
+        ]
+      },
+      {
+        "num": 5,
+        "keywords": [
+          "length extrapolation",
+          "Video-MME"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 9044,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0241
+  },
+  "warnings": [
+    "research map 输出无法解析为 JSON，已用本地关键词地图兜底"
+  ],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 2726,
+      "lastAtMs": 2726
+    },
+    "research_map": {
+      "firstAtMs": 2732,
+      "lastAtMs": 19326
+    },
+    "plan": {
+      "firstAtMs": 19326,
+      "lastAtMs": 39145
+    },
+    "retrieval": {
+      "firstAtMs": 39185,
+      "lastAtMs": 39185
+    },
+    "section": {
+      "firstAtMs": 39185,
+      "lastAtMs": 189632
+    },
+    "section_done": {
+      "firstAtMs": 67520,
+      "lastAtMs": 209657
+    },
+    "audit": {
+      "firstAtMs": 209657,
+      "lastAtMs": 238259
+    },
+    "repair": {
+      "firstAtMs": 209672,
+      "lastAtMs": 209672
+    },
+    "finalize": {
+      "firstAtMs": 238256,
+      "lastAtMs": 238256
+    }
+  },
+  "markdownChars": 9944,
+  "finishedAt": "2026-09-17T05:25:24.499Z"
+}

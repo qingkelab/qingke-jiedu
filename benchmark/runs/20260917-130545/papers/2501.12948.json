@@ -1,0 +1,476 @@
+{
+  "id": "2501.12948",
+  "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+  "category": "RL / RLVR",
+  "url": "https://arxiv.org/abs/2501.12948",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 298736,
+  "source": {
+    "kind": "html",
+    "chars": 225351,
+    "textLines": 0,
+    "figures": 21,
+    "sections": 54,
+    "chunks": 337
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 54,
+    "chunkCount": 337,
+    "chars": 210203,
+    "coverage": 210203,
+    "truncated": false
+  },
+  "researchMapStatus": "fallback",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 8,
+    "equations": 8,
+    "mainResults": 8,
+    "ablations": 6,
+    "limitations": 6,
+    "figures": 17,
+    "evidenceLinks": 27
+  },
+  "evidence": [
+    {
+      "section": "为什么值得读这篇论文？",
+      "role": "intro",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c11",
+        "c14",
+        "c45",
+        "c102"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "旧方法卡在哪，作者换了个什么思路",
+      "role": "method",
+      "chunkIds": [
+        "c10",
+        "c13",
+        "c14",
+        "c15",
+        "c16",
+        "c44",
+        "c45",
+        "c47",
+        "c48",
+        "c49",
+        "c106",
+        "c107"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "核心机制：组件怎么从输入走到输出",
+      "role": "method",
+      "chunkIds": [
+        "c10",
+        "c13",
+        "c14",
+        "c15",
+        "c16",
+        "c44",
+        "c45",
+        "c47",
+        "c48",
+        "c49",
+        "c106",
+        "c107"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "关键公式与实验证据有多硬",
+      "role": "results",
+      "chunkIds": [
+        "c32",
+        "c66",
+        "c67",
+        "c178",
+        "c181",
+        "c182",
+        "c199",
+        "c213",
+        "c320"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "失效边界与可以继续追的问题",
+      "role": "limitation",
+      "chunkIds": [
+        "c4",
+        "c11",
+        "c66",
+        "c72",
+        "c73",
+        "c75",
+        "c78",
+        "c80",
+        "c81",
+        "c181",
+        "c182",
+        "c278"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "社区视角：它值不值得跟进",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c4",
+        "c41",
+        "c45",
+        "c58",
+        "c65",
+        "c67",
+        "c75"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "pass",
+        "detail": "终稿数字 42 个，原文未检到 0 个",
+        "missing": []
+      },
+      {
+        "name": "entities",
+        "status": "pass",
+        "detail": "地图实体 18 个，原文未出现 0 个，终稿未提及 2 个",
+        "unknown": [],
+        "notMentioned": [
+          "Supplementary",
+          "Compared"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 4 个，终稿覆盖 4 个",
+        "covered": [
+          "3",
+          "1",
+          "2",
+          "2.0"
+        ],
+        "missed": []
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 6 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 6 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 70 条，终稿 51 条，可对应 48 条"
+      },
+      {
+        "name": "figures",
+        "status": "warn",
+        "detail": "可用图 21 张，终稿引用 10 处，疑似错配 1 处",
+        "refs": [
+          1,
+          4,
+          5,
+          7,
+          6,
+          11,
+          9,
+          8,
+          15,
+          16
+        ],
+        "badRefs": [],
+        "mismatched": [
+          {
+            "section": "社区视角：它值不值得跟进",
+            "num": 16
+          }
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「社区视角：它值不值得跟进」节引用的图16 与图注内容不符"
+      }
+    ],
+    "serious": [],
+    "repairTargets": [
+      {
+        "heading": "社区视角：它值不值得跟进",
+        "hints": [
+          "图 16 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      }
+    ],
+    "stats": {
+      "numbers": 42,
+      "missingNumbers": 0,
+      "entities": 18,
+      "mainResults": 4,
+      "formulas": 51,
+      "figureRefs": 10
+    },
+    "sourceKey": "https://arxiv.org/abs/2501.12948"
+  },
+  "metrics": {
+    "sourceCoverage": 0.75,
+    "latePaperCoverage": 1,
+    "numberEvidenceCoverage": 0.3333,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 0,
+    "limitationCoverage": 0.5,
+    "auditMissingRate": 0,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "DeepSeek-R1 在 AIME 2024 上 pass@1 达 79.8，MATH-500 达 97.3",
+        "late": false,
+        "section": "Training Details of the Second RL Stage",
+        "ok": true,
+        "keywordHits": [
+          "AIME",
+          "Pass@1"
+        ],
+        "missingKeywords": [
+          "MATH-500"
+        ],
+        "numberHits": [
+          "79.8"
+        ],
+        "missingNumbers": [
+          "97.3"
+        ]
+      },
+      {
+        "text": "Codeforces 评分 2029（Percentile 96.3）",
+        "late": false,
+        "section": "Training Details of the Second RL Stage",
+        "ok": false,
+        "keywordHits": [
+          "Codeforces",
+          "Rating"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": [
+          "2029"
+        ]
+      },
+      {
+        "text": "用 Group Relative Policy Optimization（GRPO）替代 PPO 作为 RL 框架，奖励只来自规则正确性",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "GRPO",
+          "reward"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "把 R1 的推理能力蒸馏到小模型（Qwen / Llama 系列）",
+        "late": true,
+        "section": "B.4.3 Hyper-Parameters of Distillation",
+        "ok": true,
+        "keywordHits": [
+          "distill"
+        ],
+        "missingKeywords": [
+          "distillation"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "不含 SFT 冷启动的 R1-Zero 与含冷启动的 R1 的差别（可读性与性能的取舍）",
+        "late": false,
+        "section": "Introduction",
+        "ok": false,
+        "keywordHits": [
+          "R1-Zero"
+        ],
+        "missingKeywords": [
+          "cold start",
+          "冷启动",
+          "readability"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "存在语言混用（language mixing）与可读性问题",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "语言混用",
+          "可读性"
+        ],
+        "missingKeywords": [
+          "language mixing",
+          "readability"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "奖励模型易被 reward hacking，且失败尝试经验（Unsuccessful Attempts）",
+        "late": false,
+        "section": "Reward Design",
+        "ok": false,
+        "keywordHits": [
+          "reward hacking"
+        ],
+        "missingKeywords": [
+          "奖励作弊",
+          "Unsuccessful Attempts",
+          "失败的尝试"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "79.8",
+        "97.3",
+        "2029"
+      ],
+      "hits": [
+        "79.8"
+      ],
+      "missing": [
+        "97.3",
+        "2029"
+      ],
+      "unlocated": [],
+      "located": 1
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "AIME accuracy",
+          "training"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "pipeline",
+          "DeepSeek-R1"
+        ],
+        "ok": true,
+        "by": "caption",
+        "keywordHits": [
+          "DeepSeek-R1"
+        ],
+        "missingKeywords": [
+          "pipeline"
+        ]
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [
+      {
+        "text": "把 R1 的推理能力蒸馏到小模型（Qwen / Llama 系列）",
+        "ratio": 0.5178571428571429,
+        "section": "B.4.3 Hyper-Parameters of Distillation",
+        "ok": true
+      }
+    ],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 10367,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0
+  },
+  "warnings": [
+    "research map 输出无法解析为 JSON，已用本地关键词地图兜底"
+  ],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 8326,
+      "lastAtMs": 8326
+    },
+    "research_map": {
+      "firstAtMs": 8331,
+      "lastAtMs": 27579
+    },
+    "plan": {
+      "firstAtMs": 27579,
+      "lastAtMs": 48952
+    },
+    "retrieval": {
+      "firstAtMs": 49014,
+      "lastAtMs": 49014
+    },
+    "section": {
+      "firstAtMs": 49014,
+      "lastAtMs": 210308
+    },
+    "section_done": {
+      "firstAtMs": 70007,
+      "lastAtMs": 231457
+    },
+    "audit": {
+      "firstAtMs": 231457,
+      "lastAtMs": 231493
+    },
+    "finalize": {
+      "firstAtMs": 231492,
+      "lastAtMs": 231492
+    }
+  },
+  "markdownChars": 11235,
+  "finishedAt": "2026-09-17T05:30:23.237Z"
+}

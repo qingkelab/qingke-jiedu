@@ -1,0 +1,120 @@
+{
+  "id": "2501.12948",
+  "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+  "category": "RL / RLVR",
+  "url": "https://arxiv.org/abs/2501.12948",
+  "expectedSections": [
+    "Introduction",
+    "DeepSeek-R1-Zero",
+    "Group Relative Policy Optimization",
+    "DeepSeek-R1",
+    "Distillation"
+  ],
+  "expectedEvidence": [
+    {
+      "type": "main_result",
+      "text": "DeepSeek-R1 在 AIME 2024 上 pass@1 达 79.8，MATH-500 达 97.3",
+      "keywords": [
+        "AIME",
+        "MATH-500",
+        "Pass@1"
+      ],
+      "numbers": [
+        "79.8",
+        "97.3"
+      ],
+      "strict": false
+    },
+    {
+      "type": "main_result",
+      "text": "Codeforces 评分 2029（Percentile 96.3）",
+      "keywords": [
+        "Codeforces",
+        "Rating"
+      ],
+      "numbers": [
+        "2029"
+      ],
+      "strict": false
+    },
+    {
+      "type": "method",
+      "text": "用 Group Relative Policy Optimization（GRPO）替代 PPO 作为 RL 框架，奖励只来自规则正确性",
+      "keywords": [
+        "GRPO",
+        "reward"
+      ],
+      "numbers": [],
+      "strict": false
+    },
+    {
+      "type": "distillation",
+      "text": "把 R1 的推理能力蒸馏到小模型（Qwen / Llama 系列）",
+      "keywords": [
+        "distillation",
+        "distill"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ],
+  "expectedFigures": [
+    {
+      "num": 1,
+      "captionKeywords": [
+        "AIME accuracy",
+        "training"
+      ],
+      "fallbackIndex": 1
+    },
+    {
+      "num": 2,
+      "captionKeywords": [
+        "pipeline",
+        "DeepSeek-R1"
+      ],
+      "fallbackIndex": 2
+    }
+  ],
+  "expectedFormulas": [],
+  "expectedAblations": [
+    {
+      "type": "ablation",
+      "text": "不含 SFT 冷启动的 R1-Zero 与含冷启动的 R1 的差别（可读性与性能的取舍）",
+      "keywords": [
+        "cold start",
+        "冷启动",
+        "R1-Zero",
+        "readability"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ],
+  "expectedLimitations": [
+    {
+      "type": "limitation",
+      "text": "存在语言混用（language mixing）与可读性问题",
+      "keywords": [
+        "language mixing",
+        "语言混用",
+        "readability",
+        "可读性"
+      ],
+      "numbers": [],
+      "strict": false
+    },
+    {
+      "type": "limitation",
+      "text": "奖励模型易被 reward hacking，且失败尝试经验（Unsuccessful Attempts）",
+      "keywords": [
+        "reward hacking",
+        "奖励作弊",
+        "Unsuccessful Attempts",
+        "失败的尝试"
+      ],
+      "numbers": [],
+      "strict": false
+    }
+  ]
+}

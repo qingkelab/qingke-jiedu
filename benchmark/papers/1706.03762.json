@@ -1,0 +1,58 @@
+{
+  "id": "1706.03762",
+  "title": "Attention Is All You Need",
+  "category": "LLM",
+  "url": "https://arxiv.org/abs/1706.03762",
+  "notes": "Transformer 原始论文。锚点含后半篇（训练正则化 / 消融）与公式（缩放点积、位置编码），用于验证全文覆盖与公式保留。",
+  "expectedSections": ["Introduction", "Model Architecture", "Attention", "Training", "Results"],
+  "expectedEvidence": [
+    {
+      "type": "main_result",
+      "text": "WMT 2014 英德任务 28.4 BLEU，超过此前最好结果（含 ensemble）2 BLEU 以上",
+      "keywords": ["BLEU", "WMT 2014", "English-to-German"],
+      "numbers": ["28.4"]
+    },
+    {
+      "type": "main_result",
+      "text": "英法任务单模型 41.8 BLEU，8 块 GPU 训练 3.5 天",
+      "keywords": ["BLEU", "English-to-French"],
+      "numbers": ["41.8", "3.5"]
+    },
+    {
+      "type": "adaptation",
+      "text": "同一架构迁移到英语成分句法分析，验证跨任务泛化",
+      "keywords": ["constituency parsing", "成分句法"],
+      "numbers": []
+    }
+  ],
+  "expectedFigures": [
+    { "num": 1, "captionKeywords": ["model architecture", "Transformer"] },
+    { "num": 2, "captionKeywords": ["Scaled Dot-Product Attention", "Multi-Head Attention"] }
+  ],
+  "expectedFormulas": [
+    { "text": "缩放点积注意力 softmax(QK^T/sqrt(d_k))V", "keywords": ["softmax", "sqrt"] },
+    { "text": "正弦位置编码 PE(pos, 2i) = sin(pos/10000^(2i/d_model))", "keywords": ["10000", "sin"] }
+  ],
+  "expectedAblations": [
+    {
+      "type": "ablation",
+      "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
+      "keywords": ["label smoothing"],
+      "numbers": ["0.1"]
+    },
+    {
+      "type": "ablation",
+      "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
+      "keywords": ["residual dropout", "dropout"],
+      "numbers": ["0.1"]
+    }
+  ],
+  "expectedLimitations": [
+    {
+      "type": "limitation",
+      "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
+      "keywords": ["complexity", "复杂度", "path length", "路径长度"],
+      "numbers": []
+    }
+  ]
+}

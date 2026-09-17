@@ -1,0 +1,49 @@
+{
+  "id": "2409.12191",
+  "title": "Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution",
+  "category": "Multimodal / VLM",
+  "url": "https://arxiv.org/abs/2409.12191",
+  "notes": "多模态方向代表工作。锚点覆盖 2B/8B/72B 规模、M-RoPE 位置编码、20 分钟长视频与 video benchmark 表格（靠后半篇的实验表）。",
+  "expectedSections": ["Introduction", "Approach", "Model Architecture", "Experiments", "Compare to SOTAs"],
+  "expectedEvidence": [
+    {
+      "type": "main_result",
+      "text": "Qwen2-VL 提供 2B / 8B / 72B 三个规模，并统一图像与视频处理范式",
+      "keywords": ["2B", "72B", "Qwen2-VL"],
+      "numbers": ["2", "72"]
+    },
+    {
+      "type": "method",
+      "text": "M-RoPE（Multimodal Rotary Position Embedding）统一文本 / 图像 / 视频的位置信息",
+      "keywords": ["M-RoPE", "Rotary Position Embedding"],
+      "numbers": []
+    },
+    {
+      "type": "main_result",
+      "text": "在 DocVQA、MathVista 等视觉 benchmark 上取得领先，并支持 20 分钟以上长视频理解",
+      "keywords": ["DocVQA", "MathVista", "video"],
+      "numbers": ["20"]
+    }
+  ],
+  "expectedFigures": [
+    { "num": 1, "captionKeywords": ["capabilities", "video analysis"] },
+    { "num": 5, "captionKeywords": ["length extrapolation", "Video-MME"] }
+  ],
+  "expectedFormulas": [],
+  "expectedAblations": [
+    {
+      "type": "ablation",
+      "text": "消融验证关键组件（动态分辨率 / M-RoPE / 数据规模）对性能的贡献",
+      "keywords": ["ablation", "消融", "动态分辨率", "M-RoPE"],
+      "numbers": []
+    }
+  ],
+  "expectedLimitations": [
+    {
+      "type": "limitation",
+      "text": "能力边界与后续工作（视频理解、位置外推的限制）",
+      "keywords": ["limitations", "局限", "future work", "后续工作"],
+      "numbers": []
+    }
+  ]
+}

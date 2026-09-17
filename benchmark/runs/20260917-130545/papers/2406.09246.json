@@ -1,0 +1,470 @@
+{
+  "id": "2406.09246",
+  "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+  "category": "Embodied AI / Robotics",
+  "url": "https://arxiv.org/abs/2406.09246",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 241038,
+  "source": {
+    "kind": "html",
+    "chars": 133708,
+    "textLines": 0,
+    "figures": 9,
+    "sections": 40,
+    "chunks": 188
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 40,
+    "chunkCount": 188,
+    "chars": 134195,
+    "coverage": 134195,
+    "truncated": false
+  },
+  "researchMapStatus": "fallback",
+  "researchMapStats": {
+    "keyClaims": 3,
+    "methodComponents": 8,
+    "equations": 8,
+    "mainResults": 8,
+    "ablations": 6,
+    "limitations": 3,
+    "figures": 9,
+    "evidenceLinks": 22
+  },
+  "evidence": [
+    {
+      "section": "为什么值得读这篇论文？",
+      "role": "intro",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c9",
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c31"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "旧方法卡在哪，作者换了个什么思路",
+      "role": "method",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c15",
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c31"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "核心机制：组件怎么从输入走到输出",
+      "role": "method",
+      "chunkIds": [
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c15",
+        "c21",
+        "c22",
+        "c29",
+        "c30",
+        "c31"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "关键公式与实验证据有多硬",
+      "role": "results",
+      "chunkIds": [
+        "c21",
+        "c37",
+        "c38",
+        "c42",
+        "c50",
+        "c51",
+        "c52",
+        "c99",
+        "c116",
+        "c150",
+        "c151",
+        "c156"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "失效边界与可以继续追的问题",
+      "role": "limitation",
+      "chunkIds": [
+        "c60",
+        "c73",
+        "c76",
+        "c150",
+        "c151",
+        "c152",
+        "c153",
+        "c156",
+        "c161"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "社区视角：它值不值得跟进",
+      "role": "general",
+      "chunkIds": [
+        "c2",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c21",
+        "c22",
+        "c29",
+        "c37",
+        "c40",
+        "c76",
+        "c150"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "pass",
+        "detail": "终稿数字 38 个，原文未检到 0 个",
+        "missing": []
+      },
+      {
+        "name": "entities",
+        "status": "pass",
+        "detail": "地图实体 18 个，原文未出现 0 个，终稿未提及 7 个",
+        "unknown": [],
+        "notMentioned": [
+          "GPUs",
+          "Finally",
+          "VLAs",
+          "VLAs",
+          "VLAs",
+          "How",
+          "Can"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 8 个，终稿覆盖 8 个",
+        "covered": [
+          "1",
+          "3",
+          "2",
+          "170",
+          "4",
+          "6",
+          "7",
+          "5"
+        ],
+        "missed": []
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 6 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 3 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 21 条，终稿 17 条，可对应 17 条"
+      },
+      {
+        "name": "figures",
+        "status": "warn",
+        "detail": "可用图 9 张，终稿引用 6 处，疑似错配 1 处",
+        "refs": [
+          1,
+          2,
+          3,
+          8,
+          9,
+          4
+        ],
+        "badRefs": [],
+        "mismatched": [
+          {
+            "section": "社区视角：它值不值得跟进",
+            "num": 9
+          }
+        ]
+      }
+    ],
+    "issues": [
+      {
+        "check": "figures",
+        "severity": "warn",
+        "detail": "第「社区视角：它值不值得跟进」节引用的图9 与图注内容不符"
+      }
+    ],
+    "serious": [],
+    "repairTargets": [
+      {
+        "heading": "社区视角：它值不值得跟进",
+        "hints": [
+          "图 9 与本节论述不符：改引与本节内容对应的图，或补一句它和本节的关系"
+        ]
+      }
+    ],
+    "stats": {
+      "numbers": 38,
+      "missingNumbers": 0,
+      "entities": 18,
+      "mainResults": 8,
+      "formulas": 17,
+      "figureRefs": 6
+    },
+    "sourceKey": "https://arxiv.org/abs/2406.09246"
+  },
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": 0,
+    "numberEvidenceCoverage": 0.75,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 0.5,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "OpenVLA 是 7B 参数开源 VLA，用 970k 真机机器人示教数据训练",
+        "late": false,
+        "section": "OpenVLA:\nAn Open-Source Vision-Language-Action Model",
+        "ok": true,
+        "keywordHits": [
+          "7B",
+          "970k"
+        ],
+        "missingKeywords": [
+          "demonstrations"
+        ],
+        "numberHits": [
+          "7",
+          "970"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "跨 29 个任务、多机器人平台上比闭源 RT-2-X (55B) 绝对成功率高出 16.5%，参数少 7 倍",
+        "late": false,
+        "section": "OpenVLA:\nAn Open-Source Vision-Language-Action Model",
+        "ok": true,
+        "keywordHits": [
+          "RT-2-X"
+        ],
+        "missingKeywords": [
+          "task success rate"
+        ],
+        "numberHits": [
+          "16.5"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "参数高效微调：LoRA 微调效果优于全量微调与 sandwich 方案",
+        "late": false,
+        "section": "Parameter-Efficient Fine-Tuning",
+        "ok": true,
+        "keywordHits": [
+          "LoRA"
+        ],
+        "missingKeywords": [
+          "parameter-efficient"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "Table 1 微调方法对比：LoRA(rank=32/64) 成功率 68.2%，优于全量微调",
+        "late": false,
+        "section": "Parameter-Efficient Fine-Tuning",
+        "ok": false,
+        "keywordHits": [
+          "LoRA"
+        ],
+        "missingKeywords": [
+          "fine-tuning"
+        ],
+        "numberHits": [],
+        "missingNumbers": [
+          "68.2"
+        ]
+      },
+      {
+        "text": "设计决策消融（视觉编码器冻结 / sandwich 方案 / 数据配比）",
+        "late": false,
+        "section": "The OpenVLA Model",
+        "ok": true,
+        "keywordHits": [
+          "冻结",
+          "消融"
+        ],
+        "missingKeywords": [
+          "Design Decisions",
+          "frozen"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "失败模式与局限：困难任务上的部分成功、推理速度与显存约束",
+        "late": true,
+        "section": "B.1.1 BridgeData V2 Evaluation Tasks",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "failure",
+          "失败",
+          "partial successes",
+          "部分成功"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "7",
+        "970",
+        "16.5",
+        "68.2"
+      ],
+      "hits": [
+        "7",
+        "970",
+        "16.5"
+      ],
+      "missing": [
+        "68.2"
+      ],
+      "unlocated": [],
+      "located": 3
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "7B-parameter",
+          "open-source"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "architecture",
+          "image observation"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [
+      {
+        "text": "失败模式与局限：困难任务上的部分成功、推理速度与显存约束",
+        "ratio": 0.5454545454545454,
+        "section": "B.1.1 BridgeData V2 Evaluation Tasks",
+        "ok": false
+      }
+    ],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 8780,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0
+  },
+  "warnings": [
+    "research map 输出无法解析为 JSON，已用本地关键词地图兜底"
+  ],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 1333,
+      "lastAtMs": 1333
+    },
+    "research_map": {
+      "firstAtMs": 1336,
+      "lastAtMs": 20219
+    },
+    "plan": {
+      "firstAtMs": 20219,
+      "lastAtMs": 40648
+    },
+    "retrieval": {
+      "firstAtMs": 40695,
+      "lastAtMs": 40695
+    },
+    "section": {
+      "firstAtMs": 40695,
+      "lastAtMs": 154398
+    },
+    "section_done": {
+      "firstAtMs": 58504,
+      "lastAtMs": 177338
+    },
+    "audit": {
+      "firstAtMs": 177339,
+      "lastAtMs": 177354
+    },
+    "finalize": {
+      "firstAtMs": 177350,
+      "lastAtMs": 177350
+    }
+  },
+  "markdownChars": 9516,
+  "finishedAt": "2026-09-17T05:20:25.593Z"
+}

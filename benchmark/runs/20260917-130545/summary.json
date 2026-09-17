@@ -1,0 +1,192 @@
+{
+  "version": "v1",
+  "startedAt": "2026-09-17T05:05:45.484Z",
+  "finishedAt": "2026-09-17T05:30:23.239Z",
+  "runDir": "benchmark/runs/20260917-130545",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "total": 5,
+  "completed": 5,
+  "skipped": 0,
+  "failed": 0,
+  "metrics": {
+    "sourceCoverage": 0.8833,
+    "latePaperCoverage": 0.6667,
+    "numberEvidenceCoverage": 0.75,
+    "figureCoverage": 0.9,
+    "formulaCoverage": 1,
+    "ablationCoverage": 0.7,
+    "limitationCoverage": 0.3,
+    "auditMissingRate": 0.0104,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "qualityNotes": [
+    "2405.15793：Limitation coverage=0%",
+    "2406.09246：Late-paper coverage=0%、Ablation coverage=50%、Limitation coverage=0%",
+    "2409.12191：Figure coverage=50%、Limitation coverage=0%",
+    "2501.12948：Number evidence=33%、Ablation coverage=0%、Limitation coverage=50%"
+  ],
+  "papers": [
+    {
+      "id": "1706.03762",
+      "title": "Attention Is All You Need",
+      "category": "LLM",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 351148,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": 1,
+        "numberEvidenceCoverage": 1,
+        "figureCoverage": 1,
+        "formulaCoverage": 1,
+        "ablationCoverage": 1,
+        "limitationCoverage": 1,
+        "auditMissingRate": 0,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 40375,
+        "textLines": 0,
+        "figures": 5,
+        "sections": 25,
+        "chunks": 185
+      }
+    },
+    {
+      "id": "2405.15793",
+      "title": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+      "category": "Agent",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 287914,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": null,
+        "numberEvidenceCoverage": 1,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0.0278,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 274329,
+        "textLines": 0,
+        "figures": 26,
+        "sections": 41,
+        "chunks": 574
+      }
+    },
+    {
+      "id": "2406.09246",
+      "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+      "category": "Embodied AI / Robotics",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 241038,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "metrics": {
+        "sourceCoverage": 1,
+        "latePaperCoverage": 0,
+        "numberEvidenceCoverage": 0.75,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 0.5,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 133708,
+        "textLines": 0,
+        "figures": 9,
+        "sections": 40,
+        "chunks": 188
+      }
+    },
+    {
+      "id": "2409.12191",
+      "title": "Qwen2-VL: Enhancing Vision-Language Model's Perception of the World at Any Resolution",
+      "category": "Multimodal / VLM",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 298904,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "metrics": {
+        "sourceCoverage": 0.6667,
+        "latePaperCoverage": null,
+        "numberEvidenceCoverage": 0.6667,
+        "figureCoverage": 0.5,
+        "formulaCoverage": null,
+        "ablationCoverage": 1,
+        "limitationCoverage": 0,
+        "auditMissingRate": 0.0241,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 115376,
+        "textLines": 0,
+        "figures": 29,
+        "sections": 30,
+        "chunks": 138
+      }
+    },
+    {
+      "id": "2501.12948",
+      "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+      "category": "RL / RLVR",
+      "status": "completed",
+      "reason": "",
+      "runtimeMs": 298736,
+      "degraded": false,
+      "resumed": false,
+      "pipeline": "structured",
+      "metrics": {
+        "sourceCoverage": 0.75,
+        "latePaperCoverage": 1,
+        "numberEvidenceCoverage": 0.3333,
+        "figureCoverage": 1,
+        "formulaCoverage": null,
+        "ablationCoverage": 0,
+        "limitationCoverage": 0.5,
+        "auditMissingRate": 0,
+        "sectionCompleteness": 1,
+        "lengthStability": 1
+      },
+      "lengthStability": 1,
+      "source": {
+        "kind": "html",
+        "chars": 225351,
+        "textLines": 0,
+        "figures": 21,
+        "sections": 54,
+        "chunks": 337
+      }
+    }
+  ]
+}

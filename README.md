@@ -87,11 +87,36 @@ Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy 
   相关开关：`DEEPREAD_STRUCTURED`、`DEEPREAD_CHUNK_CHARS`、`DEEPREAD_EVIDENCE_CHARS`、
   `DEEPREAD_MAX_CHUNKS`、`DEEPREAD_MAP_CHARS`、`DEEPREAD_AUDIT`、`DEEPREAD_REPAIR`。
 
+### 质量基准测试（Benchmark v1）
+
+深度解读的质量不再只靠「功能测试通过」判断：`benchmark/` 维护了 5 篇 seed 论文
+（LLM / RL / Agent / VLM / 具身智能）与人工定义的**关键事实锚点**，用确定性指标衡量
+「全文证据覆盖 + 结构完整性」——重点看后半篇的实验、消融、局限与公式有没有真的被读到。
+
+```bash
+npm run benchmark -- --dry-run        # 只校验 metadata（不联网、不调模型）
+npm run benchmark                      # 跑全部 seed（需要真实模型，约 30–60 分钟）
+npm run benchmark -- --limit 1         # 冒烟：只跑一篇
+npm run benchmark -- --update-baseline # 把本次结果写成新 baseline
+```
+
+指标：`sourceCoverage` / `latePaperCoverage` / `numberEvidenceCoverage` / `figureCoverage` /
+`formulaCoverage` / `ablationCoverage` / `limitationCoverage` / `auditMissingRate` /
+`sectionCompleteness` / `lengthStability`。每次运行的 `summary.json` + 逐篇明细写入
+`benchmark/runs/<timestamp>/`，并与 `benchmark/baseline.json` 对比输出 improved / regressed / unchanged。
+
+**注意**：benchmark 衡量的是证据覆盖与结构完整性，**不是对文章文学质量的绝对评分**；第一版不使用 LLM judge。
+没有配置真实模型时，benchmark 会明确标记 `skipped` 并提示需要哪个环境变量，命令仍以 0 退出，
+不影响 `npm test`。详见 [benchmark/README.md](benchmark/README.md)。
+
 ## 目录结构
 
 ```
 link2post/
 ├── server.js                 # Express 入口 + 静态/下载/处理路由
+├── benchmark/                # 深度解读质量基准（papers / expected / runs / metrics / baseline）
+├── scripts/
+│   └── deepread-benchmark.js # npm run benchmark 入口
 ├── src/
 │   ├── config.js             # 环境变量与默认配置
 │   ├── fetchSource.js        # 下载并识别 PDF / 网页

@@ -1,0 +1,153 @@
+{
+  "id": "2405.15793",
+  "at": "2026-09-17T05:30:23.239Z",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": null,
+    "numberEvidenceCoverage": 1,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 1,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0.0278,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "SWE-bench 上 pass@1 达 12.5%，HumanEvalFix 达 87.7%，超过此前的非交互式 SOTA",
+        "late": false,
+        "section": "Experimental Setup",
+        "ok": true,
+        "keywordHits": [
+          "SWE-bench",
+          "HumanEvalFix",
+          "pass@"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "12.5",
+          "87.7"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "核心是给 LM 设计 Agent-Computer Interface（ACI）：文件查看器 / 搜索 / 语法检查等专用命令",
+        "late": false,
+        "section": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+        "ok": true,
+        "keywordHits": [
+          "Agent-Computer Interface",
+          "ACI"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      },
+      {
+        "text": "在 SWE-bench Lite 上比较不同 ACI 设计，验证界面设计本身带来的收益",
+        "late": false,
+        "section": "Experimental Setup",
+        "ok": true,
+        "keywordHits": [
+          "SWE-bench Lite",
+          "interface"
+        ],
+        "missingKeywords": [],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "ACI 消融：SWE-agent 比基线 agent 多解决 10.7 个百分点（SWE-bench Lite 300 例子集）",
+        "late": false,
+        "section": "Introduction",
+        "ok": true,
+        "keywordHits": [
+          "10.7"
+        ],
+        "missingKeywords": [
+          "ablation"
+        ],
+        "numberHits": [
+          "10.7"
+        ],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "末尾的 Ethics & Broader Impacts：可写代码的 LM 带来的三类风险",
+        "late": false,
+        "section": "",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "Broader Impacts",
+          "Ethics",
+          "伦理",
+          "社会影响"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "12.5",
+        "87.7",
+        "10.7"
+      ],
+      "hits": [
+        "12.5",
+        "87.7",
+        "10.7"
+      ],
+      "missing": [],
+      "unlocated": [],
+      "located": 3
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "agent-computer interface",
+          "ACI"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 5,
+        "keywords": [
+          "Search interfaces",
+          "Shell-only"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 9944,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0.0278
+  }
+}

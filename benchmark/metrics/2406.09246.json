@@ -1,0 +1,184 @@
+{
+  "id": "2406.09246",
+  "at": "2026-09-17T05:30:23.239Z",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": 0,
+    "numberEvidenceCoverage": 0.75,
+    "figureCoverage": 1,
+    "formulaCoverage": null,
+    "ablationCoverage": 0.5,
+    "limitationCoverage": 0,
+    "auditMissingRate": 0,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "OpenVLA 是 7B 参数开源 VLA，用 970k 真机机器人示教数据训练",
+        "late": false,
+        "section": "OpenVLA:\nAn Open-Source Vision-Language-Action Model",
+        "ok": true,
+        "keywordHits": [
+          "7B",
+          "970k"
+        ],
+        "missingKeywords": [
+          "demonstrations"
+        ],
+        "numberHits": [
+          "7",
+          "970"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "跨 29 个任务、多机器人平台上比闭源 RT-2-X (55B) 绝对成功率高出 16.5%，参数少 7 倍",
+        "late": false,
+        "section": "OpenVLA:\nAn Open-Source Vision-Language-Action Model",
+        "ok": true,
+        "keywordHits": [
+          "RT-2-X"
+        ],
+        "missingKeywords": [
+          "task success rate"
+        ],
+        "numberHits": [
+          "16.5"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "参数高效微调：LoRA 微调效果优于全量微调与 sandwich 方案",
+        "late": false,
+        "section": "Parameter-Efficient Fine-Tuning",
+        "ok": true,
+        "keywordHits": [
+          "LoRA"
+        ],
+        "missingKeywords": [
+          "parameter-efficient"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "Table 1 微调方法对比：LoRA(rank=32/64) 成功率 68.2%，优于全量微调",
+        "late": false,
+        "section": "Parameter-Efficient Fine-Tuning",
+        "ok": false,
+        "keywordHits": [
+          "LoRA"
+        ],
+        "missingKeywords": [
+          "fine-tuning"
+        ],
+        "numberHits": [],
+        "missingNumbers": [
+          "68.2"
+        ]
+      },
+      {
+        "text": "设计决策消融（视觉编码器冻结 / sandwich 方案 / 数据配比）",
+        "late": false,
+        "section": "The OpenVLA Model",
+        "ok": true,
+        "keywordHits": [
+          "冻结",
+          "消融"
+        ],
+        "missingKeywords": [
+          "Design Decisions",
+          "frozen"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "失败模式与局限：困难任务上的部分成功、推理速度与显存约束",
+        "late": true,
+        "section": "B.1.1 BridgeData V2 Evaluation Tasks",
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
+          "failure",
+          "失败",
+          "partial successes",
+          "部分成功"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "7",
+        "970",
+        "16.5",
+        "68.2"
+      ],
+      "hits": [
+        "7",
+        "970",
+        "16.5"
+      ],
+      "missing": [
+        "68.2"
+      ],
+      "unlocated": [],
+      "located": 3
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "7B-parameter",
+          "open-source"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "architecture",
+          "image observation"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [],
+    "lateAnchors": [
+      {
+        "text": "失败模式与局限：困难任务上的部分成功、推理速度与显存约束",
+        "ratio": 0.5454545454545454,
+        "section": "B.1.1 BridgeData V2 Evaluation Tasks",
+        "ok": false
+      }
+    ],
+    "sections": {
+      "ratio": 1,
+      "planned": 6,
+      "final": 6,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 6,
+      "planned": 6,
+      "chars": 8780,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0
+  }
+}

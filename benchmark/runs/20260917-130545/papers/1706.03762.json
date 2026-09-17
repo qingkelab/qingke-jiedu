@@ -1,0 +1,514 @@
+{
+  "id": "1706.03762",
+  "title": "Attention Is All You Need",
+  "category": "LLM",
+  "url": "https://arxiv.org/abs/1706.03762",
+  "status": "completed",
+  "provider": "deepseek",
+  "model": "deepseek-v4-flash",
+  "runtimeMs": 351148,
+  "source": {
+    "kind": "html",
+    "chars": 40375,
+    "textLines": 0,
+    "figures": 5,
+    "sections": 25,
+    "chunks": 185
+  },
+  "pipeline": "structured",
+  "degraded": false,
+  "structure": {
+    "kind": "html",
+    "sectionCount": 25,
+    "chunkCount": 185,
+    "chars": 40960,
+    "coverage": 40960,
+    "truncated": false
+  },
+  "researchMapStatus": "fallback",
+  "researchMapStats": {
+    "keyClaims": 6,
+    "methodComponents": 8,
+    "equations": 8,
+    "mainResults": 8,
+    "ablations": 6,
+    "limitations": 1,
+    "figures": 5,
+    "evidenceLinks": 24
+  },
+  "evidence": [
+    {
+      "section": "一篇把循环和卷积全部删掉的论文，到底靠什么撑住",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c5",
+        "c6",
+        "c10",
+        "c15",
+        "c16",
+        "c21",
+        "c109",
+        "c142",
+        "c143",
+        "c148",
+        "c173"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "旧做法卡在哪：RNN 的时序依赖与 CNN 的长程路径",
+      "role": "results",
+      "chunkIds": [
+        "c3",
+        "c7",
+        "c15",
+        "c17",
+        "c142",
+        "c143",
+        "c148",
+        "c151",
+        "c158",
+        "c159",
+        "c163",
+        "c171"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "Transformer 长什么样：编码器-解码器整体骨架",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c5",
+        "c10",
+        "c13",
+        "c15",
+        "c16",
+        "c21",
+        "c142",
+        "c143",
+        "c148",
+        "c173",
+        "c174"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "真正的主角是注意力：缩放点积与多头是怎么拼起来的",
+      "role": "general",
+      "chunkIds": [
+        "c3",
+        "c5",
+        "c6",
+        "c10",
+        "c15",
+        "c16",
+        "c21",
+        "c109",
+        "c142",
+        "c143",
+        "c148",
+        "c173"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "位置信息与训练配方的补丁",
+      "role": "method",
+      "chunkIds": [
+        "c3",
+        "c10",
+        "c15",
+        "c16",
+        "c17",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c23",
+        "c158",
+        "c173"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "实验证据：WMT 上的 BLEU 与英语句法分析泛化",
+      "role": "method",
+      "chunkIds": [
+        "c3",
+        "c10",
+        "c15",
+        "c16",
+        "c17",
+        "c18",
+        "c19",
+        "c20",
+        "c21",
+        "c143",
+        "c158",
+        "c173"
+      ],
+      "figureNums": []
+    },
+    {
+      "section": "失效边界与还值得追的问题",
+      "role": "limitation",
+      "chunkIds": [
+        "c3",
+        "c6",
+        "c10",
+        "c15",
+        "c142",
+        "c143",
+        "c148",
+        "c158",
+        "c173",
+        "c174",
+        "c175",
+        "c176"
+      ],
+      "figureNums": []
+    }
+  ],
+  "audit": {
+    "checks": [
+      {
+        "name": "numbers",
+        "status": "pass",
+        "detail": "终稿数字 91 个，原文未检到 0 个",
+        "missing": []
+      },
+      {
+        "name": "entities",
+        "status": "pass",
+        "detail": "地图实体 9 个，原文未出现 0 个，终稿未提及 7 个",
+        "unknown": [],
+        "notMentioned": [
+          "English-German",
+          "English-French",
+          "Building",
+          "English-to-German",
+          "Empirical",
+          "Hence",
+          "Listed"
+        ]
+      },
+      {
+        "name": "main_result",
+        "status": "pass",
+        "detail": "主要结果关键数字 16 个，终稿覆盖 7 个",
+        "covered": [
+          "2",
+          "4",
+          "3",
+          "5",
+          "100",
+          "1",
+          "0.1"
+        ],
+        "missed": [
+          "2.02",
+          "0b",
+          "28.428",
+          "3.53",
+          "88",
+          "41.041",
+          "0",
+          "41"
+        ]
+      },
+      {
+        "name": "ablation",
+        "status": "pass",
+        "detail": "原文有 6 条消融信息，终稿已覆盖"
+      },
+      {
+        "name": "limitation",
+        "status": "pass",
+        "detail": "原文有 1 条局限，终稿已覆盖"
+      },
+      {
+        "name": "formula",
+        "status": "pass",
+        "detail": "原文公式 103 条，终稿 114 条，可对应 91 条"
+      },
+      {
+        "name": "figures",
+        "status": "pass",
+        "detail": "可用图 5 张，终稿引用 5 处",
+        "refs": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ],
+        "badRefs": [],
+        "mismatched": []
+      }
+    ],
+    "issues": [],
+    "serious": [],
+    "repairTargets": [],
+    "stats": {
+      "numbers": 91,
+      "missingNumbers": 0,
+      "entities": 9,
+      "mainResults": 16,
+      "formulas": 114,
+      "figureRefs": 5
+    },
+    "sourceKey": "https://arxiv.org/abs/1706.03762"
+  },
+  "metrics": {
+    "sourceCoverage": 1,
+    "latePaperCoverage": 1,
+    "numberEvidenceCoverage": 1,
+    "figureCoverage": 1,
+    "formulaCoverage": 1,
+    "ablationCoverage": 1,
+    "limitationCoverage": 1,
+    "auditMissingRate": 0,
+    "sectionCompleteness": 1,
+    "lengthStability": 1
+  },
+  "detail": {
+    "evidence": [
+      {
+        "text": "WMT 2014 英德任务 28.4 BLEU，超过此前最好结果（含 ensemble）2 BLEU 以上",
+        "late": false,
+        "section": "Attention Is All You Need",
+        "ok": true,
+        "keywordHits": [
+          "BLEU",
+          "WMT 2014"
+        ],
+        "missingKeywords": [
+          "English-to-German"
+        ],
+        "numberHits": [
+          "28.4"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "英法任务单模型 41.8 BLEU，8 块 GPU 训练 3.5 天",
+        "late": false,
+        "section": "Attention Is All You Need",
+        "ok": true,
+        "keywordHits": [
+          "BLEU"
+        ],
+        "missingKeywords": [
+          "English-to-French"
+        ],
+        "numberHits": [
+          "41.8",
+          "3.5"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "同一架构迁移到英语成分句法分析，验证跨任务泛化",
+        "late": false,
+        "section": "Attention Is All You Need",
+        "ok": true,
+        "keywordHits": [
+          "constituency parsing"
+        ],
+        "missingKeywords": [
+          "成分句法"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "ablations": [
+      {
+        "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
+        "late": true,
+        "section": "Regularization",
+        "ok": true,
+        "keywordHits": [
+          "label smoothing"
+        ],
+        "missingKeywords": [],
+        "numberHits": [
+          "0.1"
+        ],
+        "missingNumbers": []
+      },
+      {
+        "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
+        "late": true,
+        "section": "Regularization",
+        "ok": true,
+        "keywordHits": [
+          "dropout"
+        ],
+        "missingKeywords": [
+          "residual dropout"
+        ],
+        "numberHits": [
+          "0.1"
+        ],
+        "missingNumbers": []
+      }
+    ],
+    "limitations": [
+      {
+        "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
+        "late": true,
+        "section": "Why Self-Attention",
+        "ok": true,
+        "keywordHits": [
+          "复杂度",
+          "路径长度"
+        ],
+        "missingKeywords": [
+          "complexity",
+          "path length"
+        ],
+        "numberHits": [],
+        "missingNumbers": []
+      }
+    ],
+    "numbers": {
+      "expected": [
+        "28.4",
+        "41.8",
+        "3.5",
+        "0.1",
+        "0.1"
+      ],
+      "hits": [
+        "28.4",
+        "41.8",
+        "3.5",
+        "0.1",
+        "0.1"
+      ],
+      "missing": [],
+      "unlocated": [],
+      "located": 5
+    },
+    "figures": [
+      {
+        "num": 1,
+        "keywords": [
+          "model architecture",
+          "Transformer"
+        ],
+        "ok": true,
+        "by": "num"
+      },
+      {
+        "num": 2,
+        "keywords": [
+          "Scaled Dot-Product Attention",
+          "Multi-Head Attention"
+        ],
+        "ok": true,
+        "by": "num"
+      }
+    ],
+    "formulas": [
+      {
+        "text": "缩放点积注意力 softmax(QK^T/sqrt(d_k))V",
+        "ok": true,
+        "keywordHits": [
+          "softmax",
+          "sqrt"
+        ],
+        "missingKeywords": [],
+        "hasFormula": true
+      },
+      {
+        "text": "正弦位置编码 PE(pos, 2i) = sin(pos/10000^(2i/d_model))",
+        "ok": true,
+        "keywordHits": [
+          "10000",
+          "sin"
+        ],
+        "missingKeywords": [],
+        "hasFormula": true
+      }
+    ],
+    "lateAnchors": [
+      {
+        "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
+        "ratio": 0.7554347826086957,
+        "section": "Regularization",
+        "ok": true
+      },
+      {
+        "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
+        "ratio": 0.7445652173913043,
+        "section": "Regularization",
+        "ok": true
+      },
+      {
+        "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
+        "ratio": 0.592391304347826,
+        "section": "Why Self-Attention",
+        "ok": true
+      }
+    ],
+    "sections": {
+      "ratio": 1,
+      "planned": 7,
+      "final": 7,
+      "missing": []
+    },
+    "stability": {
+      "stable": true,
+      "score": 1,
+      "sections": 7,
+      "planned": 7,
+      "chars": 11833,
+      "endsComplete": true,
+      "degraded": false
+    },
+    "auditMissingRate": 0
+  },
+  "warnings": [
+    "research map 输出无法解析为 JSON，已用本地关键词地图兜底"
+  ],
+  "stageTimes": {
+    "chunking": {
+      "firstAtMs": 3861,
+      "lastAtMs": 3862
+    },
+    "research_map": {
+      "firstAtMs": 3863,
+      "lastAtMs": 22236
+    },
+    "plan": {
+      "firstAtMs": 22236,
+      "lastAtMs": 25372
+    },
+    "retrieval": {
+      "firstAtMs": 25420,
+      "lastAtMs": 25420
+    },
+    "section": {
+      "firstAtMs": 25420,
+      "lastAtMs": 245072
+    },
+    "section_done": {
+      "firstAtMs": 51757,
+      "lastAtMs": 271555
+    },
+    "audit": {
+      "firstAtMs": 271555,
+      "lastAtMs": 271619
+    },
+    "finalize": {
+      "firstAtMs": 271617,
+      "lastAtMs": 271617
+    }
+  },
+  "markdownChars": 12761,
+  "finishedAt": "2026-09-17T05:11:36.637Z"
+}
