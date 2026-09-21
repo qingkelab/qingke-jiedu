@@ -1,0 +1,68 @@
+/* 青稞解读 · 浏览器版补充样式（基于 ../public/style.css） */
+
+.api-card {
+  margin-bottom: 14px;
+}
+.api-card summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+.api-card summary .muted {
+  font-weight: 400;
+  font-size: 12px;
+}
+.api-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+  margin-top: 12px;
+}
+.api-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #5b6470;
+}
+.api-grid input,
+.api-grid select {
+  border: 1px solid #e3e6eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: #fff;
+}
+.api-grid .api-wide {
+  grid-column: 1 / -1;
+}
+.api-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.hero h1 .badge {
+  font-size: 12px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.latest-hint {
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+.tile-dl {
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: #07c160;
+  font-size: 12px;
+  padding: 0;
+}
+.foot a {
+  color: #07c160;
+  text-decoration: none;
+}
+.lightbox-dl {
+  cursor: pointer;
+}

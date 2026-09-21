@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%2307c160'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white'>青</text></svg>" />
+  <title>青稞解读 · 浏览器版 — 论文/网页 → 图片 + 解读 + 爆款标题</title>
+  <meta name="description" content="纯浏览器运行的论文解读工具：PDF 转图、1000 字解读、20 字爆款标题、arXiv 深度解读。API key 仅存内存，不保存。" />
+  <link rel="stylesheet" href="../public/style.css" />
+  <link rel="stylesheet" href="./web.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@mozilla/readability@0.6.0/Readability.js"></script>
+  <!-- 浏览器垫片：src/config.js 在 Node 下读 process.env / dotenv，这里给个空 env -->
+  <script>
+    window.process = { env: {} };
+  </script>
+  <!-- 让 ../src 下的模块在浏览器里可跑：jsdom→DOMParser，node:path/node:url/dotenv→垫片 -->
+  <script type="importmap">
+    {
+      "imports": {
+        "jsdom": "./shims/jsdom.js",
+        "dotenv/config": "./shims/empty.js",
+        "node:path": "./shims/node-path.js",
+        "node:url": "./shims/node-url.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div class="brand">
+        <span class="logo">青</span>
+        <div>
+          <h1>青稞解读 <span class="badge">浏览器版</span></h1>
+          <p class="tagline">粘贴论文 / 网页链接，一键生成图片 · 1000 字内解读 · 20 字内爆款标题。全部在本机浏览器内运行，API key 仅存内存、绝不保存。</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- 接口设置：key 只进内存 -->
+    <section class="input-card api-card" id="api-card">
+      <details open>
+        <summary>🔑 接口设置 <span class="muted">（只保存在本页内存，刷新即失效，不写入任何存储）</span></summary>
+        <div class="api-grid">
+          <label>
+            <span>服务商</span>
+            <select id="api-provider">
+              <option value="deepseek" selected>DeepSeek</option>
+              <option value="openai">OpenAI</option>
+              <option value="custom">自定义（OpenAI 兼容）</option>
+            </select>
+          </label>
+          <label>
+            <span>Base URL</span>
+            <input id="api-baseurl" type="url" value="https://api.deepseek.com" placeholder="https://api.deepseek.com" />
+          </label>
+          <label>
+            <span>模型</span>
+            <input id="api-model" type="text" value="deepseek-chat" placeholder="deepseek-chat" />
+          </label>
+          <label>
+            <span>API key</span>
+            <input id="api-key" type="password" placeholder="sk-...（仅存内存，不会保存）" autocomplete="off" />
+          </label>
+          <label class="api-wide">
+            <span>CORS 代理（可选）</span>
+            <input id="api-proxy" type="url" placeholder="https://corsproxy.io/?url= （网页抓取 / arXiv 搜索需要；arXiv PDF 与 HTML 可直连）" />
+          </label>
+          <div class="api-actions">
+            <button id="api-test" class="btn ghost" type="button">测试连接</button>
+            <span id="api-test-note" class="muted"></span>
+          </div>
+        </div>
+        <div class="model-indicator" id="api-status">未填写 API key</div>
+      </details>
+    </section>
+
+    <nav class="mode-nav" aria-label="功能菜单">
+      <div class="seg">
+        <button id="mode-pic" class="seg-btn active" type="button">🖼 图文转图</button>
+        <button id="mode-deep" class="seg-btn" type="button">📖 论文深度解读</button>
+        <button id="mode-latest" class="seg-btn" type="button">🕒 最新论文</button>
+      </div>
+    </nav>
+
+    <div class="layout">
+      <aside class="side">
+        <section class="input-card">
+          <form id="form" autocomplete="off">
+            <div class="input-row">
+              <input id="url" type="url" placeholder="https:// 输入论文 PDF 链接或网页链接" required />
+              <button id="submit" type="submit">生成</button>
+            </div>
+          </form>
+          <div class="upload-row" id="upload-row">
+            <label class="upload-label" for="file-upload">📎 上传文章（PDF / Markdown / 文本）</label>
+            <input id="file-upload" type="file" accept=".pdf,.md,.txt,.markdown" hidden />
+          </div>
+          <div class="examples">
+            <span>试试：</span>
+            <button class="chip" data-url="https://arxiv.org/pdf/1706.03762">论文 PDF（Attention）</button>
+            <button class="chip" data-url="https://arxiv.org/abs/1706.03762">arXiv 摘要页</button>
+          </div>
+
+          <!-- 最新论文 -->
+          <div id="latest-form" hidden>
+            <div class="input-row">
+              <select id="latest-category">
+                <option value="">全部分类</option>
+                <option value="cs.AI">cs.AI 人工智能</option>
+                <option value="cs.CL">cs.CL 计算语言学</option>
+                <option value="cs.CV">cs.CV 计算机视觉</option>
+                <option value="cs.LG">cs.LG 机器学习</option>
+                <option value="cs.RO">cs.RO 机器人</option>
+                <option value="cs.SE">cs.SE 软件工程</option>
+                <option value="cs.CR">cs.CR 密码与安全</option>
+                <option value="stat.ML">stat.ML 统计机器学习</option>
+              </select>
+              <select id="latest-days">
+                <option value="1">最近 1 天</option>
+                <option value="3" selected>最近 3 天</option>
+                <option value="7">最近 7 天</option>
+                <option value="14">最近 14 天</option>
+                <option value="30">最近 30 天</option>
+              </select>
+              <button id="latest-search" type="button">搜索最新论文</button>
+            </div>
+            <div class="keyword-row">
+              <span>关键词：</span>
+              <button class="chip kw" data-kw="RL" type="button">RL</button>
+              <button class="chip kw" data-kw="OPD" type="button">OPD</button>
+              <button class="chip kw" data-kw="RSI" type="button">RSI</button>
+              <button class="chip kw" data-kw="VLA" type="button">VLA</button>
+              <button class="chip kw" data-kw="World Model" type="button">World Model</button>
+              <button class="chip kw" data-kw="World Action Model" type="button">World Action Model</button>
+            </div>
+            <p class="muted latest-hint">搜索走 arXiv API（无 CORS），需要先在「接口设置」里填 CORS 代理。</p>
+          </div>
+
+          <label class="only-images" id="only-images-row">
+            <input type="checkbox" id="only-images" />
+            <span>只转图，不生成文案</span>
+          </label>
+        </section>
+
+        <!-- 深度解读写作规范（静态参考） -->
+        <section id="deep-guide" class="guide-card" hidden>
+          <details open>
+            <summary>📖 深度解读 · 写作规范</summary>
+            <p class="guide-sub">按青稞社区（qingke-tech-writing）风格执行，每次生成与审校都遵守以下规则：</p>
+            <ul class="guide-list">
+              <li><b>导语</b>：开头 3 段内讲清「论文回答什么问题 → 为什么现在值得读 → 作者给出什么」。</li>
+              <li><b>结构</b>：小节标题用结论句/名词短语，禁「引言 / 相关工作 / 背景介绍」腔与编号模板；每节先给加粗结论再展开。</li>
+              <li><b>篇幅</b>：正文目标 3000–6000 字；低于 2500 字视为未达标。</li>
+              <li><b>术语</b>：Agent / RL / SFT / RLHF / World Model / benchmark 等保留英文；方法/模型/机构名一律原文。</li>
+              <li><b>数字</b>：规模 / 数据集 / 设置 / 基线 / 单位齐全；论文声称与「我们的判断」分开。</li>
+              <li><b>图片</b>：正文至少分散嵌 3 张关键图，（图N）引用写在讲对应内容的段落里。</li>
+              <li><b>出处</b>：文首自动生成出处块——作者 / 机构 / 时间 / Paper / arXiv / Code。</li>
+              <li><b>收尾</b>：给一句具体的社区视角判断，不升华成金句。</li>
+              <li><b>反 AI 味</b>：禁「随着…的发展」「首先/其次/最后」「总而言之」等模板腔。</li>
+              <li><b>全文理解</b>：结构化切片 + 研究地图 + 按小节检索证据，不只看前半篇。</li>
+              <li><b>证据审计</b>：成稿后核对数字 / 模型与数据集名 / 消融 / 局限 / 公式 / 图；只重写有问题的小节。</li>
+            </ul>
+            <p class="guide-foot">规则来源：qingkelab/agent-skills · qingke-tech-writing</p>
+          </details>
+        </section>
+      </aside>
+
+      <main class="content">
+        <section id="status" class="status" hidden>
+          <div class="spinner"></div>
+          <div class="status-main">
+            <span id="status-text">正在处理…</span>
+            <div id="status-detail" class="status-detail" hidden></div>
+          </div>
+        </section>
+
+        <section id="error" class="error" hidden></section>
+
+        <main id="arxivlist" hidden>
+          <div class="meta-bar">
+            <span class="badge">🕒 最新论文</span>
+            <span id="arxivlist-count" class="muted"></span>
+          </div>
+          <section class="card">
+            <div class="card-head">
+              <h2>📑 论文列表</h2>
+            </div>
+            <div id="arxivlist-body" class="arxiv-list"></div>
+          </section>
+        </main>
+
+        <main id="result" hidden>
+          <div class="meta-bar">
+            <span id="meta-type" class="badge"></span>
+            <span id="meta-provider" class="badge muted"></span>
+            <div class="meta-title" id="meta-title"></div>
+            <span id="meta-origin" class="muted"></span>
+          </div>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>🎞️ 内容图片</h2>
+              <div class="head-actions">
+                <span id="img-count" class="muted"></span>
+                <button class="btn ghost" id="zip-btn" type="button">⬇ 下载全部（ZIP）</button>
+              </div>
+            </div>
+            <div id="gallery" class="gallery"></div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>📝 解读文案</h2>
+              <div class="head-actions">
+                <span id="copy-count" class="badge" hidden></span>
+                <button class="btn ghost" id="copy-copy" type="button" disabled>复制文案</button>
+                <button class="btn ghost" id="md-btn" type="button">下载 .md</button>
+              </div>
+            </div>
+            <div id="copy-notice" class="copy-notice" hidden>
+              <span id="copy-notice-text"></span>
+              <button class="btn ghost" id="copy-retry" type="button">重新生成文案</button>
+            </div>
+            <div id="copy-pending" class="copy-pending" hidden>
+              <span class="spinner small"></span>
+              <span id="copy-pending-text">正在生成解读文案与标题…</span>
+            </div>
+            <div id="copy-body" hidden>
+              <div class="copy-toolbar">
+                <div class="seg">
+                  <button id="view-preview" class="seg-btn active" type="button">预览</button>
+                  <button id="view-src" class="seg-btn" type="button">Markdown 源码</button>
+                </div>
+              </div>
+              <div id="copy-style" class="style-check" hidden></div>
+              <div id="copy-render" class="copy-render"></div>
+              <pre id="copy-src" class="copy-text" hidden></pre>
+              <details class="reasoning" id="reasoning" hidden>
+                <summary>🧠 推理过程（模型思考）</summary>
+                <pre id="reasoning-text"></pre>
+              </details>
+            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>🔥 爆款标题</h2>
+            </div>
+            <div id="titles" class="titles"></div>
+            <div id="titles-empty" class="muted">文案生成后自动给出 3 条候选标题。</div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>📤 同步发布</h2>
+              <span class="muted">浏览器版为降级同步：复制内容后手动粘贴</span>
+            </div>
+            <div class="sync-actions">
+              <button class="btn sync" id="sync-wechat-browser">复制文案 + 打开公众号后台</button>
+              <button class="btn sync" id="sync-x">同步到 X</button>
+            </div>
+            <p class="sync-note" id="sync-note"></p>
+          </section>
+        </main>
+
+        <main id="deepresult" hidden>
+          <div class="meta-bar">
+            <span class="badge">📖 论文深度解读</span>
+            <div class="meta-title" id="deep-title"></div>
+            <span id="deep-origin" class="muted"></span>
+          </div>
+          <section class="card">
+            <div class="card-head">
+              <h2>📝 解读报告</h2>
+              <div class="head-actions">
+                <span id="deep-fig-count" class="muted"></span>
+                <button class="btn ghost" id="deep-copy" type="button">复制 Markdown</button>
+                <button class="btn ghost" id="deep-md-btn" type="button">下载 .md</button>
+              </div>
+            </div>
+            <div id="deep-style" class="style-check" hidden></div>
+            <div id="deep-audit" class="style-check" hidden></div>
+            <div class="copy-render deep" id="deep-render"></div>
+            <details class="reasoning" id="deep-reasoning" hidden>
+              <summary>🧠 推理过程（模型思考）</summary>
+              <pre id="deep-reasoning-text"></pre>
+            </details>
+            <details class="reasoning" id="deep-factcheck" hidden>
+              <summary>🧾 数字核验表（终稿数字 ↔ 原文条件）</summary>
+              <div class="head-actions" style="margin: 8px 0">
+                <button class="btn ghost" id="deep-factcheck-dl" type="button">下载 fact-check.md</button>
+              </div>
+              <div class="copy-render" id="deep-factcheck-render"></div>
+            </details>
+          </section>
+        </main>
+      </main>
+    </div>
+
+    <footer class="foot">
+      <span>纯浏览器运行：API key 与文档内容不经过任何第三方服务器（LLM 请求直连你配置的服务商）。<a href="https://github.com/qingkelab/qingke-jiedu" target="_blank" rel="noopener">源码</a></span>
+    </footer>
+  </div>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <div class="lightbox-inner">
+      <img id="lightbox-img" alt="预览" />
+      <button id="lightbox-close" class="lightbox-close">✕</button>
+      <button id="lightbox-dl" class="lightbox-dl" type="button">下载原图</button>
+    </div>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

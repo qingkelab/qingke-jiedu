@@ -74,6 +74,30 @@ export async function fetchArxivHtml(url) {
     .replace(/^\[?\d{4}\.\d{4,5}(v\d+)?\]?\s*/i, '')
     .trim();
 
+  // 作者：优先逐个取 .ltx_personname（剥掉机构/邮箱/脚注）；找不到再退回整块清理。
+  const authorsEl = doc.querySelector('.ltx_authors');
+  let authors = '';
+  if (authorsEl) {
+    const names = [...authorsEl.querySelectorAll('.ltx_personname')]
+      .map((el) => {
+        const clone = el.cloneNode(true);
+        clone.querySelectorAll('.ltx_note, .ltx_sup, sup').forEach((n) => n.remove());
+        return (clone.textContent || '').replace(/\s+/g, ' ').replace(/[†‡*§¶]+\s*/g, '').trim();
+      })
+      .filter(Boolean);
+    if (names.length) {
+      authors = names.join(', ');
+    } else {
+      const clone = authorsEl.cloneNode(true);
+      clone.querySelectorAll('.ltx_note, .ltx_sup, sup').forEach((n) => n.remove());
+      authors = (clone.textContent || '')
+        .replace(/\s+/g, ' ')
+        .replace(/^\s*Authors?\s*[:：]?\s*/i, '')
+        .replace(/[†‡*§¶]+\s*/g, '')
+        .trim();
+    }
+  }
+
   // 图片：figure 内的内容图（img / object[data] / 内联 svg），跳过 logo/静态资源/base64
   const figures = [];
   const visited = new Set();
@@ -121,6 +145,7 @@ export async function fetchArxivHtml(url) {
     id,
     base,
     title,
+    authors,
     text,
     structure, // 结构化切片（section/chunk），供深度解读全文分析
     figures: figures.slice(0, 40),
