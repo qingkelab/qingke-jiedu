@@ -41,44 +41,6 @@
       </div>
     </header>
 
-    <!-- 接口设置：key 只进内存 -->
-    <section class="input-card api-card" id="api-card">
-      <details open>
-        <summary>🔑 接口设置 <span class="muted">（只保存在本页内存，刷新即失效，不写入任何存储）</span></summary>
-        <div class="api-grid">
-          <label>
-            <span>服务商</span>
-            <select id="api-provider">
-              <option value="deepseek" selected>DeepSeek</option>
-              <option value="openai">OpenAI</option>
-              <option value="custom">自定义（OpenAI 兼容）</option>
-            </select>
-          </label>
-          <label>
-            <span>Base URL</span>
-            <input id="api-baseurl" type="url" value="https://api.deepseek.com" placeholder="https://api.deepseek.com" />
-          </label>
-          <label>
-            <span>模型</span>
-            <input id="api-model" type="text" value="deepseek-chat" placeholder="deepseek-chat" />
-          </label>
-          <label>
-            <span>API key</span>
-            <input id="api-key" type="password" placeholder="sk-...（仅存内存，不会保存）" autocomplete="off" />
-          </label>
-          <label class="api-wide">
-            <span>CORS 代理（可选）</span>
-            <input id="api-proxy" type="url" placeholder="https://corsproxy.io/?url= （网页抓取 / arXiv 搜索需要；arXiv PDF 与 HTML 可直连）" />
-          </label>
-          <div class="api-actions">
-            <button id="api-test" class="btn ghost" type="button">测试连接</button>
-            <span id="api-test-note" class="muted"></span>
-          </div>
-        </div>
-        <div class="model-indicator" id="api-status">未填写 API key</div>
-      </details>
-    </section>
-
     <nav class="mode-nav" aria-label="功能菜单">
       <div class="seg">
         <button id="mode-pic" class="seg-btn active" type="button">🖼 图文转图</button>
@@ -89,6 +51,44 @@
 
     <div class="layout">
       <aside class="side">
+        <!-- 接口设置：key 只进内存 -->
+        <section class="input-card api-card" id="api-card">
+          <details open>
+            <summary>🔑 接口设置 <span class="muted">（只保存在本页内存，刷新即失效，不写入任何存储）</span></summary>
+            <div class="api-grid">
+              <label>
+                <span>服务商</span>
+                <select id="api-provider">
+                  <option value="deepseek" selected>DeepSeek</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="custom">自定义（OpenAI 兼容）</option>
+                </select>
+              </label>
+              <label>
+                <span>Base URL</span>
+                <input id="api-baseurl" type="url" value="https://api.deepseek.com" placeholder="https://api.deepseek.com" />
+              </label>
+              <label>
+                <span>模型</span>
+                <input id="api-model" type="text" value="deepseek-chat" placeholder="deepseek-chat" />
+              </label>
+              <label>
+                <span>API key</span>
+                <input id="api-key" type="password" placeholder="sk-...（仅存内存，不会保存）" autocomplete="off" />
+              </label>
+              <label class="api-wide">
+                <span>CORS 代理（可选）</span>
+                <input id="api-proxy" type="url" placeholder="https://corsproxy.io/?url= （网页抓取 / arXiv 搜索需要；arXiv PDF 与 HTML 可直连）" />
+              </label>
+              <div class="api-actions">
+                <button id="api-test" class="btn ghost" type="button">测试连接</button>
+                <span id="api-test-note" class="muted"></span>
+              </div>
+            </div>
+            <div class="model-indicator" id="api-status">未填写 API key</div>
+          </details>
+        </section>
+
         <section class="input-card">
           <form id="form" autocomplete="off">
             <div class="input-row">

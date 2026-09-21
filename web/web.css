@@ -14,7 +14,7 @@
 }
 .api-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 10px 12px;
   margin-top: 12px;
 }
