@@ -4,3 +4,4 @@ output/
 .env
 .DS_Store
 .wechat-chrome-profile/
+benchmark/runs/

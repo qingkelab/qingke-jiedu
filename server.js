@@ -329,11 +329,25 @@ async function runDeepread({ url, providerName, model, onProgress }) {
   const dir = path.join(config.outputDir, id);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, 'deepread.md'), fullMarkdown, 'utf-8');
+  // 数字核验表（迁移自青稞解读规范）：单独落盘，供人工复核与发布到 public repo 时引用。
+  const factCheckMarkdown = meta?.factCheck?.markdown || '';
+  if (factCheckMarkdown) {
+    await writeFile(path.join(dir, 'deepread.fact-check.md'), factCheckMarkdown, 'utf-8');
+  }
   // 证据审计与结构化元数据落到单独的 json：内部调试用，不进最终 Markdown
   if (audit || meta) {
     await writeFile(
       path.join(dir, 'deepread.audit.json'),
-      JSON.stringify({ audit: audit || null, meta: meta || null, at: new Date().toISOString() }, null, 2),
+      JSON.stringify(
+        {
+          audit: audit || null,
+          factCheckStats: meta?.factCheck?.stats || null,
+          meta: meta || null,
+          at: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
       'utf-8',
     ).catch(() => {});
   }
@@ -358,6 +372,10 @@ async function runDeepread({ url, providerName, model, onProgress }) {
     audit: audit || null,
     pipeline: meta?.pipeline || 'legacy',
     structure: meta?.structure || null,
+    // 数字核验表（终稿数字 ↔ 原文条件）：作为独立产物给前端展示 / 发布时引用
+    factCheck: meta?.factCheck
+      ? { stats: meta.factCheck.stats, markdown: meta.factCheck.markdown, url: `/files/${id}/deepread.fact-check.md` }
+      : null,
     // 文风体检（基于模型原始正文统计；图片/出处块不计入）
     style: style || checkStyle(markdown, 'deepread'),
   };

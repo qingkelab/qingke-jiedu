@@ -322,6 +322,25 @@ async function main() {
           auditVerdict: result.meta?.auditVerdict || null,
           stages: result.meta?.stages || null,
           stageSummary: result.meta?.stageSummary || null,
+          // Plan Coverage v1：关键事实与覆盖度诊断（只留可观测字段，不含原始长文本）
+          criticalFacts: (result.meta?.criticalFacts || []).map((f) => ({
+            id: f.id,
+            category: f.category,
+            priority: f.priority,
+            fact: String(f.fact || '').slice(0, 120),
+            provenance: f.provenance,
+            sourceSectionTitles: f.sourceSectionTitles || [],
+            primarySectionTitle: f.primarySectionTitle || '',
+            mustUseTerms: (f.mustUseTerms || []).slice(0, 6),
+            planSections: f.planSections || [],
+            assignmentReason: f.assignmentReason || '',
+            mapping: f.mapping || null,
+          })),
+          planCoverage: result.meta?.planCoverage || null,
+          factCoverageStats: result.meta?.factCoverageStats || null,
+          // 数字核验表统计（终稿数字 ↔ 原文句子的确定性回查结果）
+          factCheckStats: result.meta?.factCheckStats || result.meta?.factCheck?.stats || null,
+          factRepairs: result.meta?.factRepairs || [],
           evidence: result.meta?.evidence || null,
           audit: result.audit || null,
           metrics,
@@ -333,6 +352,76 @@ async function main() {
         };
         await fs.writeFile(path.join(runDir, 'papers', `${paper.id}.json`), JSON.stringify(record, null, 2));
         await fs.writeFile(path.join(runDir, 'papers', `${paper.id}.md`), result.markdown || '');
+        // 数字核验表：每个数字的来源条件，便于人工抽查「有没有表外数字」
+        if (result.meta?.factCheck?.markdown) {
+          await fs.writeFile(path.join(runDir, 'papers', `${paper.id}.fact-check.md`), result.meta.factCheck.markdown);
+        }
+        // Evidence/Writer v3 可观测性：事实台账 + 写作覆盖明细（回答「这个事实在哪一步丢的」）
+        if (result.meta?.evidenceLedger) {
+          await fs.writeFile(
+            path.join(runDir, 'papers', `${paper.id}.evidence-ledger.json`),
+            JSON.stringify(
+              {
+                paperId: paper.id,
+                generatedAt: new Date().toISOString(),
+                stats: result.meta.evidenceLedger.stats,
+                facts: result.meta.evidenceLedger.facts.map((f) => ({
+                  id: f.id,
+                  category: f.category,
+                  priority: f.priority,
+                  provenance: f.provenance,
+                  claim: f.claim,
+                  status: f.status,
+                  reason: f.reason,
+                  sourceSections: f.sourceSections,
+                  sourceSectionIds: f.sourceSectionIds,
+                  chunkIds: f.chunkIds,
+                  retrievedChunkIds: f.retrievedChunkIds,
+                  mustUseTerms: f.mustUseTerms,
+                  mustUseNumbers: f.mustUseNumbers,
+                  sourceNumbers: (f.sourceNumbers || []).slice(0, 20),
+                  planSections: f.planSections,
+                  writerSections: f.writerSections,
+                  writtenIn: f.writtenIn || '',
+                  coverage: f.coverage || null,
+                })),
+                bySection: result.meta.evidenceLedger.bySection,
+              },
+              null,
+              2,
+            ),
+          );
+        }
+        if (result.meta?.writerCoverage) {
+          await fs.writeFile(
+            path.join(runDir, 'papers', `${paper.id}.writer-coverage.json`),
+            JSON.stringify(
+              {
+                paperId: paper.id,
+                stats: result.meta.writerCoverage.stats,
+                byFact: Object.fromEntries(
+                  Object.entries(result.meta.writerCoverage.byFact || {}).map(([id, v]) => [
+                    id,
+                    {
+                      status: v.status,
+                      section: v.section || '',
+                      reason: v.reason || '',
+                      termHits: v.termHits,
+                      termTotal: v.termTotal,
+                      numberHits: v.numberHits,
+                      numberTotal: v.numberTotal,
+                      unsupportedNumbers: v.unsupportedNumbers || [],
+                      derivedNumbers: v.derivedNumbers || [],
+                    },
+                  ]),
+                ),
+                repairs: result.meta.factRepairs || [],
+              },
+              null,
+              2,
+            ),
+          );
+        }
         entries.push(record);
         const degradedStages = Object.values(record.stages || {})
           .filter((s) => s && s.warning)
@@ -394,6 +483,7 @@ async function main() {
       stagesWithWarnings: e.stageSummary?.withWarnings ?? null,
       stageWarnings: e.stageSummary?.stagesWithWarnings || [],
       researchMapStats: e.researchMapStats || null,
+      factCheckStats: e.factCheckStats || null,
       metrics: e.metrics || null,
       lengthStability: e.metrics?.lengthStability ?? null,
       source: e.source || null,

@@ -31,6 +31,226 @@ import { summarizeStages } from './stages.js';
 export const BENCHMARK_VERSION = 'v1';
 
 /**
+ * 检索探针（diagnostics，不是 expected evidence）：只用来回答「这篇论文的关键事实到底进没进检索」。
+ * 命中判定是确定性的字符串包含（大小写不敏感），不改动任何锚点、不改动指标口径。
+ */
+export const DEFAULT_RETRIEVAL_PROBES = {
+  '1706.03762': ['label smoothing', 'residual dropout', 'Regularization'],
+  '2406.09246': ['failure', 'partial success', 'co-training'],
+  '2501.12948': ['AIME', 'MATH-500', 'Codeforces', 'Unsuccessful', '79.8', '97.3', '2029'],
+  '2409.12191': ['min_pixels', '16384', '2400'],
+};
+
+/**
+ * 计划覆盖度诊断（全部确定性）：
+ *   criticalFact*：研究地图种出的关键事实有没有绑定到原文小节、有没有真的进检索；
+ *   planSourceSectionCoverage / sourceSectionOverflowCount：计划请求的原文小节落地/溢出情况；
+ *   mustUseRareTermCoverage：稀有术语（tier ≤2）有没有进检索。
+ */
+export function planCoverageDiagnostics({ facts = [], plan = [], evidence = [], structure = null } = {}) {
+  const byId = new Map((structure?.chunks || []).map((c) => [c.id, c]));
+  const retrieved = new Set((evidence || []).flatMap((e) => e.chunkIds || []));
+  const retrievedText = [...retrieved].map((id) => byId.get(id)?.text || '').join('\n').toLowerCase();
+  const kept = new Set((plan || []).flatMap((s) => s.sourceSections || []));
+  const requestedAll = new Set([
+    ...(plan || []).flatMap((s) => s.sourceSectionsRequested || []),
+    ...(plan || []).flatMap((s) => s.sourceSectionsAddedByFacts || []),
+  ]);
+  const deferredCount = (plan || []).reduce((n, s) => n + (s.sourceSectionsDeferred || []).length, 0);
+  const ratioOf = (hit, total) => (total ? Number((hit / total).toFixed(4)) : null);
+
+  const factCovered = (f) => {
+    const terms = (f.mustUseTerms || []).map((t) => String(t).toLowerCase()).filter(Boolean);
+    if (terms.some((t) => retrievedText.includes(t))) return true;
+    return (f.evidence?.chunkIds || []).some((id) => retrieved.has(id));
+  };
+  const factSectionCovered = (f) => (f.sourceSectionTitles || []).some((t) => kept.has(t));
+  const mapped = facts.filter((f) => (f.sourceSectionIds || []).length);
+  const high = facts.filter((f) => f.priority === 'high');
+
+  const rareTerms = new Set();
+  for (const s of plan || []) {
+    for (const r of s.mustUseTermRanking || []) if (r.tier <= 2) rareTerms.add(String(r.term).toLowerCase());
+  }
+  const rareHit = [...rareTerms].filter((t) => retrievedText.includes(t)).length;
+
+  return {
+    criticalFactCount: facts.length,
+    criticalFactMappedCount: mapped.length,
+    criticalFactUnmappedCount: facts.length - mapped.length,
+    criticalFactCoverage: ratioOf(facts.filter(factCovered).length, facts.length),
+    criticalFactSectionCoverage: ratioOf(facts.filter(factSectionCovered).length, facts.length),
+    highPriorityFactCoverage: ratioOf(high.filter(factCovered).length, high.length),
+    planSourceSectionCoverage: ratioOf([...requestedAll].filter((t) => kept.has(t)).length, requestedAll.size),
+    sourceSectionOverflowCount: deferredCount,
+    mustUseRareTermCoverage: ratioOf(rareHit, rareTerms.size),
+  };
+}
+
+/**
+ * 逐节 evidence 的检索诊断（全部来自 result.meta.evidence，确定性计算）。
+ * @returns {{uniqueEvidencePerPaper:number, evidenceReuseRate:number|null, sameRoleOverlap:number|null,
+ *   sourceSectionHitRate:number|null, mustUseTermHitRate:number|null, slots:number, reusedSlots:number,
+ *   sectionsWithSourceMatch:number, sectionsRequestingSource:number}}
+ */
+export function retrievalDiagnostics({ evidence = [], structure = null } = {}) {
+  const sections = (evidence || []).filter(Boolean);
+  const slots = sections.flatMap((s) => s.chunkIds || []);
+  const unique = [...new Set(slots)];
+  const evidenceReuseRate = slots.length ? Number((1 - unique.length / slots.length).toFixed(4)) : null;
+
+  const byRole = new Map();
+  for (const s of sections) {
+    const role = s.role || 'general';
+    if (!byRole.has(role)) byRole.set(role, []);
+    byRole.get(role).push(new Set(s.chunkIds || []));
+  }
+  const overlaps = [];
+  for (const list of byRole.values()) {
+    for (let i = 0; i < list.length; i += 1) {
+      for (let j = i + 1; j < list.length; j += 1) {
+        const inter = [...list[i]].filter((x) => list[j].has(x)).length;
+        const union = new Set([...list[i], ...list[j]]).size;
+        overlaps.push(union ? inter / union : 0);
+      }
+    }
+  }
+  const sameRoleOverlap = overlaps.length ? Number((overlaps.reduce((a, b) => a + b, 0) / overlaps.length).toFixed(4)) : null;
+
+  const requesting = sections.filter((s) => (s.sourceSections || []).length);
+  const matched = requesting.filter((s) => (s.sourceSectionMatch?.sectionIds || []).length);
+  const sourceSectionHitRate = requesting.length ? Number((matched.length / requesting.length).toFixed(4)) : null;
+
+  // mustUseTerms 是否真的进了「本节选中的 evidence」（而不是只在全文里出现过）
+  const byId = new Map((structure?.chunks || []).map((c) => [c.id, c]));
+  let termTotal = 0;
+  let termHit = 0;
+  for (const s of sections) {
+    const terms = (s.mustUseTerms || []).map((t) => String(t || '').toLowerCase()).filter(Boolean);
+    if (!terms.length) continue;
+    const text = (s.chunkIds || [])
+      .map((id) => byId.get(id)?.text || '')
+      .join('\n')
+      .toLowerCase();
+    for (const t of terms) {
+      termTotal += 1;
+      if (text.includes(t)) termHit += 1;
+    }
+  }
+  const mustUseTermHitRate = termTotal ? Number((termHit / termTotal).toFixed(4)) : null;
+
+  return {
+    uniqueEvidencePerPaper: unique.length,
+    evidenceReuseRate,
+    sameRoleOverlap,
+    sourceSectionHitRate,
+    mustUseTermHitRate,
+    slots: slots.length,
+    reusedSlots: slots.length - unique.length,
+    sectionsRequestingSource: requesting.length,
+    sectionsWithSourceMatch: matched.length,
+    mustUseTermsTotal: termTotal,
+    mustUseTermsHit: termHit,
+  };
+}
+
+/**
+ * 探针命中详情：不仅回答「进没进检索」，还要回答「为什么没进」。
+ * reason ∈ retrieved | term_not_in_source | plan_did_not_request_section | slot_competition
+ */
+export function retrievalProbeResults({
+  probes = [],
+  structure = null,
+  evidence = [],
+  plan = [],
+  facts = [],
+  markdown = '',
+  guaranteedSections = [],
+} = {}) {
+  const chunks = structure?.chunks || [];
+  const usedBy = new Map();
+  for (const s of evidence || []) {
+    for (const id of s.chunkIds || []) {
+      if (!usedBy.has(id)) usedBy.set(id, []);
+      if (s.section) usedBy.get(id).push(s.section);
+    }
+  }
+  return (probes || []).map((term) => {
+    const needle = String(term || '').toLowerCase();
+    // 同时看正文与小节名：`Regularization` 这类 probe 检验的是「这个小节有没有被读到」
+    const inSource = chunks.filter((c) => `${c.sectionTitle || ''} ${c.text || ''}`.toLowerCase().includes(needle));
+    const retrieved = inSource.filter((c) => usedBy.has(c.id));
+    const sourceSections = [...new Set(inSource.map((c) => c.sectionTitle))];
+    const requestedBy = (plan || [])
+      .filter((s) => (s.sourceSections || []).some((t) => sourceSections.includes(t)))
+      .map((s) => s.title);
+    const guaranteed = sourceSections.some((t) => (guaranteedSections || []).includes(t));
+    const listedInTerms = (plan || [])
+      .filter((s) => (s.mustUseTerms || []).some((t) => String(t).toLowerCase().includes(needle)))
+      .map((s) => s.title);
+    const criticalFactIds = (facts || [])
+      .filter(
+        (f) =>
+          (f.mustUseTerms || []).some((t) => String(t).toLowerCase().includes(needle)) ||
+          (f.evidence?.chunkIds || []).some((id) => inSource.some((c) => c.id === id)),
+      )
+      .map((f) => f.id);
+    // 该 probe 关联的关键事实有没有绑定到 chunk（没有就是 no_matching_chunk，而不是「原文没有」）
+    const criticalFactHasChunks = (facts || [])
+      .filter((f) => criticalFactIds.includes(f.id))
+      .some((f) => (f.evidence?.chunkIds || f.chunkIds || []).length > 0);
+    const hit = retrieved.length > 0;
+    let reason;
+    if (hit) reason = 'retrieved';
+    // 事实/术语在原文里、但**没有任何 chunk 承载它**（切片丢失或事实没绑定到 chunk）
+    else if (!inSource.length && criticalFactIds.length && !criticalFactHasChunks) reason = 'no_matching_chunk';
+    else if (!inSource.length) reason = 'term_not_in_source';
+    else if (!requestedBy.length && !listedInTerms.length) reason = 'plan_did_not_request_section';
+    else reason = 'slot_competition';
+    // 生命周期状态：missing_evidence → unwritten → unsupported/derived → covered
+    const md = String(markdown || '');
+    const inMarkdown = md.toLowerCase().includes(needle);
+    let status;
+    if (inMarkdown && /\d/.test(String(term))) {
+      const sentence = md.split(/[。！？!?\n]/).find((x) => x.toLowerCase().includes(needle)) || '';
+      const derivedMarked = /按论文数据|换算|推算|折算|计算得|derived|per second|per frame/.test(sentence);
+      status = inSource.length ? 'covered' : derivedMarked ? 'derived' : 'unsupported';
+    } else if (inMarkdown) status = 'covered';
+    else if (!inSource.length || !hit) status = 'missing_evidence';
+    else status = 'unwritten';
+    return {
+      term,
+      matched: hit,
+      status,
+      sourceChunks: inSource.length,
+      retrievedChunks: retrieved.length,
+      hit,
+      sourceSections: sourceSections.slice(0, 4),
+      criticalFactIds: criticalFactIds.slice(0, 4),
+      planSection: hit ? [...new Set(retrieved.flatMap((c) => usedBy.get(c.id) || []))].slice(0, 2).join(' / ') : requestedBy.slice(0, 2).join(' / '),
+      requestedBy: requestedBy.slice(0, 4),
+      // Plan Coverage v2：这个事实所在的 source section 有没有拿到保障额度
+      guaranteed,
+      retrievalCandidates: inSource.length,
+      allocatedCandidates: retrieved.length,
+      requested: requestedBy.length > 0 || listedInTerms.length > 0,
+      listedInMustUseTermsBy: listedInTerms.slice(0, 4),
+      mustUseTerms: listedInTerms.length
+        ? (plan || []).find((s) => s.title === listedInTerms[0])?.mustUseTerms?.slice(0, 6) || []
+        : [],
+      reason,
+      lifecycle: { retrieved: hit, written: inMarkdown, status },
+      examples: retrieved.slice(0, 3).map((c) => ({
+        chunkId: c.id,
+        sourceSection: c.sectionTitle,
+        usedBy: [...new Set(usedBy.get(c.id) || [])].slice(0, 2),
+        snippet: String(c.text || '').slice(0, 110),
+      })),
+    };
+  });
+}
+
+/**
  * 从 result.meta 里取某阶段的元数据，兼容 v1 旧字段
  * （旧记录只有 researchMapStatus: 'model'|'fallback'，没有统一 stages）。
  */
@@ -501,6 +721,39 @@ export function computeMetrics({ paper, result, structure }) {
   const stability = lengthStability(result);
   const auditRate = auditMissingRate(audit);
 
+  // ===== 检索质量诊断（Retrieval v2）=====
+  const retrievalDiag = retrievalDiagnostics({ evidence: result?.meta?.evidence, structure });
+  const planDiag = planCoverageDiagnostics({
+    facts: result?.meta?.criticalFacts || [],
+    plan: result?.meta?.plan || [],
+    evidence: result?.meta?.evidence,
+    structure,
+  });
+  // 写作层事实覆盖（Evidence Ledger 判定，见 evidenceLedger.js）
+  const factStats = result?.meta?.factCoverageStats || result?.meta?.writerCoverage?.stats || null;
+  // 数字核验表（见 factCheck.js）：终稿数字里有多少能在原文定位到承载它的句子。
+  // 全部是确定性回查结果，不引用 LLM judge，也不改上面的覆盖口径。
+  const factCheckStats = result?.meta?.factCheckStats || result?.meta?.factCheck?.stats || null;
+  // 人声/去 AI 味指标（见 styleCheck.js）：AI 腔标记密度，越低越好，用来衡量提示词规则有没有生效。
+  const styleMetrics = result?.style?.metrics || null;
+  const allocation = result?.meta?.allocation || null;
+  const guaranteedSections = [...new Set(Object.values(allocation?.byPlanSection || {}).flatMap((v) => v.guaranteed || []))];
+  const probes = retrievalProbeResults({
+    probes: DEFAULT_RETRIEVAL_PROBES[paper.id] || [],
+    structure,
+    evidence: result?.meta?.evidence,
+    plan: result?.meta?.plan || [],
+    facts: result?.meta?.criticalFacts || [],
+    markdown: result?.markdown || '',
+    guaranteedSections,
+  });
+  const probeHit = probes.filter((p) => p.hit).length;
+  const retrievalProbeRate = probes.length ? Number((probeHit / probes.length).toFixed(4)) : null;
+  const retrievedIds = new Set((result?.meta?.evidence || []).flatMap((e) => e.chunkIds || []));
+  const lateAnchors = anchors.filter((a) => a.late);
+  const lateHit = lateAnchors.filter((a) => a.chunkId && retrievedIds.has(a.chunkId));
+  const lateEvidenceHitRate = lateAnchors.length ? Number((lateHit.length / lateAnchors.length).toFixed(4)) : null;
+
   // ===== 阶段可靠性指标（来自真实调用状态，不来自结果猜�测） =====
   const researchMapStage = stageMetaOf(result, 'research_map');
   const planStage = stageMetaOf(result, 'plan');
@@ -532,6 +785,44 @@ export function computeMetrics({ paper, result, structure }) {
     evidenceFromModelMapRate: usedEvidenceIds.size ? Number((modelMapHits / usedEvidenceIds.size).toFixed(4)) : null,
     // 审计可信度
     auditConfidence: auditConfidenceOf({ researchMapStatus, researchMapSource, verdict: auditVerdict }),
+    // 检索质量
+    uniqueEvidencePerPaper: retrievalDiag.uniqueEvidencePerPaper || null,
+    evidenceReuseRate: retrievalDiag.evidenceReuseRate,
+    sameRoleOverlap: retrievalDiag.sameRoleOverlap,
+    sourceSectionHitRate: retrievalDiag.sourceSectionHitRate,
+    mustUseTermHitRate: retrievalDiag.mustUseTermHitRate,
+    lateEvidenceHitRate,
+    retrievalProbeRate,
+    // 计划覆盖度（Plan Coverage v1）
+    criticalFactCount: planDiag.criticalFactCount,
+    criticalFactMappedCount: planDiag.criticalFactMappedCount,
+    criticalFactUnmappedCount: planDiag.criticalFactUnmappedCount,
+    criticalFactCoverage: planDiag.criticalFactCoverage,
+    criticalFactSectionCoverage: planDiag.criticalFactSectionCoverage,
+    highPriorityFactCoverage: planDiag.highPriorityFactCoverage,
+    planSourceSectionCoverage: planDiag.planSourceSectionCoverage,
+    sourceSectionOverflowCount: planDiag.sourceSectionOverflowCount,
+    mustUseRareTermCoverage: planDiag.mustUseRareTermCoverage,
+    // Plan Coverage v2：source section 级别的保障覆盖
+    criticalSourceSectionCoverage: allocation?.coverage?.criticalSourceSectionCoverage ?? null,
+    highPrioritySourceSectionCoverage: allocation?.coverage?.highPrioritySourceSectionCoverage ?? null,
+    factBackedSourceSectionCoverage: allocation?.coverage?.factBackedSourceSectionCoverage ?? null,
+    guaranteedGroups: allocation?.stats?.guaranteedGroups ?? null,
+    allocationOverflowCount: allocation?.stats?.overflow ?? null,
+    // 写作层：事实到底有没有被写出来（Evidence Ledger 判定）
+    writerFactCoverage: factStats?.coverage ?? null,
+    mainResultFactCoverage: factStats?.mainResultCoverage ?? null,
+    ablationFactCoverage: factStats?.ablationCoverage ?? null,
+    limitationFactCoverage: factStats?.limitationCoverage ?? null,
+    unwrittenFactRate: factStats?.unwrittenFactRate ?? null,
+    unsupportedFactRate: factStats?.unsupportedFactRate ?? null,
+    derivedFactRate: factStats?.derivedFactRate ?? null,
+    // 数字核验表：终稿数字有没有被「原文句子 + 条件」兜住
+    factCheckCoverage: factCheckStats?.coverage ?? null,
+    factCheckUnsupportedRate: factCheckStats?.unsupportedRate ?? null,
+    factCheckNumbers: factCheckStats?.numbers ?? null,
+    // 人声 / 去 AI 味（见 styleCheck.js）：AI 腔标记密度
+    aiTonePer1k: styleMetrics?.aiTonePer1k ?? null,
   };
 
   return {
@@ -568,6 +859,32 @@ export function computeMetrics({ paper, result, structure }) {
         evidenceFromModelMap: modelMapHits,
       },
       audit: { verdict: auditVerdict, warnings: (audit?.warnings || []).map((w) => w.code), researchMapSource: audit?.researchMapSource || null },
+      retrieval: {
+        ...retrievalDiag,
+        lateAnchors: lateAnchors.length,
+        lateAnchorsRetrieved: lateHit.length,
+        probes,
+      },
+      planCoverage: planDiag,
+      allocation: allocation
+        ? { stats: allocation.stats, coverage: allocation.coverage, overflow: allocation.overflow, guaranteedSections }
+        : null,
+      factCoverage: factStats,
+      factCheck: factCheckStats,
+      voice: styleMetrics
+        ? {
+            aiTonePer1k: styleMetrics.aiTonePer1k,
+            voiceTotal: styleMetrics.voiceTotal,
+            fakeDepth: styleMetrics.fakeDepthTotal,
+            highFreq: styleMetrics.highFreqTotal,
+            chatbot: styleMetrics.chatbotTotal,
+            passive: styleMetrics.passiveTotal,
+            aiPhraseTotal: styleMetrics.aiPhraseTotal,
+            cautionPhraseTotal: styleMetrics.cautionPhraseTotal,
+            boundaryPhraseTotal: styleMetrics.boundaryPhraseTotal,
+          }
+        : null,
+      evidenceLedgerStats: result?.meta?.evidenceLedger?.stats || null,
     },
   };
 }
@@ -592,6 +909,38 @@ export const METRIC_LABELS = {
   stagesWithWarnings: 'Stages with warnings (avg/papers)',
   evidenceFromModelMapRate: 'Evidence from model map',
   auditConfidence: 'Audit confidence',
+  uniqueEvidencePerPaper: 'Unique evidence / paper',
+  evidenceReuseRate: 'Evidence reuse rate',
+  sameRoleOverlap: 'Same-role overlap',
+  sourceSectionHitRate: 'Source section hit rate',
+  mustUseTermHitRate: 'Must-use term hit rate',
+  lateEvidenceHitRate: 'Late evidence hit rate',
+  retrievalProbeRate: 'Retrieval probe hit rate',
+  criticalFactCount: 'Critical facts / paper',
+  criticalFactMappedCount: 'Critical facts mapped',
+  criticalFactUnmappedCount: 'Critical facts unmapped',
+  criticalFactCoverage: 'Critical fact coverage',
+  criticalFactSectionCoverage: 'Critical fact section coverage',
+  highPriorityFactCoverage: 'High-priority fact coverage',
+  planSourceSectionCoverage: 'Plan source section coverage',
+  sourceSectionOverflowCount: 'Source section overflow',
+  mustUseRareTermCoverage: 'Must-use rare term coverage',
+  criticalSourceSectionCoverage: 'Critical source-section coverage',
+  highPrioritySourceSectionCoverage: 'High-priority source-section coverage',
+  factBackedSourceSectionCoverage: 'Fact-backed source-section coverage',
+  guaranteedGroups: 'Guaranteed allocation groups',
+  allocationOverflowCount: 'Allocation overflow',
+  writerFactCoverage: 'Writer fact coverage',
+  mainResultFactCoverage: 'Main-result fact coverage',
+  ablationFactCoverage: 'Ablation fact coverage',
+  limitationFactCoverage: 'Limitation fact coverage',
+  unwrittenFactRate: 'Unwritten fact rate',
+  unsupportedFactRate: 'Unsupported fact rate',
+  derivedFactRate: 'Derived fact rate',
+  factCheckCoverage: 'Fact-check coverage',
+  factCheckUnsupportedRate: 'Fact-check unsupported rate',
+  factCheckNumbers: 'Fact-check numbers / paper',
+  aiTonePer1k: 'AI tone per 1k chars',
 };
 
 /**
@@ -629,10 +978,73 @@ export const METRIC_GROUPS = [
     ],
   },
   { key: 'audit', label: '审计可信度指标', metrics: ['auditMissingRate', 'auditConfidence'] },
+  {
+    key: 'retrieval',
+    label: '检索质量指标',
+    metrics: [
+      'uniqueEvidencePerPaper',
+      'evidenceReuseRate',
+      'sameRoleOverlap',
+      'sourceSectionHitRate',
+      'mustUseTermHitRate',
+      'lateEvidenceHitRate',
+      'retrievalProbeRate',
+    ],
+  },
+  {
+    key: 'plan',
+    label: '计划覆盖度指标',
+    metrics: [
+      'criticalFactCount',
+      'criticalFactMappedCount',
+      'criticalFactUnmappedCount',
+      'criticalFactCoverage',
+      'criticalFactSectionCoverage',
+      'highPriorityFactCoverage',
+      'planSourceSectionCoverage',
+      'sourceSectionOverflowCount',
+      'mustUseRareTermCoverage',
+      'criticalSourceSectionCoverage',
+      'highPrioritySourceSectionCoverage',
+      'factBackedSourceSectionCoverage',
+      'guaranteedGroups',
+      'allocationOverflowCount',
+    ],
+  },
+  {
+    key: 'writer',
+    label: '写作事实覆盖指标',
+    metrics: [
+      'writerFactCoverage',
+      'mainResultFactCoverage',
+      'ablationFactCoverage',
+      'limitationFactCoverage',
+      'derivedFactRate',
+      'unsupportedFactRate',
+      'unwrittenFactRate',
+    ],
+  },
+  {
+    key: 'factCheck',
+    label: '数字核验指标（fact-check）',
+    metrics: ['factCheckCoverage', 'factCheckUnsupportedRate', 'factCheckNumbers'],
+  },
+  { key: 'voice', label: '人声指标（去 AI 味）', metrics: ['aiTonePer1k'] },
 ];
 
 /** 单位不是百分比的指标（按原值展示）。 */
-const COUNT_METRICS = new Set(['stagesWithWarnings']);
+const COUNT_METRICS = new Set([
+  'stagesWithWarnings',
+  'uniqueEvidencePerPaper',
+  'criticalFactCount',
+  'criticalFactMappedCount',
+  'criticalFactUnmappedCount',
+  'sourceSectionOverflowCount',
+  'guaranteedGroups',
+  'allocationOverflowCount',
+  'factCheckNumbers',
+  'aiTonePer1k',
+]);
 
 /** 把指标值格式化成 CLI/summary 用的字符串。 */
 export function formatMetric(key, value) {
@@ -648,7 +1060,18 @@ export function formatMetricPrecise(key, value) {
 }
 
 /** 越低越好的指标。 */
-const LOWER_IS_BETTER = new Set(['auditMissingRate', 'researchMapFallbackRate', 'planFallbackRate', 'stagesWithWarnings']);
+const LOWER_IS_BETTER = new Set([
+  'auditMissingRate',
+  'researchMapFallbackRate',
+  'planFallbackRate',
+  'stagesWithWarnings',
+  'evidenceReuseRate',
+  'sameRoleOverlap',
+  'unwrittenFactRate',
+  'unsupportedFactRate',
+  'factCheckUnsupportedRate',
+  'aiTonePer1k',
+]);
 
 /** 多篇论文聚合：忽略 null（该论文没有这类期望），并记录参与聚合的论文数。 */
 export function aggregateMetrics(paperEntries) {

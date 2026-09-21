@@ -1,6 +1,6 @@
 {
   "id": "2501.12948",
-  "at": "2026-09-17T16:29:13.241Z",
+  "at": "2026-09-18T23:41:28.499Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
@@ -11,16 +11,44 @@
     "formulaCoverage": null,
     "ablationCoverage": 1,
     "limitationCoverage": 0.5,
-    "auditMissingRate": 0.0204,
-    "sectionCompleteness": 0.7778,
+    "auditMissingRate": 0.0106,
+    "sectionCompleteness": 1,
     "lengthStability": 1,
-    "researchMapModelSuccess": 0,
-    "researchMapFallbackRate": 1,
+    "researchMapModelSuccess": 1,
+    "researchMapFallbackRate": 0,
     "planModelSuccess": 1,
     "planFallbackRate": 0,
     "stagesWithWarnings": 1,
-    "evidenceFromModelMapRate": 0,
-    "auditConfidence": 0.32
+    "evidenceFromModelMapRate": 0.2344,
+    "auditConfidence": 0.8,
+    "uniqueEvidencePerPaper": 64,
+    "evidenceReuseRate": 0.1795,
+    "sameRoleOverlap": 0.0614,
+    "sourceSectionHitRate": 1,
+    "mustUseTermHitRate": 0.9464,
+    "lateEvidenceHitRate": 1,
+    "retrievalProbeRate": 0.5714,
+    "criticalFactCount": 8,
+    "criticalFactMappedCount": 8,
+    "criticalFactUnmappedCount": 0,
+    "criticalFactCoverage": 1,
+    "criticalFactSectionCoverage": 1,
+    "highPriorityFactCoverage": 1,
+    "planSourceSectionCoverage": 0.3273,
+    "sourceSectionOverflowCount": 43,
+    "mustUseRareTermCoverage": 0.7857,
+    "criticalSourceSectionCoverage": 1,
+    "highPrioritySourceSectionCoverage": 1,
+    "factBackedSourceSectionCoverage": 1,
+    "guaranteedGroups": 8,
+    "allocationOverflowCount": 6,
+    "writerFactCoverage": 1,
+    "mainResultFactCoverage": 1,
+    "ablationFactCoverage": null,
+    "limitationFactCoverage": null,
+    "unwrittenFactRate": 0,
+    "unsupportedFactRate": 0,
+    "derivedFactRate": 1
   },
   "detail": {
     "evidence": [
@@ -48,11 +76,10 @@
         "section": "Training Details of the Second RL Stage",
         "ok": false,
         "keywordHits": [
-          "Codeforces"
-        ],
-        "missingKeywords": [
+          "Codeforces",
           "Rating"
         ],
+        "missingKeywords": [],
         "numberHits": [],
         "missingNumbers": [
           "2029"
@@ -77,11 +104,10 @@
         "section": "B.4.3 Hyper-Parameters of Distillation",
         "ok": true,
         "keywordHits": [
+          "distillation",
           "distill"
         ],
-        "missingKeywords": [
-          "distillation"
-        ],
+        "missingKeywords": [],
         "numberHits": [],
         "missingNumbers": []
       }
@@ -93,11 +119,11 @@
         "section": "Introduction",
         "ok": true,
         "keywordHits": [
-          "cold start",
           "冷启动",
           "R1-Zero"
         ],
         "missingKeywords": [
+          "cold start",
           "readability"
         ],
         "numberHits": [],
@@ -112,11 +138,11 @@
         "ok": true,
         "keywordHits": [
           "language mixing",
-          "语言混用"
+          "可读性"
         ],
         "missingKeywords": [
-          "readability",
-          "可读性"
+          "语言混用",
+          "readability"
         ],
         "numberHits": [],
         "missingNumbers": []
@@ -188,59 +214,524 @@
       }
     ],
     "sections": {
-      "ratio": 0.7778,
+      "ratio": 1,
       "planned": 7,
-      "final": 9,
+      "final": 7,
       "missing": []
     },
     "stability": {
       "stable": true,
       "score": 1,
-      "sections": 9,
+      "sections": 7,
       "planned": 7,
-      "chars": 13803,
+      "chars": 15413,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0.0204,
+    "auditMissingRate": 0.0106,
     "reliability": {
-      "researchMapStatus": "model_truncated",
-      "researchMapSource": "local",
-      "researchMapFinishReason": "length",
-      "researchMapRawContentLength": 2183,
-      "researchMapFallbackReason": "模型输出被截断（finish_reason=length）",
+      "researchMapStatus": "model_success",
+      "researchMapSource": "model",
+      "researchMapFinishReason": "stop",
+      "researchMapRawContentLength": 16986,
+      "researchMapFallbackReason": "",
       "planStatus": "model_success",
       "planSource": "model",
       "planFallbackReason": "",
       "stagesWithWarnings": [
-        "research_map"
+        "review"
       ],
       "stageSummary": {
-        "total": 8,
+        "total": 9,
         "withWarnings": 1,
         "stagesWithWarnings": [
-          "research_map"
+          "review"
         ],
         "fallbacks": [
-          "research_map"
+          "review"
         ],
-        "truncated": [
-          "research_map"
-        ],
+        "truncated": [],
         "skipped": [
           "repair"
         ],
         "failed": []
       },
-      "evidenceChunks": 36,
-      "evidenceFromModelMap": 0
+      "evidenceChunks": 64,
+      "evidenceFromModelMap": 15
     },
     "audit": {
       "verdict": "passed_with_warning",
-      "warnings": [
-        "research_map_unavailable"
+      "warnings": [],
+      "researchMapSource": "model"
+    },
+    "retrieval": {
+      "uniqueEvidencePerPaper": 64,
+      "evidenceReuseRate": 0.1795,
+      "sameRoleOverlap": 0.0614,
+      "sourceSectionHitRate": 1,
+      "mustUseTermHitRate": 0.9464,
+      "slots": 78,
+      "reusedSlots": 14,
+      "sectionsRequestingSource": 7,
+      "sectionsWithSourceMatch": 7,
+      "mustUseTermsTotal": 56,
+      "mustUseTermsHit": 53,
+      "lateAnchors": 1,
+      "lateAnchorsRetrieved": 1,
+      "probes": [
+        {
+          "term": "AIME",
+          "matched": true,
+          "status": "covered",
+          "sourceChunks": 24,
+          "retrievedChunks": 4,
+          "hit": true,
+          "sourceSections": [
+            "Incentivize Reasoning Capability in LLMs",
+            "Training Details of the Second RL Stage",
+            "Experiment",
+            "D.1 Experiment Setup"
+          ],
+          "criticalFactIds": [
+            "cf-1",
+            "cf-2",
+            "cf-3",
+            "cf-4"
+          ],
+          "planSection": "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据 / 🏗️ R1 不是一步到位：冷启动、混数据、模型奖励与蒸馏拼成 pipeline",
+          "requestedBy": [
+            "🏗️ R1 不是一步到位：冷启动、混数据、模型奖励与蒸馏拼成 pipeline",
+            "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据",
+            "🧭 R1 没解决全部问题：奖励模型难建、通用对齐与安全仍是开放题"
+          ],
+          "guaranteed": true,
+          "retrievalCandidates": 24,
+          "allocatedCandidates": 4,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "retrieved",
+          "lifecycle": {
+            "retrieved": true,
+            "written": true,
+            "status": "covered"
+          },
+          "examples": [
+            {
+              "chunkId": "c66",
+              "sourceSection": "Experiment",
+              "usedBy": [
+                "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据"
+              ],
+              "snippet": "Table 3 summarizes the performance of DeepSeek-R1 across multiple developmental stages, as outlined in Figure "
+            },
+            {
+              "chunkId": "c197",
+              "sourceSection": "D.1 Experiment Setup",
+              "usedBy": [
+                "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据"
+              ],
+              "snippet": "Baselines\n\nWe conduct comprehensive evaluations against several strong baselines, including DeepSeek-V3, Claud"
+            },
+            {
+              "chunkId": "c274",
+              "sourceSection": "Appendix F DeepSeek-R1 Distillation",
+              "usedBy": [
+                "🏗️ R1 不是一步到位：冷启动、混数据、模型奖励与蒸馏拼成 pipeline",
+                "🧭 R1 没解决全部问题：奖励模型难建、通用对齐与安全仍是开放题"
+              ],
+              "snippet": "Table 15: Comparison of DeepSeek-R1 distilled models and other comparable models on reasoning-related benchmar"
+            }
+          ]
+        },
+        {
+          "term": "MATH-500",
+          "matched": true,
+          "status": "unwritten",
+          "sourceChunks": 4,
+          "retrievedChunks": 1,
+          "hit": true,
+          "sourceSections": [
+            "Training Details of the Second RL Stage",
+            "D.1 Experiment Setup",
+            "E.1 Performance Comparison with DeepSeek-V3",
+            "Appendix F DeepSeek-R1 Distillation"
+          ],
+          "criticalFactIds": [
+            "cf-1",
+            "cf-2",
+            "cf-3",
+            "cf-4"
+          ],
+          "planSection": "🧭 R1 没解决全部问题：奖励模型难建、通用对齐与安全仍是开放题",
+          "requestedBy": [
+            "🏗️ R1 不是一步到位：冷启动、混数据、模型奖励与蒸馏拼成 pipeline",
+            "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据",
+            "🧭 R1 没解决全部问题：奖励模型难建、通用对齐与安全仍是开放题"
+          ],
+          "guaranteed": true,
+          "retrievalCandidates": 4,
+          "allocatedCandidates": 1,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "retrieved",
+          "lifecycle": {
+            "retrieved": true,
+            "written": false,
+            "status": "unwritten"
+          },
+          "examples": [
+            {
+              "chunkId": "c275",
+              "sourceSection": "Appendix F DeepSeek-R1 Distillation",
+              "usedBy": [
+                "🧭 R1 没解决全部问题：奖励模型难建、通用对齐与安全仍是开放题"
+              ],
+              "snippet": "We evaluate the distilled models on AIME, GPQA, Codeforces, as well as MATH-500 (Lightman et al., 2024) and Li"
+            }
+          ]
+        },
+        {
+          "term": "Codeforces",
+          "matched": true,
+          "status": "covered",
+          "sourceChunks": 17,
+          "retrievedChunks": 4,
+          "hit": true,
+          "sourceSections": [
+            "Training Details of the Second RL Stage",
+            "Experiment",
+            "B.3.1 RL Data",
+            "B.3.2 DeepSeek-R1 Cold Start"
+          ],
+          "criticalFactIds": [
+            "cf-1",
+            "cf-2",
+            "cf-3",
+            "cf-4"
+          ],
+          "planSection": "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据 / 🏗️ R1 不是一步到位：冷启动、混数据、模型奖励与蒸馏拼成 pipeline",
+          "requestedBy": [
+            "🏗️ R1 不是一步到位：冷启动、混数据、模型奖励与蒸馏拼成 pipeline",
+            "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据",
+            "🧭 R1 没解决全部问题：奖励模型难建、通用对齐与安全仍是开放题"
+          ],
+          "guaranteed": true,
+          "retrievalCandidates": 17,
+          "allocatedCandidates": 4,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "retrieved",
+          "lifecycle": {
+            "retrieved": true,
+            "written": true,
+            "status": "covered"
+          },
+          "examples": [
+            {
+              "chunkId": "c196",
+              "sourceSection": "D.1 Experiment Setup",
+              "usedBy": [
+                "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据"
+              ],
+              "snippet": "Evaluation Prompts\n\nFollowing the setup in DeepSeek-V3, standard benchmarks such as MMLU, DROP, GPQA Diamond, "
+            },
+            {
+              "chunkId": "c197",
+              "sourceSection": "D.1 Experiment Setup",
+              "usedBy": [
+                "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据"
+              ],
+              "snippet": "Baselines\n\nWe conduct comprehensive evaluations against several strong baselines, including DeepSeek-V3, Claud"
+            },
+            {
+              "chunkId": "c274",
+              "sourceSection": "Appendix F DeepSeek-R1 Distillation",
+              "usedBy": [
+                "🏗️ R1 不是一步到位：冷启动、混数据、模型奖励与蒸馏拼成 pipeline",
+                "🧭 R1 没解决全部问题：奖励模型难建、通用对齐与安全仍是开放题"
+              ],
+              "snippet": "Table 15: Comparison of DeepSeek-R1 distilled models and other comparable models on reasoning-related benchmar"
+            }
+          ]
+        },
+        {
+          "term": "Unsuccessful",
+          "matched": false,
+          "status": "missing_evidence",
+          "sourceChunks": 5,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "E.4 An Analysis on CoT Length",
+            "G.2 Unsuccessful Attempts"
+          ],
+          "criticalFactIds": [],
+          "planSection": "",
+          "requestedBy": [],
+          "guaranteed": false,
+          "retrievalCandidates": 5,
+          "allocatedCandidates": 0,
+          "requested": false,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "plan_did_not_request_section",
+          "lifecycle": {
+            "retrieved": false,
+            "written": false,
+            "status": "missing_evidence"
+          },
+          "examples": []
+        },
+        {
+          "term": "79.8",
+          "matched": true,
+          "status": "unwritten",
+          "sourceChunks": 7,
+          "retrievedChunks": 2,
+          "hit": true,
+          "sourceSections": [
+            "Training Details of the Second RL Stage",
+            "D.2 Main Results",
+            "D.3.5 Robustness against Jailbreaking",
+            "E.1 Performance Comparison with DeepSeek-V3"
+          ],
+          "criticalFactIds": [
+            "cf-1",
+            "cf-2",
+            "cf-3",
+            "cf-4"
+          ],
+          "planSection": "🧪 消融与翻车现场：LC 奖励、reward hacking、GRPO vs PPO 暴露边界",
+          "requestedBy": [
+            "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据",
+            "🧪 消融与翻车现场：LC 奖励、reward hacking、GRPO vs PPO 暴露边界"
+          ],
+          "guaranteed": true,
+          "retrievalCandidates": 7,
+          "allocatedCandidates": 2,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "retrieved",
+          "lifecycle": {
+            "retrieved": true,
+            "written": false,
+            "status": "unwritten"
+          },
+          "examples": [
+            {
+              "chunkId": "c249",
+              "sourceSection": "D.3.5 Robustness against Jailbreaking",
+              "usedBy": [
+                "🧪 消融与翻车现场：LC 奖励、reward hacking、GRPO vs PPO 暴露边界"
+              ],
+              "snippet": "Table 11: Comparison of DeepSeek-R1 and other frontier models in jailbreaking scenarios.\nUnsafe Ratio\nRejected"
+            },
+            {
+              "chunkId": "c250",
+              "sourceSection": "D.3.5 Robustness against Jailbreaking",
+              "usedBy": [
+                "🧪 消融与翻车现场：LC 奖励、reward hacking、GRPO vs PPO 暴露边界"
+              ],
+              "snippet": "•\n\nAll tested models exhibited significantly increased rates of unsafe responses and rejections, along with de"
+            }
+          ]
+        },
+        {
+          "term": "97.3",
+          "matched": false,
+          "status": "missing_evidence",
+          "sourceChunks": 3,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "Training Details of the Second RL Stage",
+            "D.3.2 R1 Safety Evaluation on Standard Benchmarks",
+            "E.1 Performance Comparison with DeepSeek-V3"
+          ],
+          "criticalFactIds": [
+            "cf-1",
+            "cf-2",
+            "cf-3",
+            "cf-4"
+          ],
+          "planSection": "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据",
+          "requestedBy": [
+            "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据"
+          ],
+          "guaranteed": false,
+          "retrievalCandidates": 3,
+          "allocatedCandidates": 0,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "slot_competition",
+          "lifecycle": {
+            "retrieved": false,
+            "written": false,
+            "status": "missing_evidence"
+          },
+          "examples": []
+        },
+        {
+          "term": "2029",
+          "matched": false,
+          "status": "missing_evidence",
+          "sourceChunks": 3,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "Training Details of the Second RL Stage",
+            "D.2 Main Results",
+            "E.1 Performance Comparison with DeepSeek-V3"
+          ],
+          "criticalFactIds": [
+            "cf-1",
+            "cf-2",
+            "cf-3",
+            "cf-4"
+          ],
+          "planSection": "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据",
+          "requestedBy": [
+            "📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据"
+          ],
+          "guaranteed": false,
+          "retrievalCandidates": 3,
+          "allocatedCandidates": 0,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "slot_competition",
+          "lifecycle": {
+            "retrieved": false,
+            "written": false,
+            "status": "missing_evidence"
+          },
+          "examples": []
+        }
+      ]
+    },
+    "planCoverage": {
+      "criticalFactCount": 8,
+      "criticalFactMappedCount": 8,
+      "criticalFactUnmappedCount": 0,
+      "criticalFactCoverage": 1,
+      "criticalFactSectionCoverage": 1,
+      "highPriorityFactCoverage": 1,
+      "planSourceSectionCoverage": 0.3273,
+      "sourceSectionOverflowCount": 43,
+      "mustUseRareTermCoverage": 0.7857
+    },
+    "allocation": {
+      "stats": {
+        "groups": 14,
+        "guaranteedGroups": 8,
+        "preferredGroups": 0,
+        "overflow": 6,
+        "maxGuaranteedSlots": 4
+      },
+      "coverage": {
+        "criticalSourceSectionCoverage": 1,
+        "highPrioritySourceSectionCoverage": 1,
+        "factBackedSourceSectionCoverage": 1,
+        "guaranteedSourceSections": 6,
+        "guaranteedSourceSectionsCovered": 6,
+        "overflow": 6
+      },
+      "overflow": [
+        {
+          "sourceSection": "fact:cf-3",
+          "factIds": [
+            "cf-3"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-4",
+          "factIds": [
+            "cf-4"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-5",
+          "factIds": [
+            "cf-5"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-6",
+          "factIds": [
+            "cf-6"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-7",
+          "factIds": [
+            "cf-7"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-8",
+          "factIds": [
+            "cf-8"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 主榜不只看推理：R1 在 MMLU、比赛、安全与长 CoT 上的证据」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        }
       ],
-      "researchMapSource": "local"
+      "guaranteedSections": [
+        "Appendix F DeepSeek-R1 Distillation",
+        "B.4.3 Hyper-Parameters of Distillation",
+        "D.3.5 Robustness against Jailbreaking",
+        "B.4.2 Hyper-Parameters of SFT",
+        "D.1 Experiment Setup",
+        "Experiment",
+        "fact:cf-1",
+        "fact:cf-2"
+      ]
+    },
+    "factCoverage": {
+      "assigned": 8,
+      "unassigned": 21,
+      "unassignedFactRate": 0.7241,
+      "covered": 0,
+      "derived": 8,
+      "unsupported": 0,
+      "unwritten": 0,
+      "missingEvidence": 0,
+      "writtenFactCoverage": 1,
+      "coverage": 1,
+      "unsupportedFactRate": 0,
+      "unwrittenFactRate": 0,
+      "derivedFactRate": 1,
+      "highPriorityCoverage": 1,
+      "mainResultCoverage": 1,
+      "ablationCoverage": null,
+      "limitationCoverage": null,
+      "failureCoverage": null
+    },
+    "evidenceLedgerStats": {
+      "total": 29,
+      "byCategory": {
+        "main_result": 8,
+        "formula": 9,
+        "figure": 12
+      },
+      "withEvidence": 29,
+      "retrievedIntoSection": 0,
+      "highPriority": 8
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "id": "2405.15793",
-  "at": "2026-09-17T16:29:13.241Z",
+  "at": "2026-09-18T23:41:28.499Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
@@ -11,16 +11,44 @@
     "formulaCoverage": null,
     "ablationCoverage": 1,
     "limitationCoverage": 0,
-    "auditMissingRate": 0.0263,
+    "auditMissingRate": 0.0417,
     "sectionCompleteness": 1,
     "lengthStability": 1,
     "researchMapModelSuccess": 1,
     "researchMapFallbackRate": 0,
     "planModelSuccess": 1,
     "planFallbackRate": 0,
-    "stagesWithWarnings": 1,
-    "evidenceFromModelMapRate": 0.4118,
-    "auditConfidence": 0.8
+    "stagesWithWarnings": 2,
+    "evidenceFromModelMapRate": 0.3143,
+    "auditConfidence": 0.8,
+    "uniqueEvidencePerPaper": 70,
+    "evidenceReuseRate": 0.1667,
+    "sameRoleOverlap": 0.1429,
+    "sourceSectionHitRate": 1,
+    "mustUseTermHitRate": 0.7321,
+    "lateEvidenceHitRate": null,
+    "retrievalProbeRate": null,
+    "criticalFactCount": 8,
+    "criticalFactMappedCount": 8,
+    "criticalFactUnmappedCount": 0,
+    "criticalFactCoverage": 1,
+    "criticalFactSectionCoverage": 1,
+    "highPriorityFactCoverage": 1,
+    "planSourceSectionCoverage": 0.5143,
+    "sourceSectionOverflowCount": 22,
+    "mustUseRareTermCoverage": 0.7875,
+    "criticalSourceSectionCoverage": 1,
+    "highPrioritySourceSectionCoverage": 1,
+    "factBackedSourceSectionCoverage": 1,
+    "guaranteedGroups": 5,
+    "allocationOverflowCount": 6,
+    "writerFactCoverage": 0,
+    "mainResultFactCoverage": 0,
+    "ablationFactCoverage": null,
+    "limitationFactCoverage": null,
+    "unwrittenFactRate": 0.625,
+    "unsupportedFactRate": 1,
+    "derivedFactRate": 0
   },
   "detail": {
     "evidence": [
@@ -76,11 +104,10 @@
         "section": "Introduction",
         "ok": true,
         "keywordHits": [
+          "ablation",
           "10.7"
         ],
-        "missingKeywords": [
-          "ablation"
-        ],
+        "missingKeywords": [],
         "numberHits": [
           "10.7"
         ],
@@ -93,12 +120,11 @@
         "late": false,
         "section": "",
         "ok": false,
-        "keywordHits": [
-          "伦理"
-        ],
+        "keywordHits": [],
         "missingKeywords": [
           "Broader Impacts",
           "Ethics",
+          "伦理",
           "社会影响"
         ],
         "numberHits": [],
@@ -154,30 +180,33 @@
       "score": 1,
       "sections": 7,
       "planned": 7,
-      "chars": 10439,
+      "chars": 12960,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0.0263,
+    "auditMissingRate": 0.0417,
     "reliability": {
       "researchMapStatus": "model_success",
       "researchMapSource": "model",
       "researchMapFinishReason": "stop",
-      "researchMapRawContentLength": 13090,
+      "researchMapRawContentLength": 12926,
       "researchMapFallbackReason": "",
       "planStatus": "model_success",
       "planSource": "model",
       "planFallbackReason": "",
       "stagesWithWarnings": [
+        "fact_coverage",
         "review"
       ],
       "stageSummary": {
-        "total": 8,
-        "withWarnings": 1,
+        "total": 9,
+        "withWarnings": 2,
         "stagesWithWarnings": [
+          "fact_coverage",
           "review"
         ],
         "fallbacks": [
+          "fact_coverage",
           "review"
         ],
         "truncated": [],
@@ -186,13 +215,145 @@
         ],
         "failed": []
       },
-      "evidenceChunks": 34,
-      "evidenceFromModelMap": 14
+      "evidenceChunks": 70,
+      "evidenceFromModelMap": 22
     },
     "audit": {
       "verdict": "passed_with_warning",
       "warnings": [],
       "researchMapSource": "model"
+    },
+    "retrieval": {
+      "uniqueEvidencePerPaper": 70,
+      "evidenceReuseRate": 0.1667,
+      "sameRoleOverlap": 0.1429,
+      "sourceSectionHitRate": 1,
+      "mustUseTermHitRate": 0.7321,
+      "slots": 84,
+      "reusedSlots": 14,
+      "sectionsRequestingSource": 7,
+      "sectionsWithSourceMatch": 7,
+      "mustUseTermsTotal": 56,
+      "mustUseTermsHit": 41,
+      "lateAnchors": 0,
+      "lateAnchorsRetrieved": 0,
+      "probes": []
+    },
+    "planCoverage": {
+      "criticalFactCount": 8,
+      "criticalFactMappedCount": 8,
+      "criticalFactUnmappedCount": 0,
+      "criticalFactCoverage": 1,
+      "criticalFactSectionCoverage": 1,
+      "highPriorityFactCoverage": 1,
+      "planSourceSectionCoverage": 0.5143,
+      "sourceSectionOverflowCount": 22,
+      "mustUseRareTermCoverage": 0.7875
+    },
+    "allocation": {
+      "stats": {
+        "groups": 11,
+        "guaranteedGroups": 5,
+        "preferredGroups": 0,
+        "overflow": 6,
+        "maxGuaranteedSlots": 4
+      },
+      "coverage": {
+        "criticalSourceSectionCoverage": 1,
+        "highPrioritySourceSectionCoverage": 1,
+        "factBackedSourceSectionCoverage": 1,
+        "guaranteedSourceSections": 3,
+        "guaranteedSourceSectionsCovered": 3,
+        "overflow": 6
+      },
+      "overflow": [
+        {
+          "sourceSection": "fact:cf-2",
+          "factIds": [
+            "cf-2"
+          ],
+          "criticality": 5.6,
+          "reason": "「12.47% 和 +10.7 个百分点，ACI 设计确实被消融证明有效 📈」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-3",
+          "factIds": [
+            "cf-3"
+          ],
+          "criticality": 5.6,
+          "reason": "「12.47% 和 +10.7 个百分点，ACI 设计确实被消融证明有效 📈」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-4",
+          "factIds": [
+            "cf-4"
+          ],
+          "criticality": 5.6,
+          "reason": "「12.47% 和 +10.7 个百分点，ACI 设计确实被消融证明有效 📈」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-5",
+          "factIds": [
+            "cf-5"
+          ],
+          "criticality": 5.6,
+          "reason": "「12.47% 和 +10.7 个百分点，ACI 设计确实被消融证明有效 📈」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-6",
+          "factIds": [
+            "cf-6"
+          ],
+          "criticality": 5.6,
+          "reason": "「12.47% 和 +10.7 个百分点，ACI 设计确实被消融证明有效 📈」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-7",
+          "factIds": [
+            "cf-7"
+          ],
+          "criticality": 5.6,
+          "reason": "「12.47% 和 +10.7 个百分点，ACI 设计确实被消融证明有效 📈」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        }
+      ],
+      "guaranteedSections": [
+        "Analysis of Agent Behavior",
+        "Experimental Setup",
+        "Results",
+        "fact:cf-1",
+        "fact:cf-8"
+      ]
+    },
+    "factCoverage": {
+      "assigned": 8,
+      "unassigned": 12,
+      "unassignedFactRate": 0.6,
+      "covered": 0,
+      "derived": 0,
+      "unsupported": 3,
+      "unwritten": 5,
+      "missingEvidence": 0,
+      "writtenFactCoverage": 0,
+      "coverage": 0,
+      "unsupportedFactRate": 1,
+      "unwrittenFactRate": 0.625,
+      "derivedFactRate": 0,
+      "highPriorityCoverage": 0,
+      "mainResultCoverage": 0,
+      "ablationCoverage": null,
+      "limitationCoverage": null,
+      "failureCoverage": null
+    },
+    "evidenceLedgerStats": {
+      "total": 20,
+      "byCategory": {
+        "main_result": 8,
+        "formula": 10,
+        "figure": 2
+      },
+      "withEvidence": 20,
+      "retrievedIntoSection": 3,
+      "highPriority": 8
     }
   }
 }

@@ -1,26 +1,58 @@
 {
   "id": "1706.03762",
-  "at": "2026-09-17T16:29:13.241Z",
+  "at": "2026-09-21T17:42:25.542Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
     "sourceCoverage": 1,
-    "latePaperCoverage": 0.3333,
+    "latePaperCoverage": 1,
     "numberEvidenceCoverage": 1,
     "figureCoverage": 1,
     "formulaCoverage": 1,
-    "ablationCoverage": 0,
+    "ablationCoverage": 1,
     "limitationCoverage": 1,
-    "auditMissingRate": 0.0339,
+    "auditMissingRate": 0.0127,
     "sectionCompleteness": 1,
     "lengthStability": 1,
     "researchMapModelSuccess": 1,
     "researchMapFallbackRate": 0,
     "planModelSuccess": 1,
     "planFallbackRate": 0,
-    "stagesWithWarnings": 2,
-    "evidenceFromModelMapRate": 0.7333,
-    "auditConfidence": 0.5
+    "stagesWithWarnings": 1,
+    "evidenceFromModelMapRate": 0.3438,
+    "auditConfidence": 0.8,
+    "uniqueEvidencePerPaper": 64,
+    "evidenceReuseRate": 0.2381,
+    "sameRoleOverlap": 0.0435,
+    "sourceSectionHitRate": 1,
+    "mustUseTermHitRate": 0.8929,
+    "lateEvidenceHitRate": 0.3333,
+    "retrievalProbeRate": 0,
+    "criticalFactCount": 8,
+    "criticalFactMappedCount": 8,
+    "criticalFactUnmappedCount": 0,
+    "criticalFactCoverage": 1,
+    "criticalFactSectionCoverage": 0.875,
+    "highPriorityFactCoverage": 1,
+    "planSourceSectionCoverage": 0.6364,
+    "sourceSectionOverflowCount": 10,
+    "mustUseRareTermCoverage": 0.9254,
+    "criticalSourceSectionCoverage": 1,
+    "highPrioritySourceSectionCoverage": 1,
+    "factBackedSourceSectionCoverage": 1,
+    "guaranteedGroups": 4,
+    "allocationOverflowCount": 5,
+    "writerFactCoverage": 1,
+    "mainResultFactCoverage": 1,
+    "ablationFactCoverage": 1,
+    "limitationFactCoverage": null,
+    "unwrittenFactRate": 0,
+    "unsupportedFactRate": 0,
+    "derivedFactRate": 1,
+    "factCheckCoverage": 0.9875,
+    "factCheckUnsupportedRate": 0,
+    "factCheckNumbers": 80,
+    "aiTonePer1k": 0.13
   },
   "detail": {
     "evidence": [
@@ -31,11 +63,10 @@
         "ok": true,
         "keywordHits": [
           "BLEU",
-          "WMT 2014"
-        ],
-        "missingKeywords": [
+          "WMT 2014",
           "English-to-German"
         ],
+        "missingKeywords": [],
         "numberHits": [
           "28.4"
         ],
@@ -47,11 +78,10 @@
         "section": "Attention Is All You Need",
         "ok": true,
         "keywordHits": [
-          "BLEU"
-        ],
-        "missingKeywords": [
+          "BLEU",
           "English-to-French"
         ],
+        "missingKeywords": [],
         "numberHits": [
           "41.8",
           "3.5"
@@ -78,11 +108,11 @@
         "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
         "late": true,
         "section": "Regularization",
-        "ok": false,
-        "keywordHits": [],
-        "missingKeywords": [
+        "ok": true,
+        "keywordHits": [
           "label smoothing"
         ],
+        "missingKeywords": [],
         "numberHits": [
           "0.1"
         ],
@@ -92,12 +122,12 @@
         "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
         "late": true,
         "section": "Regularization",
-        "ok": false,
-        "keywordHits": [],
-        "missingKeywords": [
+        "ok": true,
+        "keywordHits": [
           "residual dropout",
           "dropout"
         ],
+        "missingKeywords": [],
         "numberHits": [
           "0.1"
         ],
@@ -188,13 +218,13 @@
         "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
         "ratio": 0.7554347826086957,
         "section": "Regularization",
-        "ok": false
+        "ok": true
       },
       {
         "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
         "ratio": 0.7445652173913043,
         "section": "Regularization",
-        "ok": false
+        "ok": true
       },
       {
         "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
@@ -214,46 +244,288 @@
       "score": 1,
       "sections": 7,
       "planned": 7,
-      "chars": 9291,
+      "chars": 17368,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0.0339,
+    "auditMissingRate": 0.0127,
     "reliability": {
       "researchMapStatus": "model_success",
       "researchMapSource": "model",
       "researchMapFinishReason": "stop",
-      "researchMapRawContentLength": 9229,
+      "researchMapRawContentLength": 11443,
       "researchMapFallbackReason": "",
       "planStatus": "model_success",
       "planSource": "model",
       "planFallbackReason": "",
       "stagesWithWarnings": [
-        "section_generation",
         "review"
       ],
       "stageSummary": {
-        "total": 8,
-        "withWarnings": 2,
+        "total": 9,
+        "withWarnings": 1,
         "stagesWithWarnings": [
-          "section_generation",
           "review"
         ],
         "fallbacks": [
-          "section_generation",
           "review"
         ],
         "truncated": [],
-        "skipped": [],
+        "skipped": [
+          "repair"
+        ],
         "failed": []
       },
-      "evidenceChunks": 30,
+      "evidenceChunks": 64,
       "evidenceFromModelMap": 22
     },
     "audit": {
-      "verdict": "failed",
+      "verdict": "passed_with_warning",
       "warnings": [],
       "researchMapSource": "model"
+    },
+    "retrieval": {
+      "uniqueEvidencePerPaper": 64,
+      "evidenceReuseRate": 0.2381,
+      "sameRoleOverlap": 0.0435,
+      "sourceSectionHitRate": 1,
+      "mustUseTermHitRate": 0.8929,
+      "slots": 84,
+      "reusedSlots": 20,
+      "sectionsRequestingSource": 7,
+      "sectionsWithSourceMatch": 7,
+      "mustUseTermsTotal": 56,
+      "mustUseTermsHit": 50,
+      "lateAnchors": 3,
+      "lateAnchorsRetrieved": 1,
+      "probes": [
+        {
+          "term": "label smoothing",
+          "matched": false,
+          "status": "covered",
+          "sourceChunks": 1,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "Regularization"
+          ],
+          "criticalFactIds": [],
+          "planSection": "",
+          "requestedBy": [],
+          "guaranteed": false,
+          "retrievalCandidates": 1,
+          "allocatedCandidates": 0,
+          "requested": true,
+          "listedInMustUseTermsBy": [
+            "📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验"
+          ],
+          "mustUseTerms": [
+            "label smoothing",
+            "residual dropout",
+            "beam search",
+            "eight p100",
+            "eight p100 gpus",
+            "sub-layer input"
+          ],
+          "reason": "slot_competition",
+          "lifecycle": {
+            "retrieved": false,
+            "written": true,
+            "status": "covered"
+          },
+          "examples": []
+        },
+        {
+          "term": "residual dropout",
+          "matched": false,
+          "status": "covered",
+          "sourceChunks": 1,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "Regularization"
+          ],
+          "criticalFactIds": [],
+          "planSection": "",
+          "requestedBy": [],
+          "guaranteed": false,
+          "retrievalCandidates": 1,
+          "allocatedCandidates": 0,
+          "requested": true,
+          "listedInMustUseTermsBy": [
+            "📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验"
+          ],
+          "mustUseTerms": [
+            "label smoothing",
+            "residual dropout",
+            "beam search",
+            "eight p100",
+            "eight p100 gpus",
+            "sub-layer input"
+          ],
+          "reason": "slot_competition",
+          "lifecycle": {
+            "retrieved": false,
+            "written": true,
+            "status": "covered"
+          },
+          "examples": []
+        },
+        {
+          "term": "Regularization",
+          "matched": false,
+          "status": "missing_evidence",
+          "sourceChunks": 5,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "Regularization"
+          ],
+          "criticalFactIds": [],
+          "planSection": "",
+          "requestedBy": [],
+          "guaranteed": false,
+          "retrievalCandidates": 5,
+          "allocatedCandidates": 0,
+          "requested": false,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "plan_did_not_request_section",
+          "lifecycle": {
+            "retrieved": false,
+            "written": false,
+            "status": "missing_evidence"
+          },
+          "examples": []
+        }
+      ]
+    },
+    "planCoverage": {
+      "criticalFactCount": 8,
+      "criticalFactMappedCount": 8,
+      "criticalFactUnmappedCount": 0,
+      "criticalFactCoverage": 1,
+      "criticalFactSectionCoverage": 0.875,
+      "highPriorityFactCoverage": 1,
+      "planSourceSectionCoverage": 0.6364,
+      "sourceSectionOverflowCount": 10,
+      "mustUseRareTermCoverage": 0.9254
+    },
+    "allocation": {
+      "stats": {
+        "groups": 9,
+        "guaranteedGroups": 4,
+        "preferredGroups": 0,
+        "overflow": 5,
+        "maxGuaranteedSlots": 4
+      },
+      "coverage": {
+        "criticalSourceSectionCoverage": 1,
+        "highPrioritySourceSectionCoverage": 1,
+        "factBackedSourceSectionCoverage": 1,
+        "guaranteedSourceSections": 1,
+        "guaranteedSourceSectionsCovered": 1,
+        "overflow": 5
+      },
+      "overflow": [
+        {
+          "sourceSection": "fact:cf-4",
+          "factIds": [
+            "cf-4"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-5",
+          "factIds": [
+            "cf-5"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-6",
+          "factIds": [
+            "cf-6"
+          ],
+          "criticality": 5.6,
+          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-7",
+          "factIds": [
+            "cf-7"
+          ],
+          "criticality": 5,
+          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-8",
+          "factIds": [
+            "cf-8"
+          ],
+          "criticality": 5,
+          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        }
+      ],
+      "guaranteedSections": [
+        "Model Variations",
+        "fact:cf-1",
+        "fact:cf-2",
+        "fact:cf-3"
+      ]
+    },
+    "factCoverage": {
+      "assigned": 8,
+      "unassigned": 14,
+      "unassignedFactRate": 0.6364,
+      "covered": 0,
+      "derived": 8,
+      "unsupported": 0,
+      "unwritten": 0,
+      "missingEvidence": 0,
+      "writtenFactCoverage": 1,
+      "coverage": 1,
+      "unsupportedFactRate": 0,
+      "unwrittenFactRate": 0,
+      "derivedFactRate": 1,
+      "highPriorityCoverage": 1,
+      "mainResultCoverage": 1,
+      "ablationCoverage": 1,
+      "limitationCoverage": null,
+      "failureCoverage": null
+    },
+    "factCheck": {
+      "numbers": 80,
+      "located": 79,
+      "derived": 1,
+      "unsupported": 0,
+      "coverage": 0.9875,
+      "unsupportedRate": 0
+    },
+    "voice": {
+      "aiTonePer1k": 0.13,
+      "voiceTotal": 2,
+      "fakeDepth": 0,
+      "highFreq": 0,
+      "chatbot": 0,
+      "passive": 2,
+      "aiPhraseTotal": 0,
+      "cautionPhraseTotal": 1,
+      "boundaryPhraseTotal": 5
+    },
+    "evidenceLedgerStats": {
+      "total": 22,
+      "byCategory": {
+        "main_result": 6,
+        "ablation": 2,
+        "formula": 9,
+        "figure": 5
+      },
+      "withEvidence": 22,
+      "retrievedIntoSection": 7,
+      "highPriority": 8
     }
   }
 }

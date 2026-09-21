@@ -120,6 +120,31 @@ npm run benchmark -- --update-baseline # 跑完把结果写成新 baseline
 `latePaperCoverage` 的「后半篇」判定是确定性的：把锚点关键词放进全文章节切片，
 取命中数最多的那个 chunk 的位置（chunk 顺序 = 原文顺序），位置 ≥ 50% 记为 late。
 
+### 数字核验指标（fact-check，加法项）
+
+终稿里每个数字都由 `src/deepread/factCheck.js` 确定性回查原文 chunk，落成三态
+`source` / `derived` / `unsupported`。benchmark 只把这层统计原样读出来，**不改任何既有指标口径**：
+
+| 指标 | 定义 | 方向 |
+| --- | --- | --- |
+| `factCheckCoverage` | 终稿数字中能在原文定位到承载句子的比例（= `located / numbers`） | 越高越好 |
+| `factCheckUnsupportedRate` | 终稿数字里原文查不到、正文也没标注「按论文数据计算」的比例 | **越低越好** |
+| `factCheckNumbers` | 平均每篇终稿写了多少个数字（核验表规模） | 仅观测 |
+
+这几个键在旧 `baseline.json` 里没有记录，因此对比时会显示为「无基线可比」——
+这是预期行为，不会把 baseline 当成退步，也不会自动改写 baseline。
+逐篇核验表落在 `runs/<timestamp>/papers/<id>.fact-check.md`，方便人工抽查「有没有表外数字」。
+
+### 人声指标（去 AI 味，加法项）
+
+| 指标 | 定义 | 方向 |
+| --- | --- | --- |
+| `aiTonePer1k` | 每千字命中「AI 腔」标记的个数（动名词假深度 + 空泛高频词 + 客服套话 + 被动/幽灵主语，见 `src/styleCheck.js`） | **越低越好** |
+
+它衡量的是**提示词规则有没有真的写进正文**，不是文学评分：字数归一化之后，长短稿可以直接比。
+逐篇明细（四类各自计数）在 `detail.voice`。低于 400 字的片段不算密度（短文本会把密度放大成噪声）。
+与其它加法指标一样：旧 baseline 没记录时会显示「无基线可比」，不会自动改写 baseline。
+
 ### 阶段可靠性指标（v2 新增）
 
 光看覆盖率会被骗：**上游阶段没生效时，覆盖率照样可能很高**（模型地图没产出 → 检索退化成关键词匹配 →
@@ -186,6 +211,7 @@ benchmark/runs/<timestamp>/
   README.md        # summary 的人读版（指标表 + 逐篇表）
   papers/<id>.json # 单篇：metrics + detail + audit + research map 摘要 + 结构 + 耗时 + 阶段时间
   papers/<id>.md   # 单篇终稿（默认不进 git，见 runs/.gitignore）
+  papers/<id>.fact-check.md  # 单篇数字核验表（终稿数字 ↔ 原文条件，三态）
 ```
 
 CLI 也会打印同样一份（数字全部来自本次真实运行）：
@@ -348,6 +374,87 @@ v1 用字面比较，于是把**格式差异**误判成「原文查不到」，�
 3. 结果 / 局限类小节加入**后半篇最低召回保障**（默认 1–2 条，`lateQuota` 可覆盖或置 0 关闭），
    避免所有证据都来自前半篇；方法节不启用该保障，免得把机制解释挤掉；
 4. 参考文献 / 致谢仍按噪声降权，且不进入后半篇保障名额。
+
+### Retrieval v2：从「按角色检索」到「按具体小节检索」
+
+v2 验收发现真正的 P0 不是「召回不够」，而是**同角色小节拿到完全相同的证据**：1706 两个 results 小节
+12/12 重合、三个 method 小节 12/12 重合；2405 四个 general 小节 12/12；每篇 53–65% 的槽位是重复 chunk，
+全篇唯一证据覆盖只有 6–20%。根因是中文大纲 vs 英文原文的**跨语言词法失配**（中文标题词命中率 0–36%），
+再加上「本节原文优先」因为标题对不上而空转（1706/2405/2406 均 0/12）。
+
+v2 的做法（仍然是词法检索，不引入 embedding / 向量库）：
+
+1. **计划带原文坐标**：每个小节输出 `sourceSections`（论文原文小节名，**必须用原文语言**）、
+   `mustUseTerms`（该节必须出现的论文术语/表号/图号）、`role`；
+2. **source section 对齐**（`src/deepread/sourceSections.js`）：exact → 归一化（去编号/标点/大小写）
+   → 编号（3.2 / A.1）→ 术语模糊（复合词自动拆分，`dot-product` ↔ `dot product`）→ 缩写
+   （`ACI` ↔ `The Agent-Computer Interface`）→ 父级路径；摘要按 `chunk.type` 补虚拟 `Abstract` 小节。
+   对不上时**如实记录 unmatched + method=fallback_terms**，绝不静默；
+3. **结构化 query**：`sourceSectionTerms / mustUseTerms / evidenceTerms / roleTerms / purposeTerms / titleTerms`
+   分组评分，而不是拼成一条字符串；
+4. **证据槽位分配**：12 槽 = 3 source-local + 3 must-use/地图证据 + 2 role-specific + 2 diverse + 2 lexical
+   （空类别额度自动让给 lexical）；
+5. **跨节多样性**：前文已用过的 chunk 降分（第二次 −0.6、第三次起 −1.5），但**关键证据豁免**
+   （source-local / mustUseTerms 命中 / 地图点名）；
+6. **结构化引用绑定**：`Table 3` / `Figure 5` / `Eq. 4` 直接绑定到文档里第 N 个 table/figure/formula chunk；
+7. **后半篇 bonus 必须相关**：只有命中 source section / mustUse / 地图证据 / 词法的小节才拿 bonus，
+   不是「后半篇无脑优先」。
+
+新增的检索质量指标（第 4 组，全部来自真实运行）：
+
+| 指标 | 定义 | 方向 |
+| --- | --- | --- |
+| `uniqueEvidencePerPaper` | 一篇论文跨节去重后的唯一 evidence chunk 数 | 越高越好（避免重复占预算） |
+| `evidenceReuseRate` | 重复槽位 / 总槽位 | **越低越好** |
+| `sameRoleOverlap` | 同角色小节两两 Jaccard 的平均值 | **越低越好**（0 表示各节不打架） |
+| `sourceSectionHitRate` | 计划请求的 sourceSections 真正对齐到原文小节的比例 | 越高越好 |
+| `mustUseTermHitRate` | `mustUseTerms` 出现在**该节选中的证据**里的比例 | 越高越好 |
+| `lateEvidenceHitRate` | 后半篇锚点所在的 chunk 是否进了检索 | 越高越好 |
+| `retrievalProbeRate` | 诊断探针命中率（见下） | 越高越好 |
+
+`retrievalProbeRate` 是**诊断**而不是锚点：它固定检查几件「必须读到」的事实有没有进检索
+（1706：label smoothing / residual dropout；2406：failure / partial success；
+2501：AIME / MATH-500 / Codeforces / Unsuccessful；2409：min_pixels / 16384），
+命中详情（chunkId / source section / 被哪一节使用）写在 `papers/<id>.json` 的 `detail.retrieval.probes`。
+它不参与覆盖率计算，也不会修改任何 expected evidence。
+
+### Plan Coverage v1：关键事实 → 计划覆盖 → source section 落地
+
+Retrieval v2 之后瓶颈上移到**计划覆盖度**：研究地图里明明有的事实，计划可能根本没请求对应原文小节
+（1706 的 label smoothing / residual dropout 在 `Regularization`，而计划请求了 19 个小节却没有它），
+或者一个 section 请求十几个小节把证据槽位摊薄（2406 results 请求 11 个、2501 全篇 53 个）。
+
+v1 的做法（全部确定性，不调用模型、不改 Retrieval 评分）：
+
+1. **种子关键事实**（`src/deepread/criticalFacts.js`）：从 Research Map 的
+   `main_results / ablations / limitations / key_claims / method_components` 取 5–8 条，
+   标注 `category`（main_result / ablation / limitation / failure / comparison / method）与
+   `priority`（关键类别 + 带数字/术语记 high）；
+2. **事实 → source section 绑定**：优先用地图给的 chunkIds；否则用「小数+稀有术语」在全文扫描
+   （整数如 `3` 会因为到处出现而被降权），绑定不上就记 `unmatched`，绝不发明 chunkId；
+3. **术语落地**：从绑定 chunk 与该小节的正文里抽「稀有术语」（df ≤ 2 且过滤功能词短语），
+   把中文事实落成原文英文术语（`标签平滑 ϵ_ls=0.1` → `label smoothing` / `residual dropout`）；
+4. **分发与小节收敛**：每节最终 `sourceSections` ≤ 3（事实要求的优先，其余进
+   `sourceSectionsDeferred`）；`mustUseTerms` 按「关键术语 → 稀有 → 指标 → 消融变量 → 局限词 → 普通词」
+   排序后截断（默认 6），被截断的进 `mustUseTermsDeferred`；
+5. **计划漏掉整个关键小节时自动补入**：事实绑定的 section 若不被任何小节请求，就补进最相关小节的
+   `sourceSections`（这正是 1706 `Regularization` 的修法）。
+
+新增的计划覆盖度指标（第 5 组）：
+
+| 指标 | 定义 | 方向 |
+| --- | --- | --- |
+| `criticalFactCount` / `criticalFactMappedCount` / `criticalFactUnmappedCount` | 关键事实总数 / 绑定到原文小节数 / 绑不上数 | — |
+| `criticalFactCoverage` | 关键事实（术语或证据 chunk）真的进了检索的比例 | 越高越好 |
+| `criticalFactSectionCoverage` | 事实绑定的 source section 出现在计划最终 sourceSections 里的比例 | 越高越好 |
+| `highPriorityFactCoverage` | 只统计 high 优先级事实 | 越高越好 |
+| `planSourceSectionCoverage` | 计划请求的 sourceSections 实际落地比例 | 越高越好 |
+| `sourceSectionOverflowCount` | 因每节 ≤3 预算进入 deferred 的请求数 | 记录用 |
+| `mustUseRareTermCoverage` | 稀有术语（tier ≤2）进入检索的比例 | 越高越好 |
+
+探针现在还会直接回答「为什么没进检索」：`reason ∈ retrieved | plan_did_not_request_section |
+evidence_slot_competition | term_not_in_source`，并给出 `criticalFactIds / planSection /
+sourceSections / requestedBy / mustUseTerms`，见 `detail.retrieval.probes`。
 
 ### 终稿审校同样要给足 reasoning 余量
 

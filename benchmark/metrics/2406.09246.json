@@ -1,26 +1,54 @@
 {
   "id": "2406.09246",
-  "at": "2026-09-17T16:29:13.241Z",
+  "at": "2026-09-18T23:41:28.499Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
     "sourceCoverage": 1,
     "latePaperCoverage": 0,
-    "numberEvidenceCoverage": 1,
+    "numberEvidenceCoverage": 0.75,
     "figureCoverage": 1,
     "formulaCoverage": null,
-    "ablationCoverage": 1,
+    "ablationCoverage": 0.5,
     "limitationCoverage": 0,
-    "auditMissingRate": 0.093,
+    "auditMissingRate": 0.0089,
     "sectionCompleteness": 1,
     "lengthStability": 1,
     "researchMapModelSuccess": 1,
     "researchMapFallbackRate": 0,
     "planModelSuccess": 1,
     "planFallbackRate": 0,
-    "stagesWithWarnings": 1,
-    "evidenceFromModelMapRate": 0.8438,
-    "auditConfidence": 0.8
+    "stagesWithWarnings": 2,
+    "evidenceFromModelMapRate": 0.4909,
+    "auditConfidence": 0.8,
+    "uniqueEvidencePerPaper": 55,
+    "evidenceReuseRate": 0.3038,
+    "sameRoleOverlap": 0.1429,
+    "sourceSectionHitRate": 1,
+    "mustUseTermHitRate": 0.75,
+    "lateEvidenceHitRate": 0,
+    "retrievalProbeRate": 0.3333,
+    "criticalFactCount": 8,
+    "criticalFactMappedCount": 8,
+    "criticalFactUnmappedCount": 0,
+    "criticalFactCoverage": 1,
+    "criticalFactSectionCoverage": 1,
+    "highPriorityFactCoverage": 1,
+    "planSourceSectionCoverage": 0.4,
+    "sourceSectionOverflowCount": 27,
+    "mustUseRareTermCoverage": 0.7576,
+    "criticalSourceSectionCoverage": 1,
+    "highPrioritySourceSectionCoverage": 1,
+    "factBackedSourceSectionCoverage": 1,
+    "guaranteedGroups": 8,
+    "allocationOverflowCount": 3,
+    "writerFactCoverage": 0.875,
+    "mainResultFactCoverage": 0.8333,
+    "ablationFactCoverage": 1,
+    "limitationFactCoverage": null,
+    "unwrittenFactRate": 0.125,
+    "unsupportedFactRate": 0,
+    "derivedFactRate": 0
   },
   "detail": {
     "evidence": [
@@ -31,10 +59,11 @@
         "ok": true,
         "keywordHits": [
           "7B",
-          "970k",
+          "970k"
+        ],
+        "missingKeywords": [
           "demonstrations"
         ],
-        "missingKeywords": [],
         "numberHits": [
           "7",
           "970"
@@ -76,16 +105,16 @@
         "text": "Table 1 微调方法对比：LoRA(rank=32/64) 成功率 68.2%，优于全量微调",
         "late": false,
         "section": "Parameter-Efficient Fine-Tuning",
-        "ok": true,
+        "ok": false,
         "keywordHits": [
           "LoRA",
           "fine-tuning"
         ],
         "missingKeywords": [],
-        "numberHits": [
+        "numberHits": [],
+        "missingNumbers": [
           "68.2"
-        ],
-        "missingNumbers": []
+        ]
       },
       {
         "text": "设计决策消融（视觉编码器冻结 / sandwich 方案 / 数据配比）",
@@ -131,12 +160,13 @@
       "hits": [
         "7",
         "970",
-        "16.5",
+        "16.5"
+      ],
+      "missing": [
         "68.2"
       ],
-      "missing": [],
       "unlocated": [],
-      "located": 4
+      "located": 3
     },
     "figures": [
       {
@@ -178,30 +208,33 @@
       "score": 1,
       "sections": 7,
       "planned": 7,
-      "chars": 12009,
+      "chars": 12046,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0.093,
+    "auditMissingRate": 0.0089,
     "reliability": {
       "researchMapStatus": "model_success",
       "researchMapSource": "model",
       "researchMapFinishReason": "stop",
-      "researchMapRawContentLength": 12098,
+      "researchMapRawContentLength": 12591,
       "researchMapFallbackReason": "",
       "planStatus": "model_success",
       "planSource": "model",
       "planFallbackReason": "",
       "stagesWithWarnings": [
+        "fact_coverage",
         "review"
       ],
       "stageSummary": {
-        "total": 8,
-        "withWarnings": 1,
+        "total": 9,
+        "withWarnings": 2,
         "stagesWithWarnings": [
+          "fact_coverage",
           "review"
         ],
         "fallbacks": [
+          "fact_coverage",
           "review"
         ],
         "truncated": [],
@@ -210,13 +243,227 @@
         ],
         "failed": []
       },
-      "evidenceChunks": 32,
+      "evidenceChunks": 55,
       "evidenceFromModelMap": 27
     },
     "audit": {
       "verdict": "passed_with_warning",
       "warnings": [],
       "researchMapSource": "model"
+    },
+    "retrieval": {
+      "uniqueEvidencePerPaper": 55,
+      "evidenceReuseRate": 0.3038,
+      "sameRoleOverlap": 0.1429,
+      "sourceSectionHitRate": 1,
+      "mustUseTermHitRate": 0.75,
+      "slots": 79,
+      "reusedSlots": 24,
+      "sectionsRequestingSource": 7,
+      "sectionsWithSourceMatch": 7,
+      "mustUseTermsTotal": 56,
+      "mustUseTermsHit": 42,
+      "lateAnchors": 1,
+      "lateAnchorsRetrieved": 0,
+      "probes": [
+        {
+          "term": "failure",
+          "matched": false,
+          "status": "missing_evidence",
+          "sourceChunks": 5,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "B.1.1 BridgeData V2 Evaluation Tasks",
+            "B.2.1 Google Robot Evaluation Tasks",
+            "B.3.1 Franka-Tabletop and Franka-DROID Tasks"
+          ],
+          "criticalFactIds": [],
+          "planSection": "BridgeData V2 上明显赢 RT-2-X，Google robot 上追平 RT-2-X",
+          "requestedBy": [
+            "BridgeData V2 上明显赢 RT-2-X，Google robot 上追平 RT-2-X"
+          ],
+          "guaranteed": false,
+          "retrievalCandidates": 5,
+          "allocatedCandidates": 0,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "slot_competition",
+          "lifecycle": {
+            "retrieved": false,
+            "written": false,
+            "status": "missing_evidence"
+          },
+          "examples": []
+        },
+        {
+          "term": "partial success",
+          "matched": false,
+          "status": "missing_evidence",
+          "sourceChunks": 4,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [
+            "B.1.1 BridgeData V2 Evaluation Tasks",
+            "B.1.3 Detailed BridgeData V2 Evaluation Results",
+            "B.3.1 Franka-Tabletop and Franka-DROID Tasks"
+          ],
+          "criticalFactIds": [],
+          "planSection": "BridgeData V2 上明显赢 RT-2-X，Google robot 上追平 RT-2-X",
+          "requestedBy": [
+            "BridgeData V2 上明显赢 RT-2-X，Google robot 上追平 RT-2-X"
+          ],
+          "guaranteed": false,
+          "retrievalCandidates": 4,
+          "allocatedCandidates": 0,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "slot_competition",
+          "lifecycle": {
+            "retrieved": false,
+            "written": false,
+            "status": "missing_evidence"
+          },
+          "examples": []
+        },
+        {
+          "term": "co-training",
+          "matched": true,
+          "status": "covered",
+          "sourceChunks": 1,
+          "retrievedChunks": 1,
+          "hit": true,
+          "sourceSections": [
+            "Discussion and Limitations"
+          ],
+          "criticalFactIds": [],
+          "planSection": "Llama 2 当大脑，DINOv2+SigLIP 当眼睛：把连续动作切成 token / OpenVLA 还怕语义泛化与语言条件，开源社区接下来能追什么",
+          "requestedBy": [
+            "OpenVLA 还怕语义泛化与语言条件，开源社区接下来能追什么"
+          ],
+          "guaranteed": false,
+          "retrievalCandidates": 1,
+          "allocatedCandidates": 1,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "retrieved",
+          "lifecycle": {
+            "retrieved": true,
+            "written": true,
+            "status": "covered"
+          },
+          "examples": [
+            {
+              "chunkId": "c76",
+              "sourceSection": "Discussion and Limitations",
+              "usedBy": [
+                "Llama 2 当大脑，DINOv2+SigLIP 当眼睛：把连续动作切成 token",
+                "OpenVLA 还怕语义泛化与语言条件，开源社区接下来能追什么"
+              ],
+              "snippet": "Finally, due to compute limitations, many VLA design questions remain underexplored: What effect does the size"
+            }
+          ]
+        }
+      ]
+    },
+    "planCoverage": {
+      "criticalFactCount": 8,
+      "criticalFactMappedCount": 8,
+      "criticalFactUnmappedCount": 0,
+      "criticalFactCoverage": 1,
+      "criticalFactSectionCoverage": 1,
+      "highPriorityFactCoverage": 1,
+      "planSourceSectionCoverage": 0.4,
+      "sourceSectionOverflowCount": 27,
+      "mustUseRareTermCoverage": 0.7576
+    },
+    "allocation": {
+      "stats": {
+        "groups": 11,
+        "guaranteedGroups": 8,
+        "preferredGroups": 0,
+        "overflow": 3,
+        "maxGuaranteedSlots": 4
+      },
+      "coverage": {
+        "criticalSourceSectionCoverage": 1,
+        "highPrioritySourceSectionCoverage": 1,
+        "factBackedSourceSectionCoverage": 1,
+        "guaranteedSourceSections": 3,
+        "guaranteedSourceSectionsCovered": 3,
+        "overflow": 3
+      },
+      "overflow": [
+        {
+          "sourceSection": "fact:cf-4",
+          "factIds": [
+            "cf-4"
+          ],
+          "criticality": 5.6,
+          "reason": "「BridgeData V2 上明显赢 RT-2-X，Google robot 上追平 RT-2-X」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-5",
+          "factIds": [
+            "cf-5"
+          ],
+          "criticality": 5.6,
+          "reason": "「BridgeData V2 上明显赢 RT-2-X，Google robot 上追平 RT-2-X」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-6",
+          "factIds": [
+            "cf-6"
+          ],
+          "criticality": 5.6,
+          "reason": "「BridgeData V2 上明显赢 RT-2-X，Google robot 上追平 RT-2-X」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        }
+      ],
+      "guaranteedSections": [
+        "Appendix A Data Mixture Details",
+        "D.1 OpenX Training Data Ablation Experiments",
+        "fact:cf-7",
+        "fact:cf-8",
+        "Direct Evaluations on Multiple Robot Platforms",
+        "fact:cf-1",
+        "fact:cf-2",
+        "fact:cf-3"
+      ]
+    },
+    "factCoverage": {
+      "assigned": 8,
+      "unassigned": 13,
+      "unassignedFactRate": 0.619,
+      "covered": 7,
+      "derived": 0,
+      "unsupported": 0,
+      "unwritten": 1,
+      "missingEvidence": 0,
+      "writtenFactCoverage": 0.875,
+      "coverage": 0.875,
+      "unsupportedFactRate": 0,
+      "unwrittenFactRate": 0.125,
+      "derivedFactRate": 0,
+      "highPriorityCoverage": 0.875,
+      "mainResultCoverage": 0.8333,
+      "ablationCoverage": 1,
+      "limitationCoverage": null,
+      "failureCoverage": null
+    },
+    "evidenceLedgerStats": {
+      "total": 21,
+      "byCategory": {
+        "main_result": 6,
+        "ablation": 2,
+        "formula": 3,
+        "figure": 10
+      },
+      "withEvidence": 21,
+      "retrievedIntoSection": 5,
+      "highPriority": 8
     }
   }
 }

@@ -64,6 +64,33 @@ export function reliabilityPaperText() {
   return parts.join('\n\n');
 }
 
+/**
+ * Retrieval v2 专用素材：**英文 source section 标题**（对应真实 arXiv 论文）+
+ * 后半篇的消融 / 失败案例 / 伦理 / 附录内容，用于验证：
+ *   - sourceSections 对齐（exact / normalized / acronym）
+ *   - mustUseTerms（label smoothing / residual dropout / Table 1 / Figure 1）
+ *   - source-local 邻域、槽位分配、跨节多样性
+ *   - 检索探针（label smoothing、failure、partial success、unsuccessful）
+ */
+export function retrievalV2PaperText() {
+  const parts = [];
+  parts.push(`## Abstract\n我们提出 LoopFormer：用循环状态替代全局注意力，在 WMT14 上 BLEU 达到 41.8。${filler(18)}`);
+  parts.push(`## 1 Introduction\n长上下文建模的瓶颈是注意力复杂度，既有做法把上下文截断到 4096 token。${filler(35)}`);
+  parts.push(`## 2 Model Architecture\n整体是编码器-解码器骨架，注意力与逐位置前馈交替堆叠。${filler(30)}`);
+  parts.push(`### 2.1 Scaled Dot-Product Attention\n注意力把 query 与 key 做点积再归一化：$$h_t = \\alpha \\odot h_{t-1} + (1-\\alpha) \\odot W e_t$$ 其中 alpha 是门控。${filler(30)}`);
+  parts.push(`### 2.2 Multi-Head Attention\n多头并行让不同子空间各自建模，输出拼接后投影。${filler(30)}`);
+  parts.push(`## 3 Experiments\n### 3.1 Setup\n在 WMT14 英德与英法上评测，基线是 Transformer-base，指标为 BLEU。${filler(25)}`);
+  parts.push(`### 3.2 Main Results\n图注：Figure 1 主结果柱状图：LoopFormer 41.8，Transformer-base 40.88。${filler(20)}`);
+  parts.push(`表 1：Table 1 主结果对比。Transformer-base 40.88，LoopFormer 41.8。${filler(20)}`);
+  parts.push(`## 4 Ablation Study\n消融实验显示：去掉循环状态后 BLEU 掉到 39.1；label smoothing 设为 0.1 时困惑度变好但 BLEU 变差；residual dropout 0.1 是 base 配置的最佳值；variant 对比显示窗口注意力贡献 2.1。${filler(25)}`);
+  parts.push(`## 5 Limitations\n我们的方法只在文本模态上验证，未在语音与多模态上测试；窗口大小 W 需要按任务调参。${filler(25)}`);
+  parts.push(`## 6 Failure Cases\n失败案例分析（failure cases）：约 21% 的失败来自中间状态被错误覆盖，部分成功（partial success）集中在超长输入。${filler(25)}`);
+  parts.push(`## 7 Ethics and Broader Impacts\n长上下文模型存在滥用风险（broader impacts）：可用于批量生成误导性内容，我们建议加入速率限制。${filler(25)}`);
+  parts.push(`## Appendix A Additional Analysis\n附录给出 unsuccessful attempts 的分解，以及 AIME 与 MATH 上的补充结果。${filler(25)}`);
+  parts.push(`## References\n[1] Vaswani et al. Attention Is All You Need. ${filler(15)}`);
+  return parts.join('\n\n');
+}
+
 /** arXiv HTML 风格 DOM 片段。 */
 export function paperHtml() {
   return `<!doctype html><html><body>

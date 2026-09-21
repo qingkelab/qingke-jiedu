@@ -11,16 +11,53 @@
 import { renderResearchMap } from './researchMap.js';
 import { renderEvidence } from './retrieval.js';
 
+/**
+ * 人声规则（去 AI 味）。
+ *
+ * 整理自社区流传的「去 AI 味」提示词（把「AI 模式」拆成可逐条删的清单 + 注入真实人声），
+ * 按本项目的场景改写：原文是论文解读，不是营销稿，所以「删模式」保留、「躲检测」的诉求去掉，
+ * 另外明确保留本项目自己的版式选择（小标题可用 emoji、破折号有上限而不是禁用）。
+ * 每条都必须可执行：要么删，要么换成具体事实/动作动词/主动句。
+ */
+export function humanVoiceRules() {
+  return [
+    '  【删掉这些 AI 模式】',
+    '  · 夸大规模：里程碑意义 / 至关重要 / 反映更广泛趋势 / 在持续演变的格局中 → 换成具体事实、日期、数字。',
+    '  · 动名词假深度：突出了 / 反映了 / 促进了 / 彰显了 / 体现了 → 换成可核实的事实或动作动词。',
+    '  · 广告腔与模糊归因：植根于 / 充满活力 / 革命性 / 无与伦比 / 专家认为 / 多个来源指出 → 要么精确引用，要么删掉。',
+    '    论文解读里「专家认为」这种写法尤其危险：要么写清是哪篇论文的哪个 claim，要么不写。',
+    '  · 滥用系动词：是 / 充当 / 构成 / 代表 / 被视为 → 改用动作动词或「有 / 拥有」。',
+    '  · 被动与幽灵主语：「需要被配置」→「你需要配置」；主语写明确，动词用主动式。',
+    '  · 三段式与同义轮换：不写「第一…第二…第三…」，同一个概念不换着说法写（核心主题→关键焦点）。',
+    '  · 抽象名词空转：堆「范式、闭环、维度、生态」这类大词而没有具体动作时，落回具体对象。',
+    '  · 客服与聊天机器人套话：希望对你有帮助 / 很棒的问题 / 总而言之 / 为了总结 / 期待你的回复 / 未来充满希望，一律不写。',
+    '  · 过度谨慎的「可能」：只在真有不确定性时用，不要每句都加。',
+    '  【注入真实人声】',
+    '  · 节奏错落：长短句穿插，连续两段不要同一结构。',
+    '  · 给出反应：对事实做出判断（仍与论文事实分句），不只是复述。',
+    '  · 允许不确定与矛盾：证据不足就说不足，不硬圆。',
+    '  · 第一人称：该用「我们」就用，不写「有人认为」这类无主语转述。',
+    '  · 保留一点不整齐：口语、转折、插入语都可以有，不追求工整对仗。',
+  ].join('\n');
+}
+
 /** 逐节注入的写作规则。 */
 export function deepReadSectionRules() {
   return [
     '## 写作规则（每节都遵守）',
     '- 本文是原创解读不是逐句翻译；论文事实与「我们的判断」分开陈述。',
+    '- 归因句式（硬性）：论文的主张一律写成「论文称 / 作者报告 / 该研究声称」；实验结果写成「实验显示 / 在 X 设置下报告为」；',
+    '  只有「我们觉得 / 这更像是 / 现有证据更适合支持」才是编辑部判断。三种句子不混写，也不把判断写成领域共识。',
     '- 段首即观点句，先结论后论证；一个自然段至多一个加粗点，禁止整段加粗。',
     '- 术语：Agent/Harness/Policy/RL/SFT/RLHF/RLVR/Skill/World Model/benchmark 等社区通用词保留英文不硬译；方法/模型/数据集/机构名一律原文；新概念首次出现定形（英文全称（缩写）或 中文（英文））后与已写部分保持一致，禁止同一概念一处英文一处译名。',
-    '- 数字纪律：只写证据里出现的数字（模型/数据集/设置/基线/单位齐全），口径精确（提升至 vs 提升了、百分比写基数），小数与原文一致；证据里没有的数字宁可不写，绝不编造。论文声称与我们的判断分开。',
+    '- 数字纪律（硬性）：只写证据里出现的数字，且数字必须绑定条件——模型规模 / 数据集 / 任务 / 设置 / 基线 / 单位 / 指标口径缺一不可；',
+    '  口径精确（提升至 vs 提升了、百分比写基数），小数与原文一致；表外（证据外）的数字一个都不写，宁可不写也不编造。',
+    '  严禁把 estimate 写成精确事实、把定性 case 写成定量证据、把不同 protocol 的数字直接横比、把「图中排序位置」写成 benchmark ranking。',
+    '- 研究边界词（首次 / 最强 / SOTA / 碾压 / 下一代 / 已经解决 / 证明 / 排名）：能不用就不用；',
+    '  确实要写时必须紧跟来源归属（谁的 claim、在什么范围、什么条件下），不得写成领域共识或我们自己的结论。',
     '- 图片：正文讲到该图内容时用（图N）引用，N 用图片列表里的全局编号，把图放在最相关的段落；不要文末图注清单式罗列。',
     '- 去 AI 味：不用「不是A而是B/本质上/更重要的是/我的结论是」、无「随着…的发展」空泛开头、无「首先/其次/最后」「总而言之」、不排比三连、不空泛升华收尾。',
+    ...humanVoiceRules().split('\n'),
     '- 与已写前文衔接自然：不重复前文已讲过的小节标题与结论，术语形态与行文口吻保持一致。',
     '- 证据里出现的 chunk 编号（如 [c12]）只给你定位用，**不要写进正文**。',
   ].join('\n');
@@ -45,6 +82,38 @@ const EVIDENCE_REQUIREMENTS = [
   '- 不为了凑字数重复扩写。',
 ].join('\n');
 
+/**
+ * 归因要求（全节强制）——迁移自青稞「技术解读稿件」规范：
+ * 「实验结果的下一句必须写清这个实验不能回答什么」。
+ */
+const ATTRIBUTION_REQUIREMENTS = [
+  '## 归因与边界（硬性）',
+  '- 每个实验结果后面紧跟一句「这个实验不能回答什么」：协议覆盖不到的场景、没有做的对照、样本/规模限制。',
+  '- 论文主张写「论文称 / 作者报告」；实验结论写「实验显示」；编辑部判断写「我们觉得 / 现有证据更适合支持」——三类句子分开。',
+  '- 数字必须绑定条件（模型 / 数据集 / 任务 / 设置 / 基线 / 指标 / 单位）；缺条件的数字宁可不写。',
+  '- 不写「下一代 / 已经解决 / 必将取代 / 证明了未来一定」这类越界结论；不做 winner / loser / ranking 判断。',
+].join('\n');
+
+/**
+ * 边界小节（「它还没有证明什么」）的专属要求：这一节不是写缺点清单，
+ * 而是把「哪些结论已经被证据支持、哪些还没有」划清楚。
+ */
+const LIMITATION_SECTION_REQUIREMENTS = [
+  '## 本节定位：它还没有证明什么（硬性）',
+  '- 逐条回答：论文想主张的每句大话里，哪部分有实验支撑、哪部分只是合理推测；',
+  '- 覆盖显式 limitations、failure cases、伦理与 broader impacts、future work 中真正的限制；',
+  '- 不要只找「limitations」这个词：附录里的失败案例、数据集偏差、评测协议差异同样算边界；',
+  '- 每条边界用「哪个实验/哪组数据能证伪它」收尾，方便读者判断可信度。',
+].join('\n');
+
+/** 收尾小结的专属要求。 */
+const SUMMARY_SECTION_REQUIREMENTS = [
+  '## 本节定位：技术小结（硬性）',
+  '- 用 3~5 句回答：作者真正改变了哪一层、证据支持到哪、还差什么验证；',
+  '- 不复述前面小节的结论清单，只给「读者合上文章后该记住的那一条判断」；',
+  '- 落在具体判断上，不写「能力飞轮 / 时代分水岭」这类空泛比喻或升华。',
+].join('\n');
+
 /** 第一步：规划大纲（基于全文结构 + 研究地图，而不是正文前 6000 字）。 */
 export function buildPlanMessages({ source, structure, researchMap, figures }) {
   const figList = (figures || [])
@@ -59,12 +128,21 @@ export function buildPlanMessages({ source, structure, researchMap, figures }) {
     '请据此规划这篇论文「深度解读」的分节大纲。',
     '要求：',
     '- 共 5~7 节，顺序覆盖：①导语（论文回答什么问题、为什么现在值得读）②旧做法卡在哪/动机 ③作者产物与机制（最厚，可按需拆 2~3 节）④关键实验证据（含消融）⑤核心公式（有则单独成节或并入机制）⑥失效边界与后续可追问题 ⑦收尾的社区视角判断。',
+    '- **两节不许省**（可以换标题措辞，但主题必须保留、role 必须对应）：',
+    '  ① 一节专门回答「它还没有证明什么」（role: limitation）——显式局限、失败案例、伦理与 broader impacts、附录里的限制；',
+    '  ② 一节收尾的「技术小结」（role: discussion）——3~5 句给读者一条可带走的判断，不复述目录。',
     '- 大纲必须覆盖全文，不要只写前半篇：实验/消融/局限各节都要在大纲里有落点；',
     '- 每节标题用结论句或名词短语，自然口语（可带 emoji），不要「引言/相关工作/背景介绍」这类栏目名，不要编号模板；',
     '- 每节的写作要点写明「这节要讲哪些证据」（例如「用表 2 的 BLEU 41.8 + 消融结果说明」）；',
     '- 规划时把论文图片安排到最相关的小节（图片列表见下）。',
-    '输出格式：一行一节，形如：',
-    '## 小节标题｜一句话写作要点（≤40 字，可含要用的证据/图号）',
+    '输出格式：一行一节，用「｜」分隔 5 个字段：',
+    '## 小节标题｜这节要回答的问题（≤40 字）｜sections: 原文小节名｜terms: 必用术语｜role: 角色',
+    '字段说明（务必遵守）：',
+    '- sections：这节对应的**论文原文小节名**，必须从上面「全文结构」里照抄（保留原文语言，不要翻译、不要自创），多个用 ; 分隔；',
+    '  例：sections: Experiments; Ablation Study。对不上原文的会被判为未匹配，只能靠 terms 兜底；',
+    '- terms：这一节真正必须出现的论文术语（模型/组件/数据集/benchmark/指标/表号/图号/消融变量），多个用 ; 分隔；',
+    '  例：terms: self-attention; Table 3; label smoothing；',
+    '- role：只能取 method | results | ablation | limitation | discussion | formula | intro | general 之一。',
     '不要输出任何其它内容。',
   ].join('\n');
 
@@ -82,14 +160,90 @@ export function buildPlanMessages({ source, structure, researchMap, figures }) {
   ];
 }
 
-/** 解析大纲：返回 [{ title, note }]。 */
+/** 计划里允许的角色值（英文 / 中文都接受，统一归一化）。 */
+const PLAN_ROLES = new Set(['method', 'results', 'ablation', 'limitation', 'discussion', 'formula', 'intro', 'general']);
+const ROLE_ALIAS = {
+  方法: 'method',
+  机制: 'method',
+  结果: 'results',
+  实验: 'results',
+  消融: 'ablation',
+  局限: 'limitation',
+  边界: 'limitation',
+  讨论: 'discussion',
+  结论: 'discussion',
+  公式: 'formula',
+  导语: 'intro',
+  背景: 'intro',
+};
+
+const RE_SECTIONS = /^(?:source\s*sections?|sections?|原文小节|原文章节|对应小节|小节|章节)\s*[:：]\s*(.*)$/i;
+const RE_TERMS = /^(?:must[\s-]*use[\s-]*terms?|terms?|keywords?|必用术语|必现术语|术语|关键词)\s*[:：]\s*(.*)$/i;
+const RE_ROLE = /^(?:role|角色|类型)\s*[:：]\s*(.*)$/i;
+
+function splitPlanList(value) {
+  return String(value || '')
+    .split(/[;；,，、]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function normalizePlanRole(value) {
+  const raw = String(value || '').trim().toLowerCase();
+  if (PLAN_ROLES.has(raw)) return raw;
+  for (const [zh, en] of Object.entries(ROLE_ALIAS)) if (raw.includes(zh)) return en;
+  return '';
+}
+
+/**
+ * 解析大纲：返回 [{ title, purpose, note, role, sourceSections, mustUseTerms }]。
+ *
+ * 兼容两种输入：
+ *   v1（旧）：`## 标题｜要点`
+ *   v2（新）：`## 标题｜要点｜sections: Model Architecture; Attention｜terms: self-attention; Table 3｜role: method`
+ * 字段缺失时保持兼容（sourceSections/mustUseTerms 为空数组，role 由 sectionRole 兜底推断）。
+ */
 export function parseDeepReadPlan(content) {
   const out = [];
   for (const line of String(content || '').split('\n')) {
     const m = line.trim().match(/^#{2,3}\s+(.+)$/);
     if (!m) continue;
-    const [title, note] = String(m[1]).split(/｜|\|/).map((s) => s.trim());
-    if (title) out.push({ title, note: note || '' });
+    const parts = String(m[1])
+      .split(/｜|\|/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    const title = parts.shift() || '';
+    if (!title) continue;
+    let note = '';
+    let role = '';
+    let sourceSections = [];
+    let mustUseTerms = [];
+    for (const part of parts) {
+      let hit = part.match(RE_SECTIONS);
+      if (hit) {
+        sourceSections = splitPlanList(hit[1]);
+        continue;
+      }
+      hit = part.match(RE_TERMS);
+      if (hit) {
+        mustUseTerms = splitPlanList(hit[1]);
+        continue;
+      }
+      hit = part.match(RE_ROLE);
+      if (hit) {
+        role = normalizePlanRole(hit[1]);
+        continue;
+      }
+      if (!note) note = part;
+    }
+    out.push({
+      title,
+      note: note || '',
+      purpose: note || '',
+      role: role || '',
+      sourceSections,
+      mustUseTerms,
+    });
     if (out.length >= 7) break;
   }
   return out;
@@ -98,12 +252,12 @@ export function parseDeepReadPlan(content) {
 /** 兜底大纲：模型没给出可用大纲时按社区解读骨架走。 */
 export function defaultDeepReadPlan() {
   return [
-    { title: '为什么值得读这篇论文？', note: '导语：回答什么问题、为什么现在值得读、作者给出什么' },
-    { title: '旧方法卡在哪，作者换了个什么思路', note: '动机、旧做法局限、产物概览' },
-    { title: '核心机制：组件怎么从输入走到输出', note: '机制逐组件拆解 + 最小例子（全文最厚的一节）' },
-    { title: '关键公式与实验证据有多硬', note: '公式（如有）+ 有坐标的数字、消融与它改变/推翻的判断' },
-    { title: '失效边界与可以继续追的问题', note: '哪些条件下失效 + 3~5 条追问' },
-    { title: '社区视角：它值不值得跟进', note: '与既有工作的关系、可复现性、最该补的验证' },
+    { title: '为什么值得读这篇论文？', note: '导语：回答什么问题、为什么现在值得读、作者给出什么', role: 'intro', sourceSections: [], mustUseTerms: [] },
+    { title: '旧方法卡在哪，作者换了个什么思路', note: '动机、旧做法局限、产物概览', role: 'intro', sourceSections: [], mustUseTerms: [] },
+    { title: '核心机制：组件怎么从输入走到输出', note: '机制逐组件拆解 + 最小例子（全文最厚的一节）', role: 'method', sourceSections: [], mustUseTerms: [] },
+    { title: '关键公式与实验证据有多硬', note: '公式（如有）+ 有坐标的数字、消融与它改变/推翻的判断', role: 'results', sourceSections: [], mustUseTerms: [] },
+    { title: '它还没有证明什么', note: '显式局限 / 失败案例 / 伦理与 broader impacts / 每个实验不能回答什么（必写节）', role: 'limitation', sourceSections: [], mustUseTerms: [] },
+    { title: '技术小结：它值不值得跟进', note: '3~5 句可带走的判断：改变了哪一层、证据支持到哪、还差什么验证（必写节）', role: 'discussion', sourceSections: [], mustUseTerms: [] },
   ];
 }
 
@@ -121,6 +275,7 @@ export function buildDeepReadSectionMessages({
   researchMap = null,
   role = 'general',
   auditHints = [],
+  facts = [],
 }) {
   const total = plan.length;
   const sec = plan[index];
@@ -130,6 +285,36 @@ export function buildDeepReadSectionMessages({
   const outline = plan.map((s, i) => `${i + 1}. ${s.title}`).join('\n');
   const needMechanism = role === 'method' || role === 'formula' || index === 2;
   const needEvidence = role === 'results' || role === 'limitation';
+  // 必写小节（迁移自青稞解读规范）：边界小节与收尾小结。标题由计划决定，主题不许省。
+  const needBoundary = role === 'limitation' || /还没有证明|未证明|失效|边界|局限/.test(sec.title || '');
+  const needSummary = role === 'discussion' && index === total - 1;
+
+  // Writer v3：把「必须写出来的事实 / 必须保留的数字 / 允许的推导 / 禁止的编造」结构化给模型，
+  // 而不是让它从证据片段里自己猜哪些是重点。
+  const factList = (facts || []).filter(Boolean);
+  const mustNumbers = [];
+  for (const f of factList) {
+    for (const n of f.mustUseNumbers || []) {
+      if (!n || n.value == null) continue;
+      if (mustNumbers.some((x) => x.value === String(n.value) && x.factId === f.id)) continue;
+      mustNumbers.push({ factId: f.id, value: String(n.value), term: n.term || '', chunkIds: n.chunkIds || [] });
+    }
+  }
+  const mustCoverBlock = factList.length
+    ? [
+        '### MUST COVER（本节必须写出来的论文事实；写不出来就明说证据不足，不要用泛化句搪塞）',
+        ...factList.map(
+          (f) =>
+            `- [${f.id}]（${f.category}${f.priority === 'high' ? '·high' : ''}，来源：${f.sourceSections?.join('、') || f.origin || 'source'}）${f.claim}`,
+        ),
+      ].join('\n')
+    : '';
+  const mustNumbersBlock = mustNumbers.length
+    ? [
+        '### MUST USE NUMBERS（这些数字必须出现在本节，且与原文一致）',
+        ...mustNumbers.map((n) => `- ${n.term ? `${n.term}: ` : ''}${n.value}${n.chunkIds.length ? `（来源 chunk ${n.chunkIds.join(',')}）` : ''}`),
+      ].join('\n')
+    : '';
 
   const sys = [
     '你是「技术解释者」：既让零背景读者读得进去，也让懂行读者能复核机制、证据与边界。',
@@ -140,10 +325,22 @@ export function buildDeepReadSectionMessages({
     needMechanism ? '' : '',
     needEvidence ? EVIDENCE_REQUIREMENTS : '',
     needEvidence ? '' : '',
+    ATTRIBUTION_REQUIREMENTS,
+    '',
+    needBoundary ? LIMITATION_SECTION_REQUIREMENTS : '',
+    needBoundary ? '' : '',
+    needSummary ? SUMMARY_SECTION_REQUIREMENTS : '',
+    needSummary ? '' : '',
     '## 任务',
     `这是深度解读的第 ${index + 1}/${total} 节。`,
     `标题（必须原样使用，作为本节的 Markdown H2）：## ${sec.title}`,
     `本节写作要点：${sec.note || '（自由展开）'}`,
+    // Retrieval v2：把「本节对应的原文小节 + 必用术语」显式交给写作者，
+    // 让检索到的证据（source-local / mustUseTerms）真的在这节被用掉。
+    (sec.sourceSections || []).length ? `本节对应的论文原文小节：${sec.sourceSections.join('、')}` : '',
+    (sec.mustUseTerms || []).length
+      ? `本节必须出现的论文术语（原文形态，不要翻译；至少覆盖大部分）：${sec.mustUseTerms.join('、')}`
+      : '',
     index === 0
       ? '本节是全文开头：前 1~3 段内完成「论文回答什么问题 → 为什么现在值得读 → 作者给出什么」，允许口语化设问开场。'
       : index === total - 1
@@ -160,9 +357,17 @@ export function buildDeepReadSectionMessages({
     `全文大纲：\n${outline}`,
     researchMap ? `研究地图（全文级，供对齐口径）：\n${renderResearchMap(researchMap, { maxChars: 2000 })}` : '',
     globalContext ? `全局上下文（摘要与图片索引）：\n${globalContext}` : '',
-    `本节证据片段（从全文检索得到，共 ${evidence.length} 条；带着 chunk id 只是给你定位，不要写进正文）：\n${
+    mustCoverBlock,
+    `### SOURCE EVIDENCE（从全文检索得到，共 ${evidence.length} 条；chunk id 只给你定位，不要写进正文）：\n${
       renderEvidence(evidence) || '（无检索结果，请依据研究地图与全局上下文写作，不要编造细节）'
     }`,
+    mustNumbersBlock,
+    factList.length
+      ? '### DERIVED ALLOWED\n- 可以基于上面的 source 数字做换算/差值（例如「20 分钟 × 2fps = 2400 帧」），但**必须写成「按论文数据计算」这类明确措辞**，不得让推导数字看起来像论文直接给出的数值。'
+      : '',
+    factList.length
+      ? '### DO NOT INVENT\n- 不得补论文里没有的数字、benchmark、数据集或结论；证据不足时直接说证据不足；你自己的判断（interpretation）要与论文事实分开写。'
+      : '',
     auditHints.length ? `上一轮证据审计提出的整改要求（本次必须解决）：\n${auditHints.map((h) => `- ${h}`).join('\n')}` : '',
     `论文图片（编号即（图N）的 N）：\n${figList || '（无）'}`,
     prevMd ? `已写前文（衔接与术语保持一致，不要重复其内容）：\n${prevMd}` : '（这是第一节，没有前文）',
@@ -176,20 +381,46 @@ export function buildDeepReadSectionMessages({
   ];
 }
 
-/** 定点修复：只重写有问题的那一节（不整篇重生成）。 */
-export function buildSectionRepairMessages({ source, sectionTitle, currentBody, hints = [], evidence = [], researchMap = null, figures = [] }) {
+/**
+ * 定点修复 v2：只重写有问题的那一节（不整篇重生成）。
+ * 除了审计提出的 missing number/entity/formula，还接收「Fact Coverage 判定没写出来的事实」。
+ */
+export function buildSectionRepairMessages({
+  source,
+  sectionTitle,
+  currentBody,
+  hints = [],
+  evidence = [],
+  researchMap = null,
+  figures = [],
+  missingFacts = [],
+}) {
   const sys = [
     '你是论文解读的修订编辑。下面这一节在「证据审计」中出了问题，请按要求**只重写这一节**。',
     '硬性要求：',
     '1. 只输出这一节的 Markdown（从「## 标题」开始），标题保持不变；',
     '2. 只修审计指出的问题，其余内容与行文风格保持原样，不要顺手改写无关段落；',
     '3. 数字与结论必须来自给定证据片段；证据里没有的数字删掉，不要换成别的数字；',
-    '4. 不要写 chunk id，不要解释你在做什么。',
+    '4. **不得新增或删除小节、不得引入新事实**；',
+    '5. 不得把「按论文数据计算」的推导数字写成论文直接给出的数值；',
+    '6. 不要写 chunk id，不要解释你在做什么。',
   ].join('\n');
 
+  const factsBlock = (missingFacts || []).length
+    ? [
+        '## 本节还缺的论文事实（必须补进正文；证据不足就明说证据不足，不要用泛化句搪塞）',
+        ...missingFacts.map(
+          (f) =>
+            `- [${f.factId}]（${f.status}${f.priority === 'high' ? '·high' : ''}）${f.claim}` +
+            (f.mustUseNumbers?.length ? `\n    必须出现的数字：${f.mustUseNumbers.map((n) => n.value).join('、')}` : '') +
+            (f.chunkIds?.length ? `\n    依据 chunk：${f.chunkIds.join(',')}` : ''),
+        ),
+      ].join('\n')
+    : '';
   const ctx = [
     `论文：${source.title || '（无）'}`,
     `本节标题：## ${sectionTitle}`,
+    factsBlock,
     `审计问题与整改要求：\n${hints.map((h) => `- ${h}`).join('\n') || '-（未提供具体提示）'}`,
     researchMap ? `研究地图（口径对齐）：\n${renderResearchMap(researchMap, { maxChars: 1600 })}` : '',
     `可用证据片段：\n${renderEvidence(evidence) || '（无）'}`,
@@ -224,10 +455,19 @@ export function buildDeepReviewMessages(source, markdown, styleHint = '', { evid
     '8. （图N）引用分散嵌在对应正文小节（架构图在讲架构处、结果图在讲结果处、公式图在公式处），图文交错；',
     '   引用集中在文末或写成文末「（图1）…（图2）…」式图注清单 = 不合格，需把引用移回对应正文段落；',
     '9. 保留「核心公式」（LaTeX：$...$ / $$...$$）与「后续可追的问题」两节（原文无公式可说明无）；收尾是具体的社区视角判断而非空泛升华；',
+    '   结构里必须有「它还没有证明什么」这一节（显式局限 / 失败案例 / 伦理与 broader impacts / 附录限制）与一节的「技术小结」；',
+    '   缺了就补上，被合并进别节的要拆回来；这一节不是缺点清单，而是划清「哪部分有证据、哪部分还只是推测」；',
     '10. 去 AI 味与转述腔：无「不是A而是B/本质上/更重要的是/我的结论是」、无「随着…的发展」空泛开头、无「首先/其次/最后」「总而言之」、',
     '   无「我们提出/本文研究」式开场、无整段加粗；',
     '11. 结构完整、自然收尾，不套模板编号。',
-    styleHint ? `12. 文风体检整改（只调整表达与分段，不得改动事实与结构）：\n${styleHint}` : '',
+    '12. 归因与边界：论文主张写成「论文称/作者报告」，实验结果写成「实验显示」，编辑部判断写成「我们觉得/现有证据更适合支持」，',
+    '   三者不得混写；每个实验结果后要有一句「这个实验不能回答什么」；',
+    '   边界词（首次/最强/SOTA/碾压/下一代/已经解决/证明/排名）能删则删，必须保留的补上来源归属，不得写成领域共识；',
+    '13. 人声检查（逐条删模式）：',
+    humanVoiceRules(),
+    styleHint ? `14. 文风体检整改（只调整表达与分段，不得改动事实与结构）：\n${styleHint}` : '',
+    '15. 交付前自检：先按上面 13 条静默通读一遍，挑出仍然机械的残留（模板句、空泛升华、成串被动、同义轮换），改掉之后再输出；',
+    '   只输出最终 Markdown，不要输出自检过程、修改摘要或前言。',
   ].filter(Boolean).join('\n');
   const ctx = [
     `原文证据（用于核对数字、公式与结论）：\n${String(evidenceText || source.text || '').slice(0, 24000)}`,
@@ -281,8 +521,11 @@ export function buildDeepReadMessages(source, figures, { extraContext = '' } = {
     '  3) 核心公式：把论文最关键的 1~3 个公式（损失/更新式等）用 LaTeX 呈现——行内 $...$、块级 $$...$$（块级保持单行），',
     '     每个公式后解释符号含义与它为什么关键；论文没有关键公式就明说，不硬凑；',
     '  4) 边界与影响（哪些条件下失效、改写了什么）；',
-    '  5) 后续可追的问题：3~5 条追问，像给自己列阅读提纲（方法还没验证什么、最想看到的对照/消融实验、接下来该读哪类工作）；',
-    '  6) 收尾给一句**具体的社区视角判断**（不是复述论文）：与既有/相邻工作的关系、可复现性（代码/硬件/数据是否齐全）、',
+    '  5) **它还没有证明什么**（必写节，不许省）：显式局限、失败案例、伦理与 broader impacts、附录里的限制；',
+    '     每个关键实验结果后面都要写清「这个实验不能回答什么」，不是罗列缺点清单；',
+    '  6) 后续可追的问题：3~5 条追问，像给自己列阅读提纲（方法还没验证什么、最想看到的对照/消融实验、接下来该读哪类工作）；',
+    '  7) **技术小结**（必写节）：3~5 句给读者一条可带走的判断——改变了哪一层、证据支持到哪、还差什么验证；',
+    '     再补一句**具体的社区视角判断**（不是复述论文）：与既有/相邻工作的关系、可复现性（代码/硬件/数据是否齐全）、',
     '     或最值得怀疑/最该补的验证——落在一个可被讨论的具体判断上，不升华成金句。',
     '- 标题用「# [论文标题]」即可，正文前不要加别的元信息块。',
     '',
@@ -295,9 +538,13 @@ export function buildDeepReadMessages(source, figures, { extraContext = '' } = {
     '',
     '## 数字与证据纪律（硬性）',
     '- 只写有完整坐标的数字：模型规模、数据集、设置、对比基线、单位齐全；原文没给就明说没给，不脑补。',
+    '- 数字与条件绑定：表外（证据外）的数字一个都不写；严禁把 estimate 写成精确事实、把 qualitative case 写成定量证据、',
+    '  把不同 protocol 的数字直接横比、把「图中排序位置」写成 benchmark ranking。',
     '- 口径精确：「提升至 X」是终值、「提升了 X」是增量；百分比变化写清基数；小数位与原文一致。',
     '- 关键数字所在句子可整句加粗单列（一段仍至多一个加粗点）。',
-    '- 区分立场：论文声称/实验显示的结果直接陈述；「我们的判断/解读/推测」明示（可用「我们觉得」「这更像是」），不混进论文事实。',
+    '- 区分立场（硬性）：论文主张写成「论文称 / 作者报告」；实验结果显示写成「实验显示 / 在 X 设置下报告为」；',
+    '  「我们的判断/解读/推测」明示（可用「我们觉得」「这更像是」），三类句子不混写，不把判断写成领域共识。',
+    '- 研究边界词（首次/最强/SOTA/碾压/下一代/已经解决/证明/排名）：能删则删，必须保留的补上来源归属。',
     '- 不要为了「找出官方错误」而臆造差异；只有能在给定正文中明确核对出的不一致才可指出，且必须引用原文句子为证。',
     '',
     '## 写作纪律',
@@ -323,6 +570,9 @@ export function buildDeepReadMessages(source, figures, { extraContext = '' } = {
     '- 空泛指代换成具体名词：「东西 / 这件事 / 这些 / 一类」→「三个组件 / 两条路线 / 一组实验」这类精确类别。',
     '- 不用空泛比较（更适合 / 更像 / 更自然 / 更高级），除非点名具体用途或代价；不写排比三连。',
     '- 结尾不落「能力飞轮 / 时代分水岭」这类空泛比喻，落在具体判断或结果上。',
+    '',
+    '## 去 AI 味：逐条删模式 + 注入人声',
+    humanVoiceRules(),
     '',
     '## 图片引用（（图N）嵌进对应正文；我会自动在引用处插入图片与图注）',
     '- 引用时机：讲到该图内容的**正文段落里**就写（图N）——架构图在讲架构那段引、机制图在讲机制那段引、结果/公式图在讲结果/公式那段引，',

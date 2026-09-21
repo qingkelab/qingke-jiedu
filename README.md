@@ -79,6 +79,16 @@ Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy 
 - **retrieval**：每个小节按「标题 + 写作要点 + 论文地图」做词法检索（中文 2-gram / 英文词干，无 embedding 依赖），
   叠加章节角色先验（方法节偏爱方法/公式/架构图，结果节偏爱实验/表格/数字，局限节偏爱 limitation/ablation/失败案例），
   每节注入证据片段（带 chunk id）+ 少量全局上下文（摘要、图片索引、研究地图）。
+- **retrieval v2（按具体小节检索）**：大纲阶段为每节额外产出 `sourceSections`（论文原文小节名）、
+  `mustUseTerms`（必用术语/表号/图号）与 `role`；检索时先做 source section 对齐（exact → 归一化 →
+  编号 → 术语模糊 → 缩写 → 父级，对不上会如实记录），再用「source-local / must-use / 地图证据 /
+  角色词 / 中文要点」五路查询分槽选取，并对前文已用过的 chunk 施加多样性惩罚（关键证据豁免）。
+  这样同角色小节不再拿到同一批证据；`Table 3`/`Figure 5` 这类引用会结构化绑定到第 N 个表/图 chunk。
+- **plan coverage v1（关键事实覆盖）**：研究地图里的 `main_results / ablations / limitations`
+  会被种成 5–8 条「关键事实」并绑定到真实原文小节；如果计划漏掉了承载这些事实的小节
+  （例如 1706 的 `Regularization`），会自动补进最相关小节。每节最终只关联 ≤3 个原文小节，
+  `mustUseTerms` 按「关键术语 → 稀有 → 指标 → 消融变量 → 局限词」排序后截断，保证
+  `label smoothing` / `MATH-500` 这类「针尖事实」不会被普通词挤掉。
 - **audit**：成稿后核对数字/百分比能否在原文找到、模型与数据集名、main result 覆盖、消融与局限是否覆盖、
   公式是否被改写、`（图N）` 是否越界或与图注不符；产出内部 metadata（不进正文，另存 `deepread.audit.json`）。
 - **repair**：审计不通过时**只重写有问题的那一节**（按 H2 标题定点替换）并复检，不整篇重生成。
@@ -91,6 +101,70 @@ Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy 
   `rawContentLength` / `fallbackReason` / `durationMs`），`model_truncated` 与 `parse_failed`
   严格区分；`audit` 会结合上游地图可信度给出 `passed` / `passed_with_warning` / `failed`，
   避免「地图没生效但审计说通过」被当成结论。
+
+### 生成质量：归因 / 数字条件 / 必写小节 / 数字核验表
+
+深度解读的「可读」不等于「可信」。这一层是从青稞社区技术解读规范里迁过来的**事实纪律**，
+全部作用在提示词与确定性后处理上，不改动 Research Map / Retrieval / Audit 的核心算法：
+
+- **归因分句（硬性）**：论文主张写「论文称 / 作者报告」，实验结果写「实验显示 / 在 X 设置下报告为」，
+  编辑部判断写「我们觉得 / 现有证据更适合支持」——三类句子不混写，判断不写成领域共识。
+- **数字必须绑定条件**：模型 / 数据集 / 任务 / 设置 / 基线 / 指标口径 / 单位缺一不可；
+  **证据之外的数字一个都不写**；禁止把 estimate 写成精确事实、把定性 case 写成定量证据、
+  把不同 protocol 的数字直接横比、把「图中排序位置」写成 benchmark ranking。
+- **必写小节**：计划阶段就要求保留「它还没有证明什么」（显式局限 / 失败案例 / 伦理与 broader impacts /
+  附录限制）与「技术小结」两节；每个实验结果后面要有一句「这个实验不能回答什么」。
+  模型没规划到这两节时，兜底大纲与终稿审校会补回来。
+- **慎用词 / 研究边界词扫描**：`src/styleCheck.js` 除 AI 味词外，还会统计
+  「真正 / 尤其 / 关键在于 / 值得注意的是 / 首次 / 革命 / 颠覆 / 最强 / SOTA / 碾压 / 下一代 / 已经解决」
+  与「排名 / 超越 / 证明 / best method / ranking」等边界词，命中以 `info` 提示并注入审校清单
+  （只提示、不阻断，`ok` 仍只由 `warn` 级问题决定）。
+- **去 AI 味：逐条删模式 + 注入人声**（规则整理自社区流传的「去 AI 味」文本提示词，做了本项目化改写）。
+  提示词层把 10 类 AI 模式逐条列出并要求「要么删、要么换成具体事实/动作动词/主动句」：
+  夸大规模（里程碑意义 / 至关重要 / 反映更广泛趋势）、动名词假深度（突出了 / 反映了 / 促进了）、
+  广告腔与模糊归因（植根于 / 专家认为）、滥用系动词（是 / 构成 / 被视为）、被动与幽灵主语（需要被配置 → 你需要配置）、
+  三段式与同义轮换、抽象名词空转、客服套话（希望对你有帮助 / 总而言之）、过度谨慎的「可能」；
+  同时要求注入人声：节奏错落、对事实给反应、允许不确定、第一人称、保留一点不整齐。终稿审校多了一遍「静默通读 → 改掉残留 → 只输出最终稿」。
+  检查层把这四类模式变成可数指标，输出 `AI 腔密度 x/千字`，并作为 `aiTonePer1k` 进入 benchmark（越低越好）。
+  **保留本项目自己的版式选择**：小标题仍可用 emoji、破折号仍按用量上限管理（与流传版本不同，不照抄「一律禁用」）。
+- **数字核验表（`deepread.fact-check.md`）**：终稿里每个数字都回查原文 chunk，落成三态表格——
+  `source`（原文能定位，附条件句与 chunk）/ `derived`（正文标注了「按论文数据计算」）/
+  `unsupported`（原文查不到）。统计写进 `meta.factCheckStats` 与 `deepread.audit.json`，
+  并作为 `factCheckCoverage` / `factCheckUnsupportedRate` 进入 benchmark。
+- **源码抽取去噪**：arXiv HTML 的 MathML 同时含可见数字与 `application/x-tex` 注释，
+  直接取 `textContent` 会把两者粘起来（`41.0`+`41.0` → `41.041.0`、`N=6` → `N=6N=6`）。
+  切片现在遇到 `<math>` 一律取 LaTeX（`$N=6$`），粘连片段 5 → 0 个；
+  数字定位也补了一层**数值等价**（`41.0b` ≡ `41.0` ≡ `41`），避免把合法数字误判成编造。
+  实测同一篇 1706 终稿：`writerFactCoverage` 0% → 100%、`unsupportedFactRate` 100% → 0%。
+
+> 核验表不是新的审计器，而是把「这条数字从哪来、在什么条件下成立」摊开给人看：
+  表外出现数字 = 这条 claim 没有证据，要么补条件要么删。
+
+### 发布到 public repo（GitHub Pages）
+
+把一次深度解读发布成一个公开仓库里的独立文章页，默认**只规划不落盘**：
+
+```bash
+# 先看一眼会写哪些文件（默认 dry-run，不写盘、不碰 git）
+node scripts/publish-article.js --dir output/<id> --repo ~/Documents/qingke-embodied-ai-pages
+
+# 确认后真正写盘
+node scripts/publish-article.js --dir output/<id> --repo ~/Documents/qingke-embodied-ai-pages --yes
+
+# 需要建分支 + 提交 + 推送 + 开 PR 时（默认不做，必须显式加）
+node scripts/publish-article.js --dir output/<id> --repo <repo> --yes --push --pr
+```
+
+产物形态：`article/<NNN>/index.html`（自包含 HTML，内联样式）+ `article/<NNN>/images/*.png`，
+正文里的本地图片会改写成 `images/xxx.png`，核验表折叠在页尾 `<details>` 里。
+仓库路径也可以走环境变量 `PUBLIC_REPO_DIR`。
+
+编号 = 已有 `article/NNN` 最大值 +1，不复用、不重排；`--number` 指定到已存在的编号会被拒绝
+（要覆盖得显式加 `--force`）。首页入口更新分三种情况：
+
+- 首页有 `<!-- articles -->` 标记 → 插到标记后面（**推荐**在公开仓库首页保留这个标记）；
+- 没有标记但有 `</ul>` → 插到文章列表末尾（兼容卡片式首页；已有 `class="card"` 时按卡片样式生成）；
+- 两者都没有 → **不动首页**，只把入口片段打印出来让人工粘贴（绝不往 `</body>` 后面瞎追加）。
 
 ### 质量基准测试（Benchmark）
 
@@ -109,9 +183,15 @@ npm run benchmark -- --update-baseline # 把本次结果写成新 baseline
 `formulaCoverage` / `ablationCoverage` / `limitationCoverage` / `auditMissingRate` /
 `sectionCompleteness` / `lengthStability`，外加**阶段可靠性指标**（`researchMapModelSuccess` /
 `researchMapFallbackRate` / `planModelSuccess` / `planFallbackRate` / `stagesWithWarnings` /
-`evidenceFromModelMapRate` / `auditConfidence`）——CLI 与 summary 会把「内容覆盖」「阶段可靠性」
-「审计可信度」分开列出，research map 没生效时显式点名。每次运行的 `summary.json` + 逐篇明细写入
+`evidenceFromModelMapRate` / `auditConfidence`）与**检索质量指标**（`uniqueEvidencePerPaper` /
+`evidenceReuseRate` / `sameRoleOverlap` / `sourceSectionHitRate` / `mustUseTermHitRate` /
+`lateEvidenceHitRate` / `retrievalProbeRate`）——CLI 与 summary 会把「内容覆盖」「阶段可靠性」
+「审计可信度」「检索质量」分开列出，research map 没生效时显式点名。每次运行的 `summary.json` + 逐篇明细写入
 `benchmark/runs/<timestamp>/`，并与 `benchmark/baseline.json` 对比输出 improved / regressed / unchanged。
+
+另有**数字核验指标**（`factCheckCoverage` / `factCheckUnsupportedRate` / `factCheckNumbers`），
+来自 `src/deepread/factCheck.js` 的确定性回查：终稿数字里有多少能在原文定位到承载它的句子。
+它们只做加法，不改上面任何既有指标的口径；旧 baseline 没记录这几个键时会显示为「无基线可比」。
 
 **注意**：benchmark 衡量的是证据覆盖与结构完整性，**不是对文章文学质量的绝对评分**；第一版不使用 LLM judge。
 没有配置真实模型时，benchmark 会明确标记 `skipped` 并提示需要哪个环境变量，命令仍以 0 退出，
@@ -124,7 +204,8 @@ link2post/
 ├── server.js                 # Express 入口 + 静态/下载/处理路由
 ├── benchmark/                # 深度解读质量基准（papers / expected / runs / metrics / baseline）
 ├── scripts/
-│   └── deepread-benchmark.js # npm run benchmark 入口
+│   ├── deepread-benchmark.js # npm run benchmark 入口
+│   └── publish-article.js    # 发布一次深度解读到 public repo（默认 dry-run）
 ├── src/
 │   ├── config.js             # 环境变量与默认配置
 │   ├── fetchSource.js        # 下载并识别 PDF / 网页
@@ -145,10 +226,15 @@ link2post/
 │   │   ├── researchMap.js    # 论文地图（问题/主张/方法/公式/结果/消融/局限 + 证据定位）
 │   │   ├── retrieval.js      # 词法检索选证据（章节角色先验 + 全局上下文）
 │   │   ├── audit.js          # 证据审计（数字/实体/覆盖/公式/图）
+│   │   ├── factCheck.js      # 数字核验表（终稿数字 ↔ 原文句子，三态）
+│   │   ├── evidenceLedger.js # 事实台账（关键事实 → 有没有真的被写出来）
 │   │   ├── review.js         # 终稿审校护栏（防截断）
 │   │   ├── prompts.js        # 各阶段提示词
 │   │   ├── legacy.js         # 旧流程（multipass / 整篇生成）作为降级路径
 │   │   └── index.js          # runDeepRead 编排
+│   ├── publish/
+│   │   └── publicArticle.js  # public repo 发布：规划 / 落盘 / git 命令（默认不执行）
+│   ├── styleCheck.js         # 文风体检（AI 味词 + 慎用词 + 研究边界词）
 │   ├── pipeline.js           # 图文解读主流程编排
 │   └── store.js              # 落盘 + ZIP/Markdown 打包
 ├── public/                   # 前端（index.html / app.js / style.css）

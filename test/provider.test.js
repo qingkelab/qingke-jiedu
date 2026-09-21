@@ -76,7 +76,11 @@ function respond(sys, user) {
     return `## ${m ? m[1].trim() : '小节'}\n\n机制：输入 $h_t = \\alpha \\odot h_{t-1}$，输出是更新后的状态。结果 BLEU 41.8，消融掉到 39.1，只在文本模态验证。`;
   }
   if (/只重写这一节|修订编辑/.test(`${sys}\n${user}`)) {
-    return '## 关键结果与消融\n\n修订：BLEU 41.8，去掉循环状态掉到 39.1。';
+    // 修订只在原文基础上补充（不再把整节替换成一句话）：Retrieval v2 / Fact Coverage 之后
+    // 定点修复会真的被触发，假模型必须保留原有正文，否则「报告长度」这类断言会失真。
+    const cur = user.match(/当前这一节内容：\n([\s\S]*)$/);
+    const body = cur ? cur[1].trim() : '## 关键结果与消融\n\nBLEU 41.8。';
+    return `${body}\n\n补：去掉循环状态后 BLEU 掉到 39.1，显存 18.6 GB（证据 chunk c4）。`;
   }
   // —— 旧流程：整篇一次生成（回退路径）——
   if (/直接输出 Markdown 报告/.test(sys)) {

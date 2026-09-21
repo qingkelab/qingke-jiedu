@@ -7,6 +7,7 @@ import { deepReadMultipass, deepReadSinglePass, isChineseText } from '../deeprea
 import { buildDeepReviewMessages } from '../deepread/prompts.js';
 import { acceptReview, reviewBudgetTokens } from '../deepread/review.js';
 import { STAGE_SOURCE, STAGE_STATUS, makeStage, summarizeStages } from '../deepread/stages.js';
+import { checkReviewFactRegression } from '../deepread/evidenceLedger.js';
 
 function buildMessages(source, limits) {
   const sys = [
@@ -307,6 +308,8 @@ export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
               markdown: result.markdown,
               evidenceText: result.meta?.evidenceText || '',
               emit,
+              // Review 回归护栏：审校不能删事实、不能改数字口径、不能增删小节
+              factGuard: { ledger: result.meta?.evidenceLedger || null },
             });
             return {
               ...result,
@@ -371,7 +374,7 @@ export function openAiCompatibleProvider({ name, apiKey, baseUrl, model }) {
 }
 
 /** 终稿审校：对照「检索到的证据」而不是正文前 16000 字，避免审校阶段又丢后半篇信息。 */
-async function reviewDeepReadMarkdown({ chat, source, markdown, evidenceText = '', emit }) {
+async function reviewDeepReadMarkdown({ chat, source, markdown, evidenceText = '', emit, factGuard = null }) {
   if (!config.qualityReview || !markdown) {
     return {
       markdown,
@@ -422,7 +425,35 @@ async function reviewDeepReadMarkdown({ chat, source, markdown, evidenceText = '
     };
     const verdict = acceptReview(markdown, review?.content);
     if (verdict.ok && isChineseText(review.content)) {
-      return { markdown: review.content, stage: makeStage({ ...base, status: STAGE_STATUS.MODEL_SUCCESS, parsed: true }) };
+      // 事实层护栏：审校稿不能让任何一条事实的覆盖状态变差，也不能增删小节
+      const factVerdict = checkReviewFactRegression({
+        before: markdown,
+        after: review.content,
+        ledger: factGuard?.ledger || null,
+      });
+      if (!factVerdict.ok) {
+        console.warn('[deepread/review] 丢弃审校结果（事实覆盖回退）：', factVerdict.reason);
+        return {
+          markdown,
+          stage: makeStage({
+            ...base,
+            status: STAGE_STATUS.WARN,
+            parsed: false,
+            reason: `审校导致事实覆盖回退，保留原稿：${factVerdict.reason}`,
+            fallbackReason: factVerdict.reason,
+            extra: { ...(base.extra || {}), factRegression: factVerdict.regressed?.slice(0, 4) || [] },
+          }),
+        };
+      }
+      return {
+        markdown: review.content,
+        stage: makeStage({
+          ...base,
+          status: STAGE_STATUS.MODEL_SUCCESS,
+          parsed: true,
+          extra: { ...(base.extra || {}), factGuard: factVerdict.skipped ? 'skipped' : 'passed' },
+        }),
+      };
     }
     if (review?.content) {
       console.warn('[deepread/review] 丢弃审校结果：', verdict.reason || '非中文输出');

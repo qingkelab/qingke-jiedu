@@ -1,6 +1,6 @@
 {
   "id": "2409.12191",
-  "at": "2026-09-17T16:29:13.241Z",
+  "at": "2026-09-18T23:41:28.499Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
@@ -11,7 +11,7 @@
     "formulaCoverage": null,
     "ablationCoverage": 1,
     "limitationCoverage": 0,
-    "auditMissingRate": 0.0876,
+    "auditMissingRate": 0.0091,
     "sectionCompleteness": 1,
     "lengthStability": 1,
     "researchMapModelSuccess": 1,
@@ -19,8 +19,36 @@
     "planModelSuccess": 1,
     "planFallbackRate": 0,
     "stagesWithWarnings": 1,
-    "evidenceFromModelMapRate": 0.7143,
-    "auditConfidence": 0.5
+    "evidenceFromModelMapRate": 0.4694,
+    "auditConfidence": 0.8,
+    "uniqueEvidencePerPaper": 49,
+    "evidenceReuseRate": 0.3797,
+    "sameRoleOverlap": 0.1847,
+    "sourceSectionHitRate": 1,
+    "mustUseTermHitRate": 0.8214,
+    "lateEvidenceHitRate": null,
+    "retrievalProbeRate": 0.6667,
+    "criticalFactCount": 8,
+    "criticalFactMappedCount": 8,
+    "criticalFactUnmappedCount": 0,
+    "criticalFactCoverage": 1,
+    "criticalFactSectionCoverage": 1,
+    "highPriorityFactCoverage": 1,
+    "planSourceSectionCoverage": 0.3929,
+    "sourceSectionOverflowCount": 18,
+    "mustUseRareTermCoverage": 0.902,
+    "criticalSourceSectionCoverage": 1,
+    "highPrioritySourceSectionCoverage": 1,
+    "factBackedSourceSectionCoverage": 1,
+    "guaranteedGroups": 5,
+    "allocationOverflowCount": 5,
+    "writerFactCoverage": 1,
+    "mainResultFactCoverage": 1,
+    "ablationFactCoverage": null,
+    "limitationFactCoverage": null,
+    "unwrittenFactRate": 0,
+    "unsupportedFactRate": 0,
+    "derivedFactRate": 1
   },
   "detail": {
     "evidence": [
@@ -61,10 +89,11 @@
         "ok": true,
         "keywordHits": [
           "DocVQA",
-          "MathVista",
           "video"
         ],
-        "missingKeywords": [],
+        "missingKeywords": [
+          "MathVista"
+        ],
         "numberHits": [
           "20"
         ],
@@ -78,13 +107,12 @@
         "section": "Ablation Study",
         "ok": true,
         "keywordHits": [
+          "ablation",
           "消融",
           "动态分辨率",
           "M-RoPE"
         ],
-        "missingKeywords": [
-          "ablation"
-        ],
+        "missingKeywords": [],
         "numberHits": [],
         "missingNumbers": []
       }
@@ -154,16 +182,16 @@
       "score": 1,
       "sections": 7,
       "planned": 7,
-      "chars": 11497,
+      "chars": 14001,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0.0876,
+    "auditMissingRate": 0.0091,
     "reliability": {
       "researchMapStatus": "model_success",
       "researchMapSource": "model",
       "researchMapFinishReason": "stop",
-      "researchMapRawContentLength": 16359,
+      "researchMapRawContentLength": 17545,
       "researchMapFallbackReason": "",
       "planStatus": "model_success",
       "planSource": "model",
@@ -172,7 +200,7 @@
         "review"
       ],
       "stageSummary": {
-        "total": 8,
+        "total": 9,
         "withWarnings": 1,
         "stagesWithWarnings": [
           "review"
@@ -181,16 +209,287 @@
           "review"
         ],
         "truncated": [],
-        "skipped": [],
+        "skipped": [
+          "repair"
+        ],
         "failed": []
       },
-      "evidenceChunks": 28,
-      "evidenceFromModelMap": 20
+      "evidenceChunks": 49,
+      "evidenceFromModelMap": 23
     },
     "audit": {
-      "verdict": "failed",
+      "verdict": "passed_with_warning",
       "warnings": [],
       "researchMapSource": "model"
+    },
+    "retrieval": {
+      "uniqueEvidencePerPaper": 49,
+      "evidenceReuseRate": 0.3797,
+      "sameRoleOverlap": 0.1847,
+      "sourceSectionHitRate": 1,
+      "mustUseTermHitRate": 0.8214,
+      "slots": 79,
+      "reusedSlots": 30,
+      "sectionsRequestingSource": 7,
+      "sectionsWithSourceMatch": 7,
+      "mustUseTermsTotal": 56,
+      "mustUseTermsHit": 46,
+      "lateAnchors": 0,
+      "lateAnchorsRetrieved": 0,
+      "probes": [
+        {
+          "term": "min_pixels",
+          "matched": true,
+          "status": "covered",
+          "sourceChunks": 3,
+          "retrievedChunks": 2,
+          "hit": true,
+          "sourceSections": [
+            "Dynamic Resolution"
+          ],
+          "criticalFactIds": [],
+          "planSection": "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token / 消融与边界：动态分辨率/M-RoPE/scaling 的收益有代价，社区下一步追什么",
+          "requestedBy": [
+            "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token",
+            "消融与边界：动态分辨率/M-RoPE/scaling 的收益有代价，社区下一步追什么"
+          ],
+          "guaranteed": false,
+          "retrievalCandidates": 3,
+          "allocatedCandidates": 2,
+          "requested": true,
+          "listedInMustUseTermsBy": [
+            "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token",
+            "消融与边界：动态分辨率/M-RoPE/scaling 的收益有代价，社区下一步追什么"
+          ],
+          "mustUseTerms": [
+            "robustness",
+            "qwen-vl max",
+            "qwen-vl plus",
+            "powerful qwen2",
+            "set min_pixels",
+            "unlike qwen-vl"
+          ],
+          "reason": "retrieved",
+          "lifecycle": {
+            "retrieved": true,
+            "written": true,
+            "status": "covered"
+          },
+          "examples": [
+            {
+              "chunkId": "c66",
+              "sourceSection": "Dynamic Resolution",
+              "usedBy": [
+                "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token"
+              ],
+              "snippet": "图注：Figure 4: Qwen2-VL-7B with different min_pixels. Small images are upscaled to surpass a specified min_pixel"
+            },
+            {
+              "chunkId": "c67",
+              "sourceSection": "Dynamic Resolution",
+              "usedBy": [
+                "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token",
+                "消融与边界：动态分辨率/M-RoPE/scaling 的收益有代价，社区下一步追什么"
+              ],
+              "snippet": "As shown in Table 7, we compare the performance between dynamic resolution and fixed resolution. For fixed res"
+            }
+          ]
+        },
+        {
+          "term": "16384",
+          "matched": true,
+          "status": "covered",
+          "sourceChunks": 4,
+          "retrievedChunks": 4,
+          "hit": true,
+          "sourceSections": [
+            "Model Architecture",
+            "Dynamic Resolution",
+            "M-RoPE"
+          ],
+          "criticalFactIds": [],
+          "planSection": "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token / M-RoPE 把旋转位置拆成时间、高、宽，图像和视频走同一套 token 逻辑",
+          "requestedBy": [
+            "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token",
+            "M-RoPE 把旋转位置拆成时间、高、宽，图像和视频走同一套 token 逻辑",
+            "消融与边界：动态分辨率/M-RoPE/scaling 的收益有代价，社区下一步追什么"
+          ],
+          "guaranteed": false,
+          "retrievalCandidates": 4,
+          "allocatedCandidates": 4,
+          "requested": true,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "retrieved",
+          "lifecycle": {
+            "retrieved": true,
+            "written": true,
+            "status": "covered"
+          },
+          "examples": [
+            {
+              "chunkId": "c22",
+              "sourceSection": "Model Architecture",
+              "usedBy": [
+                "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token",
+                "M-RoPE 把旋转位置拆成时间、高、宽，图像和视频走同一套 token 逻辑"
+              ],
+              "snippet": "Unified Image and Video Understanding\n\nQwen2-VL employs a mixed training regimen incorporating both image and "
+            },
+            {
+              "chunkId": "c67",
+              "sourceSection": "Dynamic Resolution",
+              "usedBy": [
+                "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token",
+                "消融与边界：动态分辨率/M-RoPE/scaling 的收益有代价，社区下一步追什么"
+              ],
+              "snippet": "As shown in Table 7, we compare the performance between dynamic resolution and fixed resolution. For fixed res"
+            },
+            {
+              "chunkId": "c69",
+              "sourceSection": "Dynamic Resolution",
+              "usedBy": [
+                "Naive Dynamic Resolution：任意图像都变成可变数量视觉 token",
+                "表 2 和定性附录：DocVQA、InfoVQA、OCRBench 上追平/超过顶级闭源"
+              ],
+              "snippet": "$$=16384\\times 28\\times 28$$"
+            }
+          ]
+        },
+        {
+          "term": "2400",
+          "matched": false,
+          "status": "missing_evidence",
+          "sourceChunks": 0,
+          "retrievedChunks": 0,
+          "hit": false,
+          "sourceSections": [],
+          "criticalFactIds": [],
+          "planSection": "",
+          "requestedBy": [],
+          "guaranteed": false,
+          "retrievalCandidates": 0,
+          "allocatedCandidates": 0,
+          "requested": false,
+          "listedInMustUseTermsBy": [],
+          "mustUseTerms": [],
+          "reason": "term_not_in_source",
+          "lifecycle": {
+            "retrieved": false,
+            "written": false,
+            "status": "missing_evidence"
+          },
+          "examples": []
+        }
+      ]
+    },
+    "planCoverage": {
+      "criticalFactCount": 8,
+      "criticalFactMappedCount": 8,
+      "criticalFactUnmappedCount": 0,
+      "criticalFactCoverage": 1,
+      "criticalFactSectionCoverage": 1,
+      "highPriorityFactCoverage": 1,
+      "planSourceSectionCoverage": 0.3929,
+      "sourceSectionOverflowCount": 18,
+      "mustUseRareTermCoverage": 0.902
+    },
+    "allocation": {
+      "stats": {
+        "groups": 10,
+        "guaranteedGroups": 5,
+        "preferredGroups": 0,
+        "overflow": 5,
+        "maxGuaranteedSlots": 4
+      },
+      "coverage": {
+        "criticalSourceSectionCoverage": 1,
+        "highPrioritySourceSectionCoverage": 1,
+        "factBackedSourceSectionCoverage": 1,
+        "guaranteedSourceSections": 2,
+        "guaranteedSourceSectionsCovered": 2,
+        "overflow": 5
+      },
+      "overflow": [
+        {
+          "sourceSection": "fact:cf-4",
+          "factIds": [
+            "cf-4"
+          ],
+          "criticality": 5.6,
+          "reason": "「表 2 和定性附录：DocVQA、InfoVQA、OCRBench 上追平/超过顶级闭源」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-5",
+          "factIds": [
+            "cf-5"
+          ],
+          "criticality": 5.6,
+          "reason": "「表 2 和定性附录：DocVQA、InfoVQA、OCRBench 上追平/超过顶级闭源」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-6",
+          "factIds": [
+            "cf-6"
+          ],
+          "criticality": 5.6,
+          "reason": "「表 2 和定性附录：DocVQA、InfoVQA、OCRBench 上追平/超过顶级闭源」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-7",
+          "factIds": [
+            "cf-7"
+          ],
+          "criticality": 5.6,
+          "reason": "「表 2 和定性附录：DocVQA、InfoVQA、OCRBench 上追平/超过顶级闭源」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        },
+        {
+          "sourceSection": "fact:cf-8",
+          "factIds": [
+            "cf-8"
+          ],
+          "criticality": 5.6,
+          "reason": "「表 2 和定性附录：DocVQA、InfoVQA、OCRBench 上追平/超过顶级闭源」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+        }
+      ],
+      "guaranteedSections": [
+        "Experiments",
+        "fact:cf-1",
+        "fact:cf-2",
+        "fact:cf-3",
+        "Appendix A Model Capabilities and Qualitative Examples"
+      ]
+    },
+    "factCoverage": {
+      "assigned": 8,
+      "unassigned": 20,
+      "unassignedFactRate": 0.7143,
+      "covered": 0,
+      "derived": 8,
+      "unsupported": 0,
+      "unwritten": 0,
+      "missingEvidence": 0,
+      "writtenFactCoverage": 1,
+      "coverage": 1,
+      "unsupportedFactRate": 0,
+      "unwrittenFactRate": 0,
+      "derivedFactRate": 1,
+      "highPriorityCoverage": 1,
+      "mainResultCoverage": 1,
+      "ablationCoverage": null,
+      "limitationCoverage": null,
+      "failureCoverage": null
+    },
+    "evidenceLedgerStats": {
+      "total": 28,
+      "byCategory": {
+        "main_result": 8,
+        "formula": 5,
+        "figure": 15
+      },
+      "withEvidence": 28,
+      "retrievedIntoSection": 8,
+      "highPriority": 8
     }
   }
 }

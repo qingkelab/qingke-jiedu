@@ -1190,6 +1190,17 @@ function renderDeepAudit(d) {
   if (meta) {
     chips.push(`<span class="audit-chip info">审计数字 ${meta.numbers} 个 / 公式 ${meta.formulas} 条</span>`);
   }
+  // 数字核验表（迁移自青稞解读规范）：终稿数字 ↔ 原文条件，单独一份产物
+  const fc = d.factCheck;
+  if (fc && fc.stats) {
+    const s = fc.stats;
+    const bad = s.unsupported ? 'warn' : 'info';
+    chips.push(
+      fc.url
+        ? `<a class="audit-chip ${bad}" href="${fc.url}" target="_blank" rel="noopener" title="终稿每个数字的来源与条件">数字核验 ${s.numbers} 个 · 可定位 ${s.located} · 查不到 ${s.unsupported} →</a>`
+        : `<span class="audit-chip ${bad}">数字核验 ${s.numbers} 个 · 可定位 ${s.located} · 查不到 ${s.unsupported}</span>`,
+    );
+  }
   el.hidden = false;
   el.innerHTML = chips.join('');
 }
@@ -1212,6 +1223,9 @@ function renderStyleCheck(el, style) {
     `感叹号 ${m.exclamations}`,
     `破折号 ${m.dashes}`,
     `AI 味词 ${m.aiPhraseTotal}`,
+    `慎用词 ${m.cautionPhraseTotal || 0}`,
+    `边界词 ${m.boundaryPhraseTotal || 0}`,
+    `AI 腔 ${m.aiTonePer1k != null ? m.aiTonePer1k : 0}/千字`,
     `加粗锚点 ${m.boldAnchors}`,
   ];
   const warns = (style.warnings || [])

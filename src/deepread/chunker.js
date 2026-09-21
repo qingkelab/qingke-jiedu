@@ -236,6 +236,34 @@ function mathToLatex(el) {
 }
 
 /**
+ * 取节点文本，但把 `<math>` 子树替换成 `$LaTeX$`（而不是它的 textContent）。
+ *
+ * 为什么不能直接用 textContent：arXiv HTML 的 MathML 同时含**可见数字**
+ * （`<mn>41.0</mn>`）与 `application/x-tex` **注释**（同一个 `41.0`），
+ * textContent 会把两者首尾相接 → `41.041.0`、`N=6N=6`、`1/41/4`。
+ * 这类粘连会污染检索与审计，并让「终稿数字能否在原文定位」误判成 unsupported
+ * （例：正文写 41.0 BLEU，原文被拼成 41.041.0 → 数字索引里没有干净的 41.0）。
+ */
+function textWithMath(node) {
+  let out = '';
+  for (const child of node.childNodes || []) {
+    if (child.nodeType !== 1) {
+      out += child.textContent || '';
+      continue;
+    }
+    const tag = child.tagName?.toLowerCase() || '';
+    if (tag === 'math') {
+      out += ` $${mathToLatex(child)}$ `;
+    } else if (typeof child.querySelector === 'function' && child.querySelector('math')) {
+      out += textWithMath(child); // 公式藏在下级元素里，继续递归而不是整段取 textContent
+    } else {
+      out += child.textContent || '';
+    }
+  }
+  return out;
+}
+
+/**
  * 遍历 arXiv HTML 正文，按 document order 抽 section / paragraph / formula / figure / table。
  * @param {Document} root 已解析的 DOM（jsdom）
  */
@@ -281,15 +309,15 @@ export function blocksFromDom(root) {
       const isTableNode = tag === 'table' || (/ltx_table/.test(cls) && node.querySelector('table'));
       if (isTableNode) {
         const cap = node.querySelector('figcaption') || node.querySelector('caption') || node.querySelector('.ltx_caption');
-        const caption = normalizeText(cap ? cap.textContent : '');
-        const body = normalizeText(node.textContent).slice(0, 1200);
+        const caption = normalizeText(cap ? textWithMath(cap) : '');
+        const body = normalizeText(textWithMath(node)).slice(0, 1200);
         pushBlock('table', `${caption ? `${caption}\n` : ''}${body}`.trim());
         continue;
       }
 
       if (tag === 'figure' || /ltx_figure/.test(cls)) {
         const cap = node.querySelector('figcaption') || node.querySelector('.ltx_caption');
-        const caption = normalizeText(cap ? cap.textContent : node.textContent);
+        const caption = normalizeText(cap ? textWithMath(cap) : textWithMath(node));
         pushBlock('figure', caption ? `图注：${caption}` : '');
         // figure 内部文字不再重复计入
         continue;
@@ -303,18 +331,9 @@ export function blocksFromDom(root) {
       if (tag === 'p' || /ltx_para|ltx_abstract/.test(cls)) {
         // 段落里可能内嵌公式：拆出来单独成块，便于审计公式
         const maths = [...node.querySelectorAll('math')];
-        let text = '';
-        if (maths.length) {
-          for (const child of node.childNodes) {
-            if (child.nodeType === 1 && child.tagName?.toLowerCase() === 'math') {
-              text += ` $${mathToLatex(child)}$ `;
-            } else {
-              text += child.textContent || '';
-            }
-          }
-        } else {
-          text = node.textContent || '';
-        }
+        // 注意：段落容器常常是包住 <p> 的 <div class="ltx_para">，直接取 textContent
+        // 会把 MathML 的可见数字与 TeX 注释粘起来（41.0 + 41.0 → 41.041.0）。
+        const text = textWithMath(node);
         pushBlock(/ltx_abstract/.test(cls) ? 'abstract' : 'paragraph', text);
         // 段内公式额外单独成块：检索「方法/公式」与证据审计都要能单独命中
         for (const m of maths) {
@@ -325,7 +344,7 @@ export function blocksFromDom(root) {
       }
 
       if (tag === 'ul' || tag === 'ol') {
-        pushBlock('list', [...node.querySelectorAll('li')].map((li) => `- ${normalizeText(li.textContent)}`).join('\n'));
+        pushBlock('list', [...node.querySelectorAll('li')].map((li) => `- ${normalizeText(textWithMath(li))}`).join('\n'));
         continue;
       }
 

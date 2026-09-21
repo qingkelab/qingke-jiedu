@@ -88,10 +88,20 @@ export function normalizeNumberToken(raw) {
   const s = numberKey(raw).replace(DASH_RE, '-');
   const m = s.match(/^(\d+(?:\.\d+)?)(.*)$/);
   if (!m) return s;
-  const [intPart, fracPart] = m[1].split('.');
+  let value = m[1];
+  let unit = m[2];
+  // 中文数量级：10.6 万 ≡ 106000、1.2 亿 ≡ 120000000（写成「万/亿」与写成千分位是同一事实）
+  if (unit.startsWith('万')) {
+    value = String(Number(value) * 1e4);
+    unit = unit.slice(1);
+  } else if (unit.startsWith('亿')) {
+    value = String(Number(value) * 1e8);
+    unit = unit.slice(1);
+  }
+  const [intPart, fracPart] = value.split('.');
   const int = intPart.replace(/^0+(?=\d)/, '');
   const frac = (fracPart || '').replace(/0+$/, '');
-  return `${int}${frac ? `.${frac}` : ''}${m[2]}`;
+  return `${int}${frac ? `.${frac}` : ''}${unit}`;
 }
 
 /** 归一化后的数值部分（用于「数值相同、单位写法不同」的近似匹配）。 */

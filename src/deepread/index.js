@@ -27,7 +27,23 @@ import {
   parseDeepReadPlan,
 } from './prompts.js';
 import { buildResearchMap } from './researchMap.js';
+import { buildFactCheck } from './factCheck.js';
 import { buildGlobalContext, retrieveForSection, sectionRole } from './retrieval.js';
+import { alignSourceSections, buildSourceSectionIndex } from './sourceSections.js';
+import { buildCorpusIndex, distributeCriticalFacts, seedCriticalFacts } from './criticalFacts.js';
+import {
+  buildEvidenceLedger,
+  checkSectionFactCoverage,
+  repairTargetsFromCoverage,
+  sectionsFromMarkdown,
+} from './evidenceLedger.js';
+import {
+  MAX_GUARANTEED_SLOTS,
+  buildEvidenceRequirements,
+  packEvidenceRequirements,
+  requirementCoverage,
+} from './evidenceRequirements.js';
+import { buildLocalizationIndex, buildSourceSectionInventory, localizeFacts } from './factLocalization.js';
 import {
   STAGE_SOURCE,
   STAGE_STATUS,
@@ -77,6 +93,15 @@ function safeRetrieve(args) {
       figureNums: [],
       roles: 'fallback',
       chars: same.reduce((n, c) => n + c.text.length, 0),
+      uniqueChunkCount: same.length,
+      reusedChunkCount: 0,
+      newChunkCount: same.length,
+      query: null,
+      sourceSectionMatch: null,
+      slots: {},
+      mustUseTermHits: 0,
+      mustUseTermTotal: 0,
+      backHalfChunks: 0,
     };
   }
 }
@@ -119,6 +144,7 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
   });
   const summary = structureSummary(structure);
   emit({ stage: 'chunking', detail: `全文切片完成：${summary}` });
+  const sourceIndex = buildSourceSectionIndex(structure);
   stages.chunking = makeStage({
     stage: 'chunking',
     status: STAGE_STATUS.SUCCESS,
@@ -129,7 +155,13 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
   });
 
   if ((structure.chunks || []).length < 3) {
-    return { degraded: true, reason: `切片不足（${summary}）`, warnings, structure, meta: { stages, stageSummary: summarizeStages(stages) } };
+    return {
+      degraded: true,
+      reason: `切片不足（${summary}）`,
+      warnings,
+      structure,
+      meta: { stages, stageSummary: summarizeStages(stages), factCheckStats: null, factCheck: null },
+    };
   }
 
   const figs = mapFiguresToChunks(figures, structure);
@@ -215,18 +247,154 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
     plan = defaultDeepReadPlan();
     stages.plan = { ...stages.plan, fallbackReason: stages.plan.fallbackReason || '模型大纲不可用，使用默认大纲', reason: stages.plan.reason || '使用默认大纲' };
   }
-  plan = plan.map((s) => ({ ...s, role: sectionRole(s.title, s.note) }));
+  // 计划里的 role 优先（模型看过全文），缺失或给成 general 时用标题/要点兜底推断
+  plan = plan.map((s) => ({ ...s, role: s.role && s.role !== 'general' ? s.role : sectionRole(s.title, s.note) }));
+
+  // 3.5) Plan Coverage：从研究地图种出论文级关键事实 → 分发到小节 → 收敛 sourceSections / mustUseTerms
+  //      （检索只接收更高质量的输入，评分机制不动）
+  const corpus = buildCorpusIndex(structure);
+  let criticalFacts = [];
+  let planCoverage = null;
+  // 这两个引用在 3.5 块里赋值、在最终 meta 里回填，必须**先声明再赋值**（否则 TDZ 异常会被
+  // 下面的 try/catch 吞掉，表现为「事实层整块静默关闭」——20260919-062032 那轮就是这样）。
+  let sourceSectionInventoryRef = null;
+  let localizationStats = null;
+  try {
+    const seeded = seedCriticalFacts({ researchMap, structure, sourceIndex, corpus });
+    // Layer A：Source Section Inventory（完全确定性，来自 parser，与模型输出无关）
+    const sourceSectionInventory = buildSourceSectionInventory(structure, sourceIndex);
+    // Layer B：Fact Localization —— 地图被截断/兜底时，用严格匹配给已有事实补 sourceSectionIds
+    const localizationIndex = buildLocalizationIndex(structure, sourceSectionInventory);
+    const localized = localizeFacts(seeded, { structure, inventory: sourceSectionInventory, index: localizationIndex });
+    sourceSectionInventoryRef = sourceSectionInventory;
+    localizationStats = { total: seeded.length, localized: localized.localized, unmatched: localized.unmatched.length, unmatchedIds: localized.unmatched.slice(0, 5) };
+    const distributed = distributeCriticalFacts({ plan, facts: localized.facts, sourceIndex, structure, corpus });
+    plan = distributed.plan;
+    criticalFacts = distributed.facts;
+    planCoverage = distributed.coverage;
+  } catch (err) {
+    warnings.push(`plan coverage 失败（不影响主流程）：${(err && err.message) || err}`);
+  }
+  const factsBySection = new Map();
+  for (const f of criticalFacts) {
+    for (const title of f.planSections || []) {
+      if (!factsBySection.has(title)) factsBySection.set(title, []);
+      factsBySection.get(title).push(f);
+    }
+  }
+
+  // 3.6) Evidence Requirements（Plan Coverage v2）
+  //   critical fact → evidence requirement → source section 保障级别。
+  //   事实所在的原文小节如果没人请求，**只补 evidence requirement**（绝不新增文章 H2）；
+  //   高优先级 requirement 走 guaranteed allocation，不再和普通证据抢同一组 slot。
+  let requirements = [];
+  let packedAllocation = null;
+  let reqCoverage = null;
+  try {
+    const built = buildEvidenceRequirements({ plan, sourceIndex, structure, facts: criticalFacts });
+    requirements = built.requirements;
+    const planByTitle = new Map(plan.map((s) => [s.title, s]));
+    for (const add of built.additions) {
+      const target = planByTitle.get(add.planSection);
+      if (!target) continue;
+      const kept = target.sourceSections || [];
+      if (kept.includes(add.sourceSection)) continue;
+      if (kept.length >= 3) {
+        // 预算满：把「模型请求但非事实驱动」的最后一项挪到 deferred，让 requirement 优先
+        const factDriven = new Set([...(target.sourceSectionsAddedByFacts || []), ...(target.sourceSectionsAddedByCoverage || [])]);
+        const victimIndex = [...kept].reverse().findIndex((t) => !factDriven.has(t));
+        if (victimIndex >= 0) {
+          const at = kept.length - 1 - victimIndex;
+          const [victim] = kept.splice(at, 1);
+          target.sourceSectionsDeferred = [...(target.sourceSectionsDeferred || []), victim];
+        }
+      }
+      if ((target.sourceSections || []).length < 3) {
+        target.sourceSections = [...(target.sourceSections || []), add.sourceSection];
+        target.sourceSectionsAddedByRequirements = [...(target.sourceSectionsAddedByRequirements || []), add.sourceSection];
+      }
+    }
+    packedAllocation = packEvidenceRequirements({
+      requirements,
+      maxGuaranteedSlots: MAX_GUARANTEED_SLOTS,
+      rareTermCountOf: (g) => (g.requirements || []).reduce((n, r) => n + (r.rareTerms?.length || 0), 0),
+    });
+    reqCoverage = requirementCoverage({ requirements, plan, packed: packedAllocation });
+  } catch (err) {
+    warnings.push(`evidence requirements 失败（不影响主流程）：${(err && err.message) || err}`);
+  }
   emit({
     stage: 'plan',
-    detail: `大纲 ${plan.length} 节（${planFromModel ? '模型产出' : `默认骨架 · ${stages.plan.status}`}）`,
+    detail:
+      `大纲 ${plan.length} 节（${planFromModel ? '模型产出' : `默认骨架 · ${stages.plan.status}`}）` +
+      (planCoverage?.criticalFactCount
+        ? `；关键事实 ${planCoverage.criticalFactAssignedCount}/${planCoverage.criticalFactCount} 已落到小节，sourceSections 收敛到 ${planCoverage.sourceSectionsKept} 个（deferred ${planCoverage.sourceSectionOverflowCount}）`
+        : '') +
+      (packedAllocation
+        ? `；证据保障：guaranteed ${packedAllocation.stats.guaranteedGroups} 组 / overflow ${packedAllocation.stats.overflow}`
+        : ''),
   });
 
   // 4) 逐节检索 evidence
   const retrievalStartedAt = Date.now();
   const globalContext = buildGlobalContext({ structure, researchMap, figures: figs });
-  const retrievals = plan.map((s) => safeRetrieve({ structure, section: s, researchMap, figures: figs, budgetChars: evidenceBudget, maxChunks }));
+  emit({ stage: 'retrieval', detail: '正在按论文原文小节与关键证据检索…' });
+  const usedChunkIds = [];
+  const sourceMatches = [];
+  const retrievals = plan.map((s) => {
+    // 计划给的 sourceSections 先与论文真实小节对齐（exact → normalized → 编号 → 模糊 → 缩写 → 父级）
+    const match = alignSourceSections({
+      requested: s.sourceSections || [],
+      index: sourceIndex,
+      mustUseTerms: s.mustUseTerms || [],
+    });
+    sourceMatches.push(match);
+    const alloc = packedAllocation?.byPlanSection?.[s.title] || null;
+    const allocGroups = (packedAllocation?.guaranteedGroups || []).filter(
+      (g) => (g.targetPlanSections || []).includes(s.title),
+    );
+    const allocFacts = requirements
+      .filter((r) => (r.targetPlanSections || []).includes(s.title) && r.allocationMode !== 'opportunistic')
+      .map((r) => ({ id: r.factId, terms: r.requiredTerms, numbers: r.requiredNumbers }));
+    const guaranteedAllocation = alloc?.guaranteed?.length
+      ? {
+          sections: alloc.guaranteed,
+          quota: Math.min(MAX_GUARANTEED_SLOTS, Math.max(2, alloc.guaranteed.length * 2)),
+          facts: allocFacts,
+          // 精确到 chunk：这些 chunk 含该 requirement 的术语/数字，必须先占位
+          requiredChunks: [...new Set(allocGroups.flatMap((g) => g.requiredChunkIds || []))],
+          overflow: (packedAllocation?.overflow || []).filter((o) =>
+            requirements.some((r) => o.factIds?.includes(r.factId) && (r.targetPlanSections || []).includes(s.title)),
+          ),
+        }
+      : null;
+    const r = safeRetrieve({
+      structure,
+      section: s,
+      researchMap,
+      figures: figs,
+      budgetChars: evidenceBudget,
+      maxChunks,
+      previousSectionChunkIds: usedChunkIds,
+      sourceMatch: match,
+      sourceIndex,
+      // 只作元数据：记录本节负责的关键事实是否真的进了证据（不参与打分）
+      criticalFacts: factsBySection.get(s.title) || [],
+      // 保障分配（Plan Coverage v2）：只占槽位，不改 Ranking
+      guaranteedAllocation,
+    });
+    usedChunkIds.push(...r.chunkIds);
+    return r;
+  });
   const evidenceCount = retrievals.reduce((n, r) => n + r.evidence.length, 0);
   const fallbackSections = retrievals.filter((r) => r.roles === 'fallback').length;
+  const uniqueUsed = new Set(usedChunkIds).size;
+  const sourceRequested = plan.filter((s) => (s.sourceSections || []).length).length;
+  const sourceMatched = sourceMatches.filter((m) => (m.sectionIds || []).length).length;
+  const mustUseTotal = plan.reduce((n, s) => n + (s.mustUseTerms || []).length, 0);
+  const mustUseHit = retrievals.reduce((n, r) => n + (r.mustUseTermHits || 0), 0);
+  const criticalHit = retrievals.reduce((n, r) => n + (r.criticalFactHitCount || 0), 0);
+  const criticalTotal = retrievals.reduce((n, r) => n + (r.criticalFactTotal || 0), 0);
   stages.retrieval = makeStage({
     stage: 'retrieval',
     status: fallbackSections ? STAGE_STATUS.WARN : STAGE_STATUS.SUCCESS,
@@ -237,7 +405,14 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
     extra: {
       sections: plan.length,
       evidence: evidenceCount,
-      chunksCovered: new Set(retrievals.flatMap((r) => r.chunkIds)).size,
+      chunksCovered: uniqueUsed,
+      reusedSlots: evidenceCount - uniqueUsed,
+      sourceSectionsRequested: sourceRequested,
+      sourceSectionsMatched: sourceMatched,
+      mustUseTerms: mustUseTotal,
+      mustUseTermHits: mustUseHit,
+      criticalFactsInSections: criticalTotal,
+      criticalFactsHit: criticalHit,
       backHalfEvidence: retrievals.flatMap((r) => r.chunkIds).filter((id) => {
         const c = structure.chunks.find((x) => x.id === id);
         return c && structure.chunks.length > 1 && c.index / (structure.chunks.length - 1) >= 0.5;
@@ -246,10 +421,37 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
   });
   emit({
     stage: 'retrieval',
-    detail: `已从 ${structure.chunks.length} 个切片中为 ${plan.length} 节召回 ${evidenceCount} 条证据（覆盖 ${new Set(retrievals.flatMap((r) => r.chunkIds)).size} 个 chunk）`,
+    detail:
+      `按原文小节与关键证据完成检索：${plan.length} 节 / ${evidenceCount} 条证据` +
+      `（唯一 chunk ${uniqueUsed}，其中 ${evidenceCount - uniqueUsed} 条为关键证据复用）` +
+      (sourceRequested ? `；原文小节对齐 ${sourceMatched}/${sourceRequested} 节` : '') +
+      (mustUseTotal ? `；必用术语命中 ${mustUseHit}/${mustUseTotal}` : ''),
   });
 
   // 5) 逐节写作
+  // Evidence Ledger：把「论文级事实」和「它是被哪一节、哪些 chunk 支撑的」记下来，
+  // 写完立刻逐节做 Fact Coverage，这样「证据给了但没写」是可观测、可修复的。
+  const ledger = buildEvidenceLedger({
+    paperId: source.url || source.title || '',
+    researchMap,
+    criticalFacts,
+    plan,
+    retrievalResults: retrievals,
+    structure,
+  });
+  const factsForPlanSection = (title) =>
+    ledger.facts
+      .filter((f) => (f.writerSections || []).includes(title))
+      .map((f) => ({
+        id: f.id,
+        category: f.category,
+        priority: f.priority,
+        claim: f.claim,
+        origin: f.origin,
+        sourceSections: f.sourceSections,
+        mustUseTerms: f.mustUseTerms,
+        mustUseNumbers: f.mustUseNumbers,
+      }));
   const sections = [];
   const reasoningParts = [];
   const evidenceLog = [];
@@ -275,6 +477,7 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
             globalContext,
             researchMap,
             role: plan[i].role,
+            facts: factsForPlanSection(plan[i].title),
           }),
           12000,
         );
@@ -290,7 +493,38 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
       content = `## ${plan[i].title}\n\n（本节生成失败已跳过——可重试或换更强的模型。）`;
     }
     sections.push(content);
-    evidenceLog.push({ section: plan[i].title, role: plan[i].role, chunkIds: retrieval.chunkIds, figureNums: retrieval.figureNums });
+    evidenceLog.push({
+      section: plan[i].title,
+      role: plan[i].role,
+      chunkIds: retrieval.chunkIds,
+      figureNums: retrieval.figureNums,
+      // Retrieval v2 诊断信息（只进 meta，不进提示词）
+      uniqueChunkCount: retrieval.uniqueChunkCount,
+      reusedChunkCount: retrieval.reusedChunkCount,
+      newChunkCount: retrieval.newChunkCount,
+      slots: retrieval.slots,
+      backHalfChunks: retrieval.backHalfChunks,
+      sourceSectionMatch: retrieval.sourceSectionMatch,
+      query: retrieval.query,
+      mustUseTermHits: retrieval.mustUseTermHits,
+      mustUseTermTotal: retrieval.mustUseTermTotal,
+      criticalFactIds: retrieval.criticalFactIds,
+      criticalFactHitCount: retrieval.criticalFactHitCount,
+      criticalFactMissCount: retrieval.criticalFactMissCount,
+      criticalFactHitRate: retrieval.criticalFactHitRate,
+      sourceSections: plan[i].sourceSections || [],
+      sourceSectionsRequested: plan[i].sourceSectionsRequested || [],
+      sourceSectionsAddedByFacts: plan[i].sourceSectionsAddedByFacts || [],
+      sourceSectionsAddedByCoverage: plan[i].sourceSectionsAddedByCoverage || [],
+      sourceSectionsDeferred: plan[i].sourceSectionsDeferred || [],
+      mustUseTerms: plan[i].mustUseTerms || [],
+      mustUseTermRanking: plan[i].mustUseTermRanking || [],
+      // Plan Coverage v2：本节拿到哪些 guaranteed source section、支撑了哪些事实
+      guaranteedSlots: retrieval.guaranteedSlots || 0,
+      guaranteedSections: retrieval.guaranteedSections || [],
+      supportedFactIds: retrieval.supportedFactIds || [],
+      allocationOverflow: retrieval.allocationOverflow || [],
+    });
     emit({ stage: 'section_done', section: secInfo });
     prev = `${prev}\n\n${content}`.slice(-9000);
   }
@@ -306,7 +540,13 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
       reason: '逐节写作全部失败',
       extra: { sections: plan.length, failed: failedSections },
     });
-    return { degraded: true, reason: '逐节写作全部失败', warnings, structure, meta: { stages, stageSummary: summarizeStages(stages) } };
+    return {
+      degraded: true,
+      reason: '逐节写作全部失败',
+      warnings,
+      structure,
+      meta: { stages, stageSummary: summarizeStages(stages), factCheckStats: null, factCheck: null },
+    };
   }
 
   stages.section_generation = makeStage({
@@ -435,7 +675,119 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
     });
   }
 
+  // 7.5) Fact Coverage + 定向修复 v2
+  //   「证据已经进了上下文，但这一节没写出来」以前是不可观测的；现在逐节判定，
+  //   只补没写的事实（不重写整篇、不新增小节、不改数字口径）。
+  const coverageStartedAt = Date.now();
+  emit({ stage: 'fact_coverage', detail: '正在做逐节事实覆盖检查…' });
+  let writerCoverage = checkSectionFactCoverage({
+    ledger,
+    markdownBySection: sectionsFromMarkdown(markdown),
+    structure,
+  });
+  const factRepairs = [];
+  const maxFactRounds = options.maxFactRepairs != null ? Math.max(0, Number(options.maxFactRepairs)) : 2;
+  for (let round = 0; round < maxFactRounds; round += 1) {
+    const targets = repairTargetsFromCoverage(ledger, writerCoverage)
+      .filter((t) => t.section)
+      .sort((a, b) => (a.priority === b.priority ? 0 : a.priority === 'high' ? -1 : 1));
+    const highLeft = targets.filter((t) => t.priority === 'high').length;
+    if (!targets.length) break;
+    if (!highLeft && round > 0) break; // high 已清零：只再给 medium 一轮机会
+    const bySection = new Map();
+    for (const t of targets) {
+      if (!bySection.has(t.section)) bySection.set(t.section, []);
+      bySection.get(t.section).push(t);
+    }
+    let applied = 0;
+    for (const [title, list] of [...bySection.entries()].slice(0, 2)) {
+      const sec = splitMarkdownSections(markdown).find((s) => s.heading === title && s.level >= 2);
+      if (!sec) continue;
+      const idx = plan.findIndex((p) => p.title === title);
+      const retrieval = idx >= 0 ? retrievals[idx] : null;
+      try {
+        const r = await chat(
+          buildSectionRepairMessages({
+            source,
+            sectionTitle: title,
+            currentBody: `## ${sec.heading}\n\n${sec.body}`,
+            hints: list.map((t) => `${t.factId} 没有写出来：${t.claim}（${t.reason}）`),
+            evidence: retrieval ? retrieval.evidence : [],
+            researchMap,
+            figures: figs,
+            missingFacts: list,
+          }),
+          9000,
+        );
+        const fixed = String(r?.content || '').trim();
+        if (!fixed || !/^#{1,3}\s/.test(fixed)) continue;
+        const patched = replaceSection(markdown, title, fixed);
+        if (!patched) continue;
+        markdown = patched.endsWith('\n') ? patched : `${patched}\n`;
+        applied += 1;
+        factRepairs.push({ section: title, facts: list.map((t) => t.factId), statuses: list.map((t) => t.status), round: round + 1 });
+      } catch (err) {
+        warnings.push(`事实补写失败（保留原稿）：${(err && err.message) || err}`);
+      }
+    }
+    const next = checkSectionFactCoverage({ ledger, markdownBySection: sectionsFromMarkdown(markdown), structure });
+    const improved = (next.stats.coverage ?? 0) >= (writerCoverage.stats.coverage ?? 0);
+    writerCoverage = next;
+    if (!applied || !improved) break;
+  }
+  // 台账状态回填（供 evidence-ledger.json 与 benchmark 指标使用）
+  for (const fact of ledger.facts) {
+    const assessed = writerCoverage.byFact[fact.id];
+    if (!assessed) continue;
+    fact.status = assessed.status;
+    fact.reason = assessed.reason || fact.reason;
+    fact.writtenIn = assessed.section || '';
+    fact.coverage = {
+      termHits: assessed.termHits,
+      termTotal: assessed.termTotal,
+      numberHits: assessed.numberHits,
+      numberTotal: assessed.numberTotal,
+      unsupportedNumbers: assessed.unsupportedNumbers || [],
+      derivedNumbers: assessed.derivedNumbers || [],
+    };
+  }
+  const highUnwritten = (writerCoverage.results || []).filter((r) => {
+    if (r.status !== 'unwritten' && r.status !== 'unsupported') return false;
+    const fact = ledger.facts.find((f) => f.id === r.factId);
+    return fact?.priority === 'high';
+  }).length;
+  stages.fact_coverage = makeStage({
+    stage: 'fact_coverage',
+    status: highUnwritten ? STAGE_STATUS.WARN : STAGE_STATUS.SUCCESS,
+    source: STAGE_SOURCE.MODEL,
+    parsed: true,
+    durationMs: Date.now() - coverageStartedAt,
+    reason: highUnwritten ? `${highUnwritten} 条 high 优先级事实仍未写入（已尝试 ${factRepairs.length} 次定点补写）` : '',
+    extra: {
+      facts: ledger.facts.length,
+      covered: writerCoverage.stats.covered,
+      derived: writerCoverage.stats.derived,
+      unsupported: writerCoverage.stats.unsupported,
+      unwritten: writerCoverage.stats.unwritten,
+      missingEvidence: writerCoverage.stats.missingEvidence,
+      coverage: writerCoverage.stats.coverage,
+      factRepairs: factRepairs.length,
+    },
+  });
+  emit({
+    stage: 'fact_coverage',
+    detail: `事实覆盖：covered ${writerCoverage.stats.covered} / derived ${writerCoverage.stats.derived} / unsupported ${writerCoverage.stats.unsupported} / unwritten ${writerCoverage.stats.unwritten} / missing_evidence ${writerCoverage.stats.missingEvidence}（补写 ${factRepairs.length} 次）`,
+  });
+
   emit({ stage: 'finalize', detail: `成稿 ${(markdown || '').replace(/\s/g, '').length} 字` });
+
+  // 数字核验表（迁移自青稞「技术解读稿件」规范）：终稿里每个数字都要能追到原文句子。
+  // 确定性回查 chunk，不调用模型；产物单独落盘（deepread.fact-check.md），不进正文。
+  const factCheck = buildFactCheck({ markdown, structure, ledger });
+  emit({
+    stage: 'finalize',
+    detail: `数字核验：${factCheck.stats.numbers} 个数字 / 可定位 ${factCheck.stats.located} / 推导 ${factCheck.stats.derived} / 查不到 ${factCheck.stats.unsupported}`,
+  });
 
   // 供终稿审校使用的证据文本（去重、按预算截断）：审校不再只看正文前 16000 字
   const seenEvidence = new Set();
@@ -471,7 +823,43 @@ export async function runDeepRead({ chat, source = {}, figures = [], onProgress 
       researchMapEvidenceIds: mapResult.evidenceChunkIds || [],
       planStatus: stages.plan.status,
       planSource: stages.plan.source,
-      plan: plan.map((s) => ({ title: s.title, note: s.note, role: s.role })),
+      plan: plan.map((s) => ({
+        title: s.title,
+        note: s.note,
+        role: s.role,
+        sourceSections: s.sourceSections || [],
+        sourceSectionsRequested: s.sourceSectionsRequested || [],
+        sourceSectionsAddedByFacts: s.sourceSectionsAddedByFacts || [],
+        sourceSectionsDeferred: s.sourceSectionsDeferred || [],
+        sourceSectionsAddedByCoverage: s.sourceSectionsAddedByCoverage || [],
+        sourceSectionsAddedByRequirements: s.sourceSectionsAddedByRequirements || [],
+        mustUseTerms: s.mustUseTerms || [],
+        mustUseTermsDeferred: s.mustUseTermsDeferred || [],
+        mustUseTermRanking: s.mustUseTermRanking || [],
+        criticalFactIds: s.criticalFactIds || [],
+      })),
+      criticalFacts,
+      planCoverage,
+      evidenceRequirements: requirements,
+      // Research Map 可靠性：确定性小节清单 + 事实定位结果（与地图是否被截断无关）
+      sourceSectionInventory: sourceSectionInventoryRef,
+      factLocalization: localizationStats,
+      mapStatus: stages.research_map?.status || null,
+      allocation: packedAllocation
+        ? {
+            stats: packedAllocation.stats,
+            overflow: packedAllocation.overflow,
+            byPlanSection: packedAllocation.byPlanSection,
+            coverage: reqCoverage,
+          }
+        : null,
+      evidenceLedger: ledger,
+      writerCoverage,
+      factCoverageStats: writerCoverage.stats,
+      // 数字核验表：终稿数字 ↔ 原文句子（表外数字 = unsupported，供前端/审计/benchmark 使用）
+      factCheckStats: factCheck.stats,
+      factCheck,
+      factRepairs,
       evidence: evidenceLog,
       auditVerdict: audit?.verdict || null,
       auditWarnings: (audit?.warnings || []).map((w) => w.code),
