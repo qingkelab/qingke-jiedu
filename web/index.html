@@ -51,44 +51,6 @@
 
     <div class="layout">
       <aside class="side">
-        <!-- 接口设置：key 只进内存 -->
-        <section class="input-card api-card" id="api-card">
-          <details open>
-            <summary>🔑 接口设置 <span class="muted">（只保存在本页内存，刷新即失效，不写入任何存储）</span></summary>
-            <div class="api-grid">
-              <label>
-                <span>服务商</span>
-                <select id="api-provider">
-                  <option value="deepseek" selected>DeepSeek</option>
-                  <option value="openai">OpenAI</option>
-                  <option value="custom">自定义（OpenAI 兼容）</option>
-                </select>
-              </label>
-              <label>
-                <span>Base URL</span>
-                <input id="api-baseurl" type="url" value="https://api.deepseek.com" placeholder="https://api.deepseek.com" />
-              </label>
-              <label>
-                <span>模型</span>
-                <input id="api-model" type="text" value="deepseek-chat" placeholder="deepseek-chat" />
-              </label>
-              <label>
-                <span>API key</span>
-                <input id="api-key" type="password" placeholder="sk-...（仅存内存，不会保存）" autocomplete="off" />
-              </label>
-              <label class="api-wide">
-                <span>CORS 代理（可选）</span>
-                <input id="api-proxy" type="url" placeholder="https://corsproxy.io/?url= （网页抓取 / arXiv 搜索需要；arXiv PDF 与 HTML 可直连）" />
-              </label>
-              <div class="api-actions">
-                <button id="api-test" class="btn ghost" type="button">测试连接</button>
-                <span id="api-test-note" class="muted"></span>
-              </div>
-            </div>
-            <div class="model-indicator" id="api-status">未填写 API key</div>
-          </details>
-        </section>
-
         <section class="input-card">
           <form id="form" autocomplete="off">
             <div class="input-row">
@@ -147,6 +109,48 @@
           </label>
         </section>
 
+        <!-- 接口设置：key 只进内存；默认折叠，首屏聚焦「粘贴链接 → 生成」 -->
+        <section class="input-card api-card" id="api-card">
+          <details id="api-details">
+            <summary>
+              <span class="api-title">🔑 接口设置</span>
+              <span class="api-state" id="api-state">未配置</span>
+            </summary>
+            <p class="api-note muted">key 只保存在本页内存，刷新即失效，不写入任何存储；不填 key 也能转图 / 抽取正文。</p>
+            <div class="api-grid">
+              <label>
+                <span>服务商</span>
+                <select id="api-provider">
+                  <option value="deepseek" selected>DeepSeek</option>
+                  <option value="openai">OpenAI</option>
+                  <option value="custom">自定义（OpenAI 兼容）</option>
+                </select>
+              </label>
+              <label>
+                <span>Base URL</span>
+                <input id="api-baseurl" type="url" value="https://api.deepseek.com" placeholder="https://api.deepseek.com" />
+              </label>
+              <label>
+                <span>模型</span>
+                <input id="api-model" type="text" value="deepseek-chat" placeholder="deepseek-chat" />
+              </label>
+              <label>
+                <span>API key</span>
+                <input id="api-key" type="password" placeholder="sk-...（仅存内存，不会保存）" autocomplete="off" />
+              </label>
+              <label class="api-wide">
+                <span>CORS 代理（可选）</span>
+                <input id="api-proxy" type="url" placeholder="https://corsproxy.io/?url= （网页抓取 / arXiv 搜索需要）" />
+              </label>
+              <div class="api-actions">
+                <button id="api-test" class="btn ghost" type="button">测试连接</button>
+                <span id="api-test-note" class="muted"></span>
+              </div>
+            </div>
+            <div class="model-indicator" id="api-status">未填写 API key</div>
+          </details>
+        </section>
+
         <!-- 深度解读写作规范（静态参考） -->
         <section id="deep-guide" class="guide-card" hidden>
           <details open>
@@ -171,6 +175,12 @@
       </aside>
 
       <main class="content">
+        <div id="empty-state">
+          <div class="empty-icons" aria-hidden="true">🖼️&nbsp;📝&nbsp;🔥</div>
+          <h2>粘贴链接，一键出图 + 解读 + 标题</h2>
+          <p>PDF / 网页在浏览器内直接处理，深度解读 arXiv 论文用同一套结构化证据管线。<br />需要文案时在左侧「接口设置」填 API key —— 只存内存，不会保存。</p>
+        </div>
+
         <section id="status" class="status" hidden>
           <div class="spinner"></div>
           <div class="status-main">

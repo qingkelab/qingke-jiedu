@@ -53,16 +53,23 @@ function refreshApiFromInputs() {
 
 function updateApiIndicator() {
   const el = $('#api-status');
-  if (!el) return;
-  el.textContent = apiCfg.key
-    ? `已就绪：${apiCfg.baseUrl}（${apiCfg.model}）· key 仅存内存`
-    : '未填写 API key：可转图/抽取正文，生成文案与深度解读需要 key';
+  const state = $('#api-state');
+  if (el) {
+    el.textContent = apiCfg.key
+      ? `已就绪：${apiCfg.baseUrl}（${apiCfg.model}）· key 仅存内存`
+      : '未填写 API key：可转图/抽取正文，生成文案与深度解读需要 key';
+  }
+  if (state) {
+    state.textContent = apiCfg.key ? `${apiCfg.provider} · ${apiCfg.model || '…'}` : '未配置';
+    state.classList.toggle('ok', !!apiCfg.key);
+  }
 }
 
 function requireProvider() {
   refreshApiFromInputs();
   if (!apiCfg.key) {
-    throw new Error('请先在上方「接口设置」里填写 API key（仅存内存，不会保存）');
+    $('#api-details').open = true; // 缺 key 时自动展开设置面板，引导填写
+    throw new Error('请先在侧边「接口设置」里填写 API key（仅存内存，不会保存）');
   }
   if (!apiCfg.baseUrl || !apiCfg.model) throw new Error('请补全 Base URL 与模型名');
   return openAiCompatibleProvider({
@@ -123,6 +130,17 @@ let currentImages = []; // {filename,label,width,height,blob,objectUrl}
 let currentCopy = '';
 let currentTitleText = '';
 let currentMarkdown = '';
+// 三个内容区各自「有没有东西」：空着时不占版面，只显示引导空状态
+let hasResult = false;
+let hasDeepResult = false;
+let hasList = false;
+
+function refreshEmptyState() {
+  const anyVisible = (currentMode === 'pic' && hasResult) ||
+    (currentMode === 'deep' && hasDeepResult) ||
+    (currentMode === 'latest' && hasList);
+  $('#empty-state').hidden = anyVisible;
+}
 
 function setStatus(msg, show = true) {
   statusEl.hidden = !show;
@@ -134,6 +152,7 @@ function showError(msg) {
   errorEl.hidden = false;
   resultEl.hidden = true;
   deepResultEl.hidden = true;
+  refreshEmptyState();
 }
 
 function toast(msg) {
@@ -174,8 +193,11 @@ function setMode(mode) {
   $('#only-images-row').hidden = mode !== 'pic';
   $('#latest-form').hidden = mode !== 'latest';
   $('#deep-guide').hidden = mode !== 'deep';
-  resultEl.hidden = mode !== 'pic';
-  deepResultEl.hidden = mode !== 'deep';
+  errorEl.hidden = true;
+  resultEl.hidden = !(mode === 'pic' && hasResult);
+  deepResultEl.hidden = !(mode === 'deep' && hasDeepResult);
+  $('#arxivlist').hidden = !(mode === 'latest' && hasList);
+  refreshEmptyState();
   $('#submit').textContent = mode === 'deep' ? '生成深度解读' : '生成图文';
   urlInput.placeholder =
     mode === 'deep'
@@ -276,8 +298,10 @@ function titleFromPdfText(text) {
 
 function renderPrepared({ source, images, pageCount, webOnly }) {
   errorEl.hidden = true;
+  hasResult = true;
   resultEl.hidden = false;
   deepResultEl.hidden = true;
+  refreshEmptyState();
   currentCopy = '';
   currentTitleText = source.title || source.url || '';
 
@@ -570,8 +594,10 @@ async function runDeepReadWeb(url) {
 
 function renderDeep(d) {
   errorEl.hidden = true;
+  hasDeepResult = true;
   resultEl.hidden = true;
   deepResultEl.hidden = false;
+  refreshEmptyState();
   currentMarkdown = d.markdown;
 
   $('#deep-title').textContent = d.title || '';
@@ -685,6 +711,8 @@ async function runSearch() {
 }
 
 function renderArxivList(data) {
+  hasList = true;
+  refreshEmptyState();
   const list = $('#arxivlist');
   list.hidden = false;
   const parts = [`最近 ${data.days} 天`];
