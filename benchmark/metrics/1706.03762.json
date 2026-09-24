@@ -1,58 +1,59 @@
 {
   "id": "1706.03762",
-  "at": "2026-09-21T17:42:25.542Z",
+  "at": "2026-09-23T15:17:37.389Z",
   "provider": "deepseek",
   "model": "deepseek-v4-flash",
   "metrics": {
     "sourceCoverage": 1,
-    "latePaperCoverage": 1,
+    "latePaperCoverage": 0.3333,
     "numberEvidenceCoverage": 1,
     "figureCoverage": 1,
     "formulaCoverage": 1,
-    "ablationCoverage": 1,
+    "ablationCoverage": 0,
     "limitationCoverage": 1,
-    "auditMissingRate": 0.0127,
+    "auditMissingRate": 0.0123,
     "sectionCompleteness": 1,
     "lengthStability": 1,
     "researchMapModelSuccess": 1,
     "researchMapFallbackRate": 0,
     "planModelSuccess": 1,
     "planFallbackRate": 0,
-    "stagesWithWarnings": 1,
-    "evidenceFromModelMapRate": 0.3438,
+    "stagesWithWarnings": 2,
+    "evidenceFromModelMapRate": 0.3651,
     "auditConfidence": 0.8,
-    "uniqueEvidencePerPaper": 64,
-    "evidenceReuseRate": 0.2381,
-    "sameRoleOverlap": 0.0435,
+    "uniqueEvidencePerPaper": 63,
+    "evidenceReuseRate": 0.25,
+    "sameRoleOverlap": null,
     "sourceSectionHitRate": 1,
-    "mustUseTermHitRate": 0.8929,
+    "mustUseTermHitRate": 0.9286,
     "lateEvidenceHitRate": 0.3333,
     "retrievalProbeRate": 0,
     "criticalFactCount": 8,
     "criticalFactMappedCount": 8,
     "criticalFactUnmappedCount": 0,
     "criticalFactCoverage": 1,
-    "criticalFactSectionCoverage": 0.875,
+    "criticalFactSectionCoverage": 1,
     "highPriorityFactCoverage": 1,
-    "planSourceSectionCoverage": 0.6364,
-    "sourceSectionOverflowCount": 10,
-    "mustUseRareTermCoverage": 0.9254,
+    "planSourceSectionCoverage": 0.6087,
+    "sourceSectionOverflowCount": 11,
+    "mustUseRareTermCoverage": 0.9265,
     "criticalSourceSectionCoverage": 1,
     "highPrioritySourceSectionCoverage": 1,
     "factBackedSourceSectionCoverage": 1,
-    "guaranteedGroups": 4,
-    "allocationOverflowCount": 5,
+    "guaranteedGroups": 5,
+    "allocationOverflowCount": 3,
     "writerFactCoverage": 1,
     "mainResultFactCoverage": 1,
     "ablationFactCoverage": 1,
-    "limitationFactCoverage": null,
+    "limitationFactCoverage": 1,
     "unwrittenFactRate": 0,
     "unsupportedFactRate": 0,
-    "derivedFactRate": 1,
-    "factCheckCoverage": 0.9875,
+    "derivedFactRate": 0,
+    "factCheckCoverage": 1,
     "factCheckUnsupportedRate": 0,
-    "factCheckNumbers": 80,
-    "aiTonePer1k": 0.13
+    "factCheckNumbers": 70,
+    "aiTonePer1k": 0.1,
+    "reviewFidelityViolations": null
   },
   "detail": {
     "evidence": [
@@ -108,11 +109,11 @@
         "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
         "late": true,
         "section": "Regularization",
-        "ok": true,
-        "keywordHits": [
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
           "label smoothing"
         ],
-        "missingKeywords": [],
         "numberHits": [
           "0.1"
         ],
@@ -122,12 +123,12 @@
         "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
         "late": true,
         "section": "Regularization",
-        "ok": true,
-        "keywordHits": [
+        "ok": false,
+        "keywordHits": [],
+        "missingKeywords": [
           "residual dropout",
           "dropout"
         ],
-        "missingKeywords": [],
         "numberHits": [
           "0.1"
         ],
@@ -141,12 +142,13 @@
         "section": "Why Self-Attention",
         "ok": true,
         "keywordHits": [
-          "complexity",
           "复杂度",
-          "path length",
           "路径长度"
         ],
-        "missingKeywords": [],
+        "missingKeywords": [
+          "complexity",
+          "path length"
+        ],
         "numberHits": [],
         "missingNumbers": []
       }
@@ -218,13 +220,13 @@
         "text": "标签平滑 ϵ_ls=0.1：困惑度变好但 BLEU 变差（Table 3 行 D）",
         "ratio": 0.7554347826086957,
         "section": "Regularization",
-        "ok": true
+        "ok": false
       },
       {
         "text": "残差 dropout P_drop=0.1 是 base 配置的最佳值",
         "ratio": 0.7445652173913043,
         "section": "Regularization",
-        "ok": true
+        "ok": false
       },
       {
         "text": "逐层复杂度与最大路径长度对比（自注意力在长序列上的代价）",
@@ -244,30 +246,33 @@
       "score": 1,
       "sections": 7,
       "planned": 7,
-      "chars": 17368,
+      "chars": 11992,
       "endsComplete": true,
       "degraded": false
     },
-    "auditMissingRate": 0.0127,
+    "auditMissingRate": 0.0123,
     "reliability": {
       "researchMapStatus": "model_success",
       "researchMapSource": "model",
       "researchMapFinishReason": "stop",
-      "researchMapRawContentLength": 11443,
+      "researchMapRawContentLength": 8563,
       "researchMapFallbackReason": "",
       "planStatus": "model_success",
       "planSource": "model",
       "planFallbackReason": "",
       "stagesWithWarnings": [
+        "section_generation",
         "review"
       ],
       "stageSummary": {
         "total": 9,
-        "withWarnings": 1,
+        "withWarnings": 2,
         "stagesWithWarnings": [
+          "section_generation",
           "review"
         ],
         "fallbacks": [
+          "section_generation",
           "review"
         ],
         "truncated": [],
@@ -276,8 +281,8 @@
         ],
         "failed": []
       },
-      "evidenceChunks": 64,
-      "evidenceFromModelMap": 22
+      "evidenceChunks": 63,
+      "evidenceFromModelMap": 23
     },
     "audit": {
       "verdict": "passed_with_warning",
@@ -285,24 +290,24 @@
       "researchMapSource": "model"
     },
     "retrieval": {
-      "uniqueEvidencePerPaper": 64,
-      "evidenceReuseRate": 0.2381,
-      "sameRoleOverlap": 0.0435,
+      "uniqueEvidencePerPaper": 63,
+      "evidenceReuseRate": 0.25,
+      "sameRoleOverlap": null,
       "sourceSectionHitRate": 1,
-      "mustUseTermHitRate": 0.8929,
+      "mustUseTermHitRate": 0.9286,
       "slots": 84,
-      "reusedSlots": 20,
+      "reusedSlots": 21,
       "sectionsRequestingSource": 7,
       "sectionsWithSourceMatch": 7,
       "mustUseTermsTotal": 56,
-      "mustUseTermsHit": 50,
+      "mustUseTermsHit": 52,
       "lateAnchors": 3,
       "lateAnchorsRetrieved": 1,
       "probes": [
         {
           "term": "label smoothing",
           "matched": false,
-          "status": "covered",
+          "status": "missing_evidence",
           "sourceChunks": 1,
           "retrievedChunks": 0,
           "hit": false,
@@ -317,7 +322,7 @@
           "allocatedCandidates": 0,
           "requested": true,
           "listedInMustUseTermsBy": [
-            "📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验"
+            "翻译、解析和训练成本都拿出来了，Table 3 告诉你不加什么会掉点"
           ],
           "mustUseTerms": [
             "label smoothing",
@@ -330,15 +335,15 @@
           "reason": "slot_competition",
           "lifecycle": {
             "retrieved": false,
-            "written": true,
-            "status": "covered"
+            "written": false,
+            "status": "missing_evidence"
           },
           "examples": []
         },
         {
           "term": "residual dropout",
           "matched": false,
-          "status": "covered",
+          "status": "missing_evidence",
           "sourceChunks": 1,
           "retrievedChunks": 0,
           "hit": false,
@@ -353,7 +358,7 @@
           "allocatedCandidates": 0,
           "requested": true,
           "listedInMustUseTermsBy": [
-            "📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验"
+            "翻译、解析和训练成本都拿出来了，Table 3 告诉你不加什么会掉点"
           ],
           "mustUseTerms": [
             "label smoothing",
@@ -366,8 +371,8 @@
           "reason": "slot_competition",
           "lifecycle": {
             "retrieved": false,
-            "written": true,
-            "status": "covered"
+            "written": false,
+            "status": "missing_evidence"
           },
           "examples": []
         },
@@ -405,18 +410,18 @@
       "criticalFactMappedCount": 8,
       "criticalFactUnmappedCount": 0,
       "criticalFactCoverage": 1,
-      "criticalFactSectionCoverage": 0.875,
+      "criticalFactSectionCoverage": 1,
       "highPriorityFactCoverage": 1,
-      "planSourceSectionCoverage": 0.6364,
-      "sourceSectionOverflowCount": 10,
-      "mustUseRareTermCoverage": 0.9254
+      "planSourceSectionCoverage": 0.6087,
+      "sourceSectionOverflowCount": 11,
+      "mustUseRareTermCoverage": 0.9265
     },
     "allocation": {
       "stats": {
         "groups": 9,
-        "guaranteedGroups": 4,
-        "preferredGroups": 0,
-        "overflow": 5,
+        "guaranteedGroups": 5,
+        "preferredGroups": 1,
+        "overflow": 3,
         "maxGuaranteedSlots": 4
       },
       "coverage": {
@@ -425,7 +430,7 @@
         "factBackedSourceSectionCoverage": 1,
         "guaranteedSourceSections": 1,
         "guaranteedSourceSectionsCovered": 1,
-        "overflow": 5
+        "overflow": 3
       },
       "overflow": [
         {
@@ -434,7 +439,7 @@
             "cf-4"
           ],
           "criticality": 5.6,
-          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+          "reason": "「翻译、解析和训练成本都拿出来了，Table 3 告诉你不加什么会掉点」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
         },
         {
           "sourceSection": "fact:cf-5",
@@ -442,46 +447,31 @@
             "cf-5"
           ],
           "criticality": 5.6,
-          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+          "reason": "「翻译、解析和训练成本都拿出来了，Table 3 告诉你不加什么会掉点」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
         },
         {
           "sourceSection": "fact:cf-6",
           "factIds": [
             "cf-6"
           ],
-          "criticality": 5.6,
-          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
-        },
-        {
-          "sourceSection": "fact:cf-7",
-          "factIds": [
-            "cf-7"
-          ],
           "criticality": 5,
-          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
-        },
-        {
-          "sourceSection": "fact:cf-8",
-          "factIds": [
-            "cf-8"
-          ],
-          "criticality": 5,
-          "reason": "「📊 28.4 BLEU、41.8 BLEU 与表 3 变体：SOTA 和设计选择一起验」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
+          "reason": "「翻译、解析和训练成本都拿出来了，Table 3 告诉你不加什么会掉点」的 guaranteed 额度已满（maxGuaranteedSlots=4），转入普通排序竞争"
         }
       ],
       "guaranteedSections": [
         "Model Variations",
         "fact:cf-1",
         "fact:cf-2",
-        "fact:cf-3"
+        "fact:cf-3",
+        "fact:cf-7"
       ]
     },
     "factCoverage": {
       "assigned": 8,
-      "unassigned": 14,
-      "unassignedFactRate": 0.6364,
-      "covered": 0,
-      "derived": 8,
+      "unassigned": 13,
+      "unassignedFactRate": 0.619,
+      "covered": 8,
+      "derived": 0,
       "unsupported": 0,
       "unwritten": 0,
       "missingEvidence": 0,
@@ -489,43 +479,50 @@
       "coverage": 1,
       "unsupportedFactRate": 0,
       "unwrittenFactRate": 0,
-      "derivedFactRate": 1,
+      "derivedFactRate": 0,
       "highPriorityCoverage": 1,
       "mainResultCoverage": 1,
       "ablationCoverage": 1,
-      "limitationCoverage": null,
+      "limitationCoverage": 1,
       "failureCoverage": null
     },
     "factCheck": {
-      "numbers": 80,
-      "located": 79,
-      "derived": 1,
+      "numbers": 70,
+      "located": 70,
+      "derived": 0,
       "unsupported": 0,
-      "coverage": 0.9875,
+      "coverage": 1,
       "unsupportedRate": 0
     },
     "voice": {
-      "aiTonePer1k": 0.13,
-      "voiceTotal": 2,
+      "aiTonePer1k": 0.1,
+      "voiceTotal": 1,
       "fakeDepth": 0,
       "highFreq": 0,
       "chatbot": 0,
-      "passive": 2,
+      "passive": 1,
       "aiPhraseTotal": 0,
       "cautionPhraseTotal": 1,
-      "boundaryPhraseTotal": 5
+      "boundaryPhraseTotal": 4
+    },
+    "review": {
+      "status": "warn",
+      "fidelity": null,
+      "factGuard": null
     },
     "evidenceLedgerStats": {
-      "total": 22,
+      "total": 21,
       "byCategory": {
-        "main_result": 6,
-        "ablation": 2,
-        "formula": 9,
+        "main_result": 5,
+        "ablation": 1,
+        "limitation": 1,
+        "comparison": 1,
+        "formula": 8,
         "figure": 5
       },
-      "withEvidence": 22,
-      "retrievedIntoSection": 7,
-      "highPriority": 8
+      "withEvidence": 21,
+      "retrievedIntoSection": 8,
+      "highPriority": 7
     }
   }
 }
