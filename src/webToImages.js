@@ -89,7 +89,7 @@ export async function webToImages(url) {
  * 把 SVG（论文 HTML 里的矢量图常见形态）渲染成 PNG 位图。
  * 公众号素材 / 预览只吃位图，SVG 必须栅格化。
  * @param {string} svgMarkup 或 svgPath
- * @param {{svgPath?: string, scale?: number}} [opts]
+ * @param {{svgPath?: string, scale?: number, waitForFonts?: boolean}} [opts]
  */
 export async function svgToPng(input, opts = {}) {
   const timeoutMs = Number(opts.timeoutMs || 25000);
@@ -114,6 +114,10 @@ export async function svgToPng(input, opts = {}) {
         `<!doctype html><html><body style="margin:0;padding:0;background:#fff">${markup}</body></html>`,
         { waitUntil: 'load', timeout: timeoutMs },
       );
+      // 内嵌 data: 字体（头图的手写体）解码是异步的：不等它，截图可能拿到回退字体甚至空字
+      if (opts.waitForFonts) {
+        await page.evaluate(() => (document.fonts ? document.fonts.ready : Promise.resolve())).catch(() => {});
+      }
       const box = await page.evaluate(() => {
         const el = document.querySelector('svg');
         if (!el) return null;

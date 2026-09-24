@@ -5,11 +5,14 @@
  *   node scripts/publish-article.js --dir output/<id> [--repo <path>] [--dry-run|--yes]
  *        [--theme orange] [--number 004] [--force] [--push] [--pr]
  *
+ * 不传 --repo 时按 PUBLIC_REPO_DIR → ~/Documents/qingke-public-pages 的顺序找仓库。
+ *
  * 默认 **dry-run**：只打印将要写入的文件与首页入口，不落盘、不碰 git。
  * 真正写盘要 `--yes`；`--push` / `--pr` 才会碰远端（需要仓库凭证与用户明确同意）。
  */
 
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +20,9 @@ import { promisify } from 'node:util';
 import { applyPublish, planPublish, publishGitCommands } from '../src/publish/publicArticle.js';
 
 const execFileP = promisify(execFile);
+
+/** 默认发布仓库：命令行 --repo 与 PUBLIC_REPO_DIR 都没给时用它。 */
+export const DEFAULT_REPO_DIR = path.join(os.homedir(), 'Documents', 'qingke-public-pages');
 
 export function parseArgs(argv) {
   const args = { _: [] };
@@ -45,9 +51,9 @@ export async function main(argv = process.argv.slice(2)) {
     console.error('用法：node scripts/publish-article.js --dir output/<id> [--repo <public-repo>] [--yes] [--force] [--push] [--pr]');
     process.exit(2);
   }
-  const repoDir = path.resolve(args.repo || process.env.PUBLIC_REPO_DIR || '');
-  if (!repoDir) {
-    console.error('缺少 public repo 路径：用 --repo 或环境变量 PUBLIC_REPO_DIR 指定');
+  const repoDir = path.resolve(args.repo || process.env.PUBLIC_REPO_DIR || DEFAULT_REPO_DIR);
+  if (!(await fs.stat(repoDir).then(() => true).catch(() => false))) {
+    console.error(`发布仓库不存在：${repoDir}\n用 --repo <path> 或环境变量 PUBLIC_REPO_DIR 指定另一个仓库`);
     process.exit(2);
   }
   const abs = path.resolve(dir);
@@ -58,8 +64,19 @@ export async function main(argv = process.argv.slice(2)) {
     process.exit(2);
   }
   const factCheck = await readIfExists(path.join(abs, 'deepread.fact-check.md'));
-  const images = (await fs.readdir(abs).catch(() => []))
-    .filter((f) => /\.png$/i.test(f))
+  const files = await fs.readdir(abs).catch(() => []);
+  // cover.png 作为头图单独处理，不再混进正文配图列表
+  const coverFile = files.find((f) => /^cover\.png$/i.test(f)) ? path.join(abs, 'cover.png') : null;
+  // 手绘配图：由 `npm run figures` 生成的 figures/index.json 决定插入哪几节
+  const figuresIndex = await fs
+    .readFile(path.join(abs, 'figures', 'index.json'), 'utf-8')
+    .then((s) => JSON.parse(s))
+    .catch(() => null);
+  const figures = (figuresIndex?.figures || [])
+    .filter((f) => f.sectionTitle && f.file)
+    .map((f) => ({ sectionTitle: f.sectionTitle, title: f.title, file: f.file, from: path.join(abs, 'figures', f.file) }));
+  const images = files
+    .filter((f) => /\.png$/i.test(f) && !/^cover\.png$/i.test(f))
     .sort()
     .map((f) => path.join(abs, f));
 
@@ -70,6 +87,8 @@ export async function main(argv = process.argv.slice(2)) {
     sourceUrl: (markdown.match(/arxiv\.org\/abs\/(\d{4}\.\d{4,5})/) || [])[0] || '',
     theme: args.theme || 'orange',
     imageFiles: images,
+    coverFile,
+    figures,
     articleNumber: args.number || null,
     allowOverwrite: Boolean(args.force),
     generatedAt: new Date().toISOString().slice(0, 10),

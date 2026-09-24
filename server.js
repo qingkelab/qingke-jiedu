@@ -334,6 +334,56 @@ async function runDeepread({ url, providerName, model, onProgress }) {
   if (factCheckMarkdown) {
     await writeFile(path.join(dir, 'deepread.fact-check.md'), factCheckMarkdown, 'utf-8');
   }
+  // 头图（手绘技术研究笔记风格）：失败只记日志，不影响正文与其它产物
+  let cover = null;
+  if (config.coverEnabled) {
+    try {
+      const { buildCoverForDir } = await import('./src/cover/index.js');
+      const built = await buildCoverForDir(dir, { ratio: config.coverRatio });
+      cover = {
+        url: built.png ? `/files/${id}/cover.png` : `/files/${id}/cover.svg`,
+        svgUrl: `/files/${id}/cover.svg`,
+        pngUrl: built.png ? `/files/${id}/cover.png` : null,
+        structure: built.structure,
+        size: `${built.width}x${built.height}`,
+      };
+    } catch (err) {
+      console.warn('[deepread/cover] 头图生成失败（不影响正文）：', (err && err.message) || err);
+    }
+  }
+  // 正文配图（手绘重述；一节一张，替换论文原图）：同样失败不影响正文
+  let figures = null;
+  if (config.figuresEnabled) {
+    try {
+      const { buildSectionFigurePngs } = await import('./src/cover/index.js');
+      const built = await buildSectionFigurePngs({ markdown, max: config.figuresMax });
+      if (built.length) {
+        const figDir = path.join(dir, 'figures');
+        await mkdir(figDir, { recursive: true });
+        const index = [];
+        for (const fig of built) {
+          const base = `figure-${String(fig.index).padStart(2, '0')}`;
+          await writeFile(path.join(figDir, `${base}.svg`), fig.svg, 'utf-8');
+          if (fig.png) await writeFile(path.join(figDir, `${base}.png`), fig.png);
+          index.push({
+            index: fig.index,
+            sectionTitle: fig.sectionTitle,
+            title: fig.distilled.title,
+            structure: fig.distilled.primary,
+            file: fig.png ? `${base}.png` : `${base}.svg`,
+          });
+        }
+        await writeFile(
+          path.join(figDir, 'index.json'),
+          JSON.stringify({ generatedAt: new Date().toISOString(), dir: 'figures', figures: index }, null, 2),
+          'utf-8',
+        );
+        figures = index.map((f) => ({ ...f, url: `/files/${id}/figures/${f.file}` }));
+      }
+    } catch (err) {
+      console.warn('[deepread/figures] 配图生成失败（不影响正文）：', (err && err.message) || err);
+    }
+  }
   // 证据审计与结构化元数据落到单独的 json：内部调试用，不进最终 Markdown
   if (audit || meta) {
     await writeFile(
@@ -372,6 +422,9 @@ async function runDeepread({ url, providerName, model, onProgress }) {
     audit: audit || null,
     pipeline: meta?.pipeline || 'legacy',
     structure: meta?.structure || null,
+    // 头图（手绘技术研究笔记风格）：独立产物，可单独下载/发布
+    cover,
+    figures,
     // 数字核验表（终稿数字 ↔ 原文条件）：作为独立产物给前端展示 / 发布时引用
     factCheck: meta?.factCheck
       ? { stats: meta.factCheck.stats, markdown: meta.factCheck.markdown, url: `/files/${id}/deepread.fact-check.md` }

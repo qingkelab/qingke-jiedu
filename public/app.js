@@ -1201,6 +1201,12 @@ function renderDeepAudit(d) {
         : `<span class="audit-chip ${bad}">数字核验 ${s.numbers} 个 · 可定位 ${s.located} · 查不到 ${s.unsupported}</span>`,
     );
   }
+  // 头图（手绘技术研究笔记风格）：可点开看大图 / 下载 SVG
+  if (d.cover && d.cover.url) {
+    chips.push(
+      `<a class="audit-chip info" href="${d.cover.url}" target="_blank" rel="noopener" title="手绘技术研究笔记风格头图（${escapeHtml(d.cover.size || '')}）">头图 ${escapeHtml(d.cover.structure?.primary || '')} →</a>`,
+    );
+  }
   el.hidden = false;
   el.innerHTML = chips.join('');
 }

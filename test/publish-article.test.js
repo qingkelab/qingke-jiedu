@@ -11,11 +11,13 @@ import {
   nextArticleNumber,
   planPublish,
   planIndexUpdate,
+  protectMarkdownMath,
   publishGitCommands,
   summaryOf,
   titleOf,
 } from '../src/publish/publicArticle.js';
 import { parseArgs, rewriteImageLinks } from '../scripts/publish-article.js';
+import { markdownToHtml } from '../src/markdown.js';
 
 const MARKDOWN = [
   '# LoopFormer：把循环状态写进 KV 缓存',
@@ -240,4 +242,39 @@ test('publish：CLI 参数解析支持 --dir/--repo/--yes/--push/--pr', () => {
   assert.equal(args.yes, true);
   assert.equal(args.push, true);
   assert.equal(args.pr, undefined);
+});
+
+// ============ 公式：发布页必须渲染成数学，而不是灰色等宽字 ============
+
+const MATH_MD = [
+  '# 公式测试',
+  '',
+  '行内 $h_t = \\alpha \\odot h_{t-1}$ 出现在这里。',
+  '',
+  '$$\\mathrm{LayerNorm}(x + \\mathrm{Sublayer}(x))$$',
+  '',
+  '```js',
+  'const price = "$100";',
+  '```',
+].join('\n');
+
+test('publish：Markdown 里的公式被保护并渲染成 MathML，代码里的 $ 不动', () => {
+  const guard = protectMarkdownMath(MATH_MD);
+  assert.equal(guard.count, 2, '应识别 1 个行内 + 1 个块级公式');
+  assert.equal(/\$\$/.test(guard.markdown), false, '原 Markdown 里不该再有 $$');
+  const html = guard.restore(markdownToHtml(guard.markdown, 'orange'));
+  assert.match(html, /<math/);
+  assert.match(html, /<msub>/, '行内公式保留下标结构');
+  assert.match(html, /math-block/, '块级公式单独成块');
+  assert.match(html, /const price = "\$100";/, '代码块原样保留');
+  const outside = html.replace(/<annotation[\s\S]*?<\/annotation>/g, '');
+  assert.equal(/\\alpha|\\odot|\\mathrm/.test(outside), false, '渲染部分不该残留 LaTeX');
+});
+
+test('publish：文章页自包含（MathML 无外链），且带公式样式', () => {
+  const html = buildPublicHtml({ title: 'T', markdown: MATH_MD, articleNumber: '001' });
+  assert.match(html, /<math/);
+  assert.equal(html.includes('$$'), false);
+  assert.match(html, /\.math-block \{/);
+  assert.equal(/katex\.min\.(css|js)|cdn\.jsdelivr/.test(html), false, '不需要引 CDN（MathML 原生渲染）');
 });

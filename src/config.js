@@ -63,6 +63,13 @@ export const config = {
   deepreadPlanTokens: Number(process.env.DEEPREAD_PLAN_TOKENS || 16000),
   deepreadAudit: process.env.DEEPREAD_AUDIT !== '0', // 终稿证据审计
   deepreadRepair: process.env.DEEPREAD_REPAIR !== '0', // 审计不通过时定点修复（只重写问题小节）
+  // 头图：终稿生成后出一张「手绘技术研究笔记」风格封面（cover.svg / cover.png）。
+  // 栅格化要起一次本机 Chrome（约 1 秒），失败只记日志、不影响正文。
+  coverEnabled: process.env.DEEPREAD_COVER !== '0',
+  coverRatio: process.env.DEEPREAD_COVER_RATIO || 'poster', // poster(1200×1600) | wide(1600×900) | square
+  // 正文配图：每个二级小节出一张手绘重述图（替换论文原图，原图出处留在文末）
+  figuresEnabled: process.env.DEEPREAD_FIGURES !== '0',
+  figuresMax: Number(process.env.DEEPREAD_FIGURES_MAX || 6),
 
   // ===== 论文视频播客 =====
   // TTS 配音：auto = 有 MINIMAX_API_KEY 用 MiniMax(speech-02-hd)，否则用 edge-tts（免费，需已安装）
