@@ -757,6 +757,8 @@ export function computeMetrics({ paper, result, structure }) {
   // ===== 阶段可靠性指标（来自真实调用状态，不来自结果猜�测） =====
   const researchMapStage = stageMetaOf(result, 'research_map');
   const planStage = stageMetaOf(result, 'plan');
+  // 审校保真护栏（fidelity.js）：审校改顺文字后，数字/否定/限定/归因有没有变少
+  const reviewStage = stageMetaOf(result, 'review');
   const stageSummary = result?.meta?.stageSummary || summarizeStages(result?.meta?.stages || {});
   const usedEvidenceIds = new Set((result?.meta?.evidence || []).flatMap((e) => e.chunkIds || []));
   const modelMapIds = new Set(result?.meta?.researchMapEvidenceIds || []);
@@ -823,6 +825,8 @@ export function computeMetrics({ paper, result, structure }) {
     factCheckNumbers: factCheckStats?.numbers ?? null,
     // 人声 / 去 AI 味（见 styleCheck.js）：AI 腔标记密度
     aiTonePer1k: styleMetrics?.aiTonePer1k ?? null,
+    // 保真：审校留下的语义回退条目数（越低越好）
+    reviewFidelityViolations: reviewStage?.fidelity?.violations ?? null,
   };
 
   return {
@@ -884,6 +888,9 @@ export function computeMetrics({ paper, result, structure }) {
             boundaryPhraseTotal: styleMetrics.boundaryPhraseTotal,
           }
         : null,
+      review: reviewStage
+        ? { status: reviewStage.status, fidelity: reviewStage.fidelity || null, factGuard: reviewStage.factGuard || null }
+        : null,
       evidenceLedgerStats: result?.meta?.evidenceLedger?.stats || null,
     },
   };
@@ -941,6 +948,7 @@ export const METRIC_LABELS = {
   factCheckUnsupportedRate: 'Fact-check unsupported rate',
   factCheckNumbers: 'Fact-check numbers / paper',
   aiTonePer1k: 'AI tone per 1k chars',
+  reviewFidelityViolations: 'Review fidelity violations',
 };
 
 /**
@@ -1030,6 +1038,7 @@ export const METRIC_GROUPS = [
     metrics: ['factCheckCoverage', 'factCheckUnsupportedRate', 'factCheckNumbers'],
   },
   { key: 'voice', label: '人声指标（去 AI 味）', metrics: ['aiTonePer1k'] },
+  { key: 'fidelity', label: '保真指标（审校不改意思）', metrics: ['reviewFidelityViolations'] },
 ];
 
 /** 单位不是百分比的指标（按原值展示）。 */
@@ -1044,6 +1053,7 @@ const COUNT_METRICS = new Set([
   'allocationOverflowCount',
   'factCheckNumbers',
   'aiTonePer1k',
+  'reviewFidelityViolations',
 ]);
 
 /** 把指标值格式化成 CLI/summary 用的字符串。 */
@@ -1071,6 +1081,7 @@ const LOWER_IS_BETTER = new Set([
   'unsupportedFactRate',
   'factCheckUnsupportedRate',
   'aiTonePer1k',
+  'reviewFidelityViolations',
 ]);
 
 /** 多篇论文聚合：忽略 null（该论文没有这类期望），并记录参与聚合的论文数。 */

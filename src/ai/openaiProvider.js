@@ -441,7 +441,17 @@ async function reviewDeepReadMarkdown({ chat, source, markdown, evidenceText = '
             parsed: false,
             reason: `审校导致事实覆盖回退，保留原稿：${factVerdict.reason}`,
             fallbackReason: factVerdict.reason,
-            extra: { ...(base.extra || {}), factRegression: factVerdict.regressed?.slice(0, 4) || [] },
+            extra: {
+              ...(base.extra || {}),
+              factRegression: factVerdict.regressed?.slice(0, 4) || [],
+              // 这一档也要带保真信息：审校被丢弃时同样要能回答「它改乱了什么」
+              fidelity: verdict.fidelity
+                ? {
+                    violations: verdict.fidelity.soft.length + verdict.fidelity.hard.length,
+                    items: [...verdict.fidelity.hard, ...verdict.fidelity.soft].slice(0, 4),
+                  }
+                : null,
+            },
           }),
         };
       }
@@ -451,12 +461,25 @@ async function reviewDeepReadMarkdown({ chat, source, markdown, evidenceText = '
           ...base,
           status: STAGE_STATUS.MODEL_SUCCESS,
           parsed: true,
-          extra: { ...(base.extra || {}), factGuard: factVerdict.skipped ? 'skipped' : 'passed' },
+          extra: {
+            ...(base.extra || {}),
+            factGuard: factVerdict.skipped ? 'skipped' : 'passed',
+            // 保真护栏：审校可以让文字变顺，但不能改意思（数字/否定/限定/归因不能丢）
+            fidelity: verdict.fidelity
+              ? { violations: verdict.fidelity.soft.length, items: verdict.fidelity.soft.slice(0, 4) }
+              : null,
+          },
         }),
       };
     }
     if (review?.content) {
       console.warn('[deepread/review] 丢弃审校结果：', verdict.reason || '非中文输出');
+    }
+    if (verdict.fidelity?.soft?.length) {
+      console.warn(
+        '[deepread/review] 审校稿保真提示（已保留原稿）：',
+        verdict.fidelity.soft.map((v) => v.detail).join('；'),
+      );
     }
     // 审校被护栏拒绝（变短/少小节/疑似截断/非中文）：保留原稿，但把原因记进阶段元数据
     return {
@@ -467,6 +490,12 @@ async function reviewDeepReadMarkdown({ chat, source, markdown, evidenceText = '
         parsed: false,
         reason: `审校结果被护栏丢弃（保留原稿）：${verdict.reason || '非中文输出'}`,
         fallbackReason: verdict.reason || '非中文输出',
+        extra: {
+          ...(base.extra || {}),
+          fidelity: verdict.fidelity
+            ? { violations: verdict.fidelity.soft.length + verdict.fidelity.hard.length, items: [...verdict.fidelity.hard, ...verdict.fidelity.soft].slice(0, 4) }
+            : null,
+        },
       }),
     };
   } catch (err) {

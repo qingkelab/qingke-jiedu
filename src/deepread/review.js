@@ -6,7 +6,11 @@
  * 所以这里统一做两件事：
  *   1. 按原稿长度推算审校调用的 token 预算（中文约 1 字 ≈ 1 token，留足余量）；
  *   2. 审校结果必须「够长 + 小节数不减少 + 收尾完整」，否则丢弃，保留原稿。
+ *   3. 保真检查（fidelity.js）：丢了图片/公式/代码/链接这类受保护内容 → 丢弃；
+ *      数字/否定/限定/归因变少 → 记录为 soft 违规（审校可以让文字变顺，但不能改意思）。
  */
+
+import { fidelityDiff } from './fidelity.js';
 
 /**
  * 审校调用的 token 预算。
@@ -38,9 +42,9 @@ export function countSections(markdown) {
 
 /**
  * 是否接受审校结果。
- * @returns {{ok:boolean, reason?:string}}
+ * @returns {{ok:boolean, reason?:string, fidelity?:object}}
  */
-export function acceptReview(original, reviewed) {
+export function acceptReview(original, reviewed, { enforceFidelity = true } = {}) {
   const before = String(original || '');
   const after = String(reviewed || '');
   if (!after.trim()) return { ok: false, reason: '审校返回空内容' };
@@ -61,5 +65,15 @@ export function acceptReview(original, reviewed) {
     return { ok: false, reason: '审校稿收尾像是被截断' };
   }
 
-  return { ok: true };
+  // 4) 保真：受保护内容（图片/链接/代码/公式/表格/小节）不能丢
+  const fidelity = fidelityDiff(before, after);
+  if (enforceFidelity && fidelity.hard.length) {
+    return {
+      ok: false,
+      reason: `审校稿丢了受保护内容：${fidelity.hard.map((h) => h.detail).join('；')}`,
+      fidelity,
+    };
+  }
+
+  return { ok: true, fidelity };
 }

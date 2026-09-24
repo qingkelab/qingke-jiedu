@@ -94,7 +94,8 @@ function stageResponse(sys, user) {
   if (/请撰写第/.test(user)) {
     const m = sys.match(/作为本节的 Markdown H2）：##\s*(.+)/);
     const title = m ? m[1].trim() : '小节';
-    return `## ${title}\n\nBLEU 41.8，去掉循环状态掉到 39.1，显存 18.6 GB，只在文本模态验证。\n`;
+    // 故意带上限定词与公式：审校的保真护栏要能看出「改顺了但改意思/丢公式」
+    return `## ${title}\n\nBLEU 41.8，去掉循环状态掉到 39.1，显存 18.6 GB，可能只在文本模态验证，尚未给出方差。状态更新为 $h_t = \\alpha \\odot h_{t-1}$。\n`;
   }
   if (/只重写这一节|修订编辑/.test(`${sys}\n${user}`)) {
     return '## 实验结果与消融\n\n修订：BLEU 41.8，去掉循环状态掉到 39.1。\n';
@@ -147,6 +148,52 @@ test('终稿审校：返回空稿时护栏丢弃并记为 warn（保留原稿，
     assert.match(res.meta.stages.review.reason, /空内容/);
     assert.match(res.markdown, /BLEU 41\.8/, '原稿必须保留');
     assert.equal(res.meta.stages.review.rawContentLength, 0);
+  } finally {
+    fake.restore();
+  }
+});
+
+// ============ 保真护栏（humanizer-zh：可以改顺，不能改意思）============
+
+test('终稿审校：把「可能 / 尚未」改成确定——稿子仍被采纳，但保真违规被记进阶段元数据', async () => {
+  const fake = installFakeFetch({
+    onReview: ({ user }) => {
+      const draft = user.slice(user.indexOf('# LoopFormer'));
+      return { content: draft.replace(/可能只在/g, '只在').replace(/尚未给出方差/g, '给出了方差') };
+    },
+  });
+  try {
+    const provider = createProvider('deepseek');
+    const res = await provider.deepRead({ source: DEEP_SOURCE, figures: [], onProgress: () => {} });
+    const review = res.meta.stages.review;
+    assert.equal(review.status, 'model_success', '保真 soft 违规不否决审校');
+    assert.ok(review.fidelity, 'stage 上应带 fidelity 字段');
+    assert.ok(review.fidelity.violations >= 1, `应记录保真违规：${JSON.stringify(review.fidelity)}`);
+    const kinds = review.fidelity.items.map((i) => i.kind);
+    assert.ok(kinds.includes('hedge') || kinds.includes('negation'), `实际 ${kinds.join(',')}`);
+  } finally {
+    fake.restore();
+  }
+});
+
+test('终稿审校：丢掉公式（受保护内容）——护栏丢弃审校稿，保留原稿', async () => {
+  const fake = installFakeFetch({
+    onReview: ({ user }) => {
+      const draft = user.slice(user.indexOf('# LoopFormer'));
+      // 只丢公式，长度用一句无信息的话补回来：这样触发的就是保真护栏，而不是「变短」护栏
+      // 只删第一处公式：删干净会让稿子明显变短（触发「变短」护栏），就测不到保真护栏了
+      const stripped = draft.replace(/\$h_t = \\alpha \\odot h_\{t-1\}\$/, '').replace(/\s+$/, '');
+      return { content: `${stripped}\n\n（本节其余部分保持不变。）\n` };
+    },
+  });
+  try {
+    const provider = createProvider('deepseek');
+    const res = await provider.deepRead({ source: DEEP_SOURCE, figures: [], onProgress: () => {} });
+    const review = res.meta.stages.review;
+    assert.equal(review.status, 'warn');
+    assert.match(review.reason, /受保护内容/);
+    assert.match(review.reason, /公式/);
+    assert.match(res.markdown, /\$h_t/, '原稿里的公式必须保留');
   } finally {
     fake.restore();
   }

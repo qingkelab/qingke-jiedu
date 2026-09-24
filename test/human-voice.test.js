@@ -44,11 +44,49 @@ test('人声规则保留本项目自己的版式选择（不照抄「禁用 emoj
   assert.equal(/不加长破折号/.test(rules), false, '破折号由 styleCheck 的用量上限管，不用一刀禁');
 });
 
-test('审校提示词：包含人声检查 + 交付前自检，且只输出最终稿', () => {
+// ============ 对齐 humanizer-zh（2026-09-23）：保真优先 + 清单是线索 ============
+
+test('保真优先写在所有文风规则之前（第 0 条）', () => {
+  const rules = humanVoiceRules();
+  assert.match(rules, /第 0 条：保真优先（压过所有文风规则）/);
+  for (const key of ['不新增原文没有的事实', '不丢独立信息', '把「可能」写成确定', '推测与归因保持原样']) {
+    assert.match(rules, new RegExp(key), `缺少保真约束「${key}」`);
+  }
+  // 第 0 条必须排在「删掉这些 AI 模式」之前
+  assert.ok(rules.indexOf('第 0 条') < rules.indexOf('【删掉这些 AI 模式】'));
+});
+
+test('模式清单被明确定义为线索而不是黑名单，并列出必须保留的情况', () => {
+  const rules = humanVoiceRules();
+  assert.match(rules, /线索，不是黑名单/);
+  assert.match(rules, /不是修改理由/);
+  for (const key of ['首先/其次', '与此同时', '破折号', '施事者未知', '四字格', '三项功能列举']) {
+    assert.match(rules, new RegExp(key), `缺少「保留 ${key}」的说明`);
+  }
+});
+
+test('补上了 humanizer-zh 的中文检查点与交付前核对', () => {
+  const rules = humanVoiceRules();
+  for (const key of ['起跑式铺垫', '句尾拔高尾巴', '首句复读标题', '层叠的「的」', '「进行＋动词」', '保护内容']) {
+    assert.match(rules, new RegExp(key), `缺少检查点「${key}」`);
+  }
+  const sys = buildDeepReviewMessages({ title: 't', text: '' }, '# T\n\n正文')[0].content;
+  assert.match(sys, /交付前核对（保真优先/);
+  assert.match(sys, /有没有把「可能」写成「确定」/);
+  assert.match(sys, /不要输出自检过程、修改摘要、自评分或字数统计/);
+});
+
+test('审校提示词：标题必须逐字保留（humanizer 的文件保护规则）', () => {
+  const sys = buildDeepReviewMessages({ title: 't', text: '' }, '# T\n\n正文')[0].content;
+  assert.match(sys, /小节标题、标题层级与数量必须与待审校稿逐字一致/);
+  assert.match(sys, /不得改名、不得增删、不得重排/);
+});
+
+test('审校提示词：包含人声检查 + 交付前核对，且只输出最终稿', () => {
   const sys = buildDeepReviewMessages({ title: 't', text: '' }, '# T\n\n正文')[0].content;
   assert.match(sys, /人声检查/);
   assert.match(sys, /动名词假深度/);
-  assert.match(sys, /交付前自检/);
+  assert.match(sys, /交付前核对（保真优先/);
   assert.match(sys, /只输出最终 Markdown，不要输出自检过程/);
 });
 
@@ -107,6 +145,31 @@ test('假阳性守门：正常的技术解读不会因为「有」或普通动�
   assert.equal(res.metrics.voiceTotal, 0, `不该命中 AI 腔：${JSON.stringify(res.metrics.voice)}`);
   assert.equal(res.warnings.some((w) => w.text.includes('AI 腔')), false);
   assert.equal(res.ok, true);
+});
+
+// 取自 humanizer-zh 的 18 条边界案例：这些「看起来像 AI 模式、其实承载真实信息」的句子
+// 不能被我们的清单判成必须修改（清单只是线索）。
+const HUMANIZER_KEEP_CASES = [
+  ['时间与前置条件', '首先，甲组正在核对数据。与此同时，乙组正在测试导出功能。只有两组都完成工作后，才能发布。'],
+  ['独立列举项', '数量不变、顺序不变、权限不变是本次检查的三项要求。'],
+  ['施事者未知的被动', '该问题被社区多次报告，被认为可能与内存泄漏有关，但原因尚未确认。'],
+  ['范围与否定', '该空间作为展览场地，设有四个独立展区，总面积超过 3000 平方英尺，但不对公众开放。'],
+  ['正在与计划', '我们正在对系统进行全面测试，并计划在周五进行配置调整。测试尚未完成。'],
+  ['四字格', '该方案稳定可靠、快速响应、易于维护。'],
+  ['保留的引语', '作者写道：「这不是工具，而是一面镜子。」本文讨论这句话为什么容易被反复套用。'],
+];
+
+test('边界案例守门：承载真实信息的写法不会被升级成 warn（清单只作线索）', () => {
+  for (const [label, text] of HUMANIZER_KEEP_CASES) {
+    const res = checkStyle(`## 说明\n\n${text}`, 'deepread');
+    const warns = res.warnings.filter((w) => w.level === 'warn');
+    assert.deepEqual(warns, [], `${label} 不该被判 warn：${JSON.stringify(warns)}`);
+  }
+});
+
+test('边界案例守门：单独一处被动/限定不会被当成「AI 腔」刷屏', () => {
+  const res = checkStyle('## 说明\n\n该问题被认为可能与内存泄漏有关。', 'deepread');
+  assert.equal(res.warnings.some((w) => w.text.includes('AI 腔')), false, `短句不该报密度：${JSON.stringify(res.warnings)}`);
 });
 
 test('阈值常量是显式导出（便于按内容类型调）', () => {
