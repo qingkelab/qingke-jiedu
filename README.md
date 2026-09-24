@@ -119,14 +119,25 @@ Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy 
   「真正 / 尤其 / 关键在于 / 值得注意的是 / 首次 / 革命 / 颠覆 / 最强 / SOTA / 碾压 / 下一代 / 已经解决」
   与「排名 / 超越 / 证明 / best method / ranking」等边界词，命中以 `info` 提示并注入审校清单
   （只提示、不阻断，`ok` 仍只由 `warn` 级问题决定）。
-- **去 AI 味：逐条删模式 + 注入人声**（规则整理自社区流传的「去 AI 味」文本提示词，做了本项目化改写）。
-  提示词层把 10 类 AI 模式逐条列出并要求「要么删、要么换成具体事实/动作动词/主动句」：
-  夸大规模（里程碑意义 / 至关重要 / 反映更广泛趋势）、动名词假深度（突出了 / 反映了 / 促进了）、
-  广告腔与模糊归因（植根于 / 专家认为）、滥用系动词（是 / 构成 / 被视为）、被动与幽灵主语（需要被配置 → 你需要配置）、
-  三段式与同义轮换、抽象名词空转、客服套话（希望对你有帮助 / 总而言之）、过度谨慎的「可能」；
-  同时要求注入人声：节奏错落、对事实给反应、允许不确定、第一人称、保留一点不整齐。终稿审校多了一遍「静默通读 → 改掉残留 → 只输出最终稿」。
-  检查层把这四类模式变成可数指标，输出 `AI 腔密度 x/千字`，并作为 `aiTonePer1k` 进入 benchmark（越低越好）。
+- **去 AI 味：保真优先 + 逐条线索 + 注入人声**（规则来自 humanizer-zh / op7418 Humanizer-zh 2026-09-23 版 31 个检查点，
+  与社区流传的「去 AI 味」提示词合并后按本项目场景改写）。三层结构：
+  1. **第 0 条保真优先，压过所有文风规则**：不新增原文没有的事实/数字/名字/日期/引文/来源；
+     不丢否定、比较对象、范围、条件、时间、完成状态、归因；不把「可能」写成确定、把相关写成因果、把计划写成已完成；
+     资料不够就保留原来的概括程度，不用虚构细节填充。
+  2. **模式清单是检查线索，不是词语黑名单**：单个词、标点、三项列举、四字词本身都不是修改理由；
+     有真实作用的「首先/其次」（顺序）、「与此同时」（同时发生）、「不过」（转折）、承担解释的破折号、
+     施事者未知的被动句、中文排比与真实三项列举一律保留。夸大规模 / 动名词假深度 / 广告腔与模糊归因 /
+     客服套话 / 起跑式铺垫 / 句尾拔高尾巴 / 首句复读标题 / 层叠的「的」/「进行＋动词」等逐条列出适用条件。
+  3. **注入人声**：节奏错落、对事实给反应、允许不确定、第一人称、保留一点不整齐。
+  终稿审校改成「按上述线索改写 → 交付前核对保真五问 → 只输出最终稿」（不再要求自评分或字数统计）。
+  检查层把这四类模式变成可数指标，输出 `AI 腔密度 x/千字`，并作为 `aiTonePer1k` 进入 benchmark（线索指标，不是合规分）。
   **保留本项目自己的版式选择**：小标题仍可用 emoji、破折号仍按用量上限管理（与流传版本不同，不照抄「一律禁用」）。
+- **审校保真护栏（`src/deepread/fidelity.js`）**：审校是「整篇交给模型重写再拿回来」，最容易出的问题不是截断，
+  而是**改顺了但改意思**。护栏用确定性比较分出两类：
+  `hard`＝受保护内容丢失（图片 / 链接 / 代码块 / 行内代码 / 公式 / 表格行 / 二级小节）→ 直接丢弃审校稿、保留原稿；
+  `soft`＝数字 / 否定 / 限定 / 归因计数下降 → 采纳但记进 `meta.stages.review.fidelity`，并作为
+  `reviewFidelityViolations` 进入 benchmark（越低越好）。否定词只收无歧义写法（不数单独的「不」「未」，
+  避免把「不仅」「未来」当否定）。
 - **数字核验表（`deepread.fact-check.md`）**：终稿里每个数字都回查原文 chunk，落成三态表格——
   `source`（原文能定位，附条件句与 chunk）/ `derived`（正文标注了「按论文数据计算」）/
   `unsupported`（原文查不到）。统计写进 `meta.factCheckStats` 与 `deepread.audit.json`，
@@ -142,22 +153,97 @@ Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy 
 
 ### 发布到 public repo（GitHub Pages）
 
-把一次深度解读发布成一个公开仓库里的独立文章页，默认**只规划不落盘**：
+公开发布仓库是 `qingkelab/qingke-public-pages`（本地 `~/Documents/qingke-public-pages`，
+站点 <https://qingkelab.github.io/qingke-public-pages/>）。把一次深度解读发布成该仓库里的独立文章页，
+默认**只规划不落盘**：
 
 ```bash
+# 不传 --repo 时默认用 ~/Documents/qingke-public-pages（或环境变量 PUBLIC_REPO_DIR）
 # 先看一眼会写哪些文件（默认 dry-run，不写盘、不碰 git）
-node scripts/publish-article.js --dir output/<id> --repo ~/Documents/qingke-embodied-ai-pages
+node scripts/publish-article.js --dir output/<id>
 
 # 确认后真正写盘
-node scripts/publish-article.js --dir output/<id> --repo ~/Documents/qingke-embodied-ai-pages --yes
+node scripts/publish-article.js --dir output/<id> --yes
 
 # 需要建分支 + 提交 + 推送 + 开 PR 时（默认不做，必须显式加）
-node scripts/publish-article.js --dir output/<id> --repo <repo> --yes --push --pr
+node scripts/publish-article.js --dir output/<id> --yes --push --pr
 ```
 
 产物形态：`article/<NNN>/index.html`（自包含 HTML，内联样式）+ `article/<NNN>/images/*.png`，
 正文里的本地图片会改写成 `images/xxx.png`，核验表折叠在页尾 `<details>` 里。
 仓库路径也可以走环境变量 `PUBLIC_REPO_DIR`。
+推到该仓库的 `main` 会触发 `.github/workflows/pages.yml` 自动发布到 Pages；首次部署已完成。
+
+### 头图：手绘技术研究笔记风格海报
+
+每篇解读可以配一张**自动生成**的头图：把终稿内容转译成「研究员在纸上推演复杂系统」的样子——
+米白纸张纹理、黑色铅笔线稿、少量蓝红强调色，以一个大型核心技术图为视觉中心，
+四周是流程图 / 坐标轴 / 公式 / 代码结构 / 决策树 / 数据图 / 手写批注。
+**禁止 3D、渐变、卡通、商业广告感与 PPT 风**（这三条有测试守着，见 `test/cover.test.js`）。
+
+```bash
+npm run cover -- --dir output/<id>                  # 海报 1200×1600 → cover.svg + cover.png
+npm run cover -- --dir output/<id> --ratio wide      # 宽版头图 1600×900
+npm run cover -- --dir output/<id> --ratio square    # 方图 1200×1200
+npm run cover -- --dir output/<id> --json            # 打印提炼结果与视觉结构（不只看图）
+npm run cover -- --md article.md --out /tmp/cover --svg-only   # 只出矢量图（无需 Chrome）
+npm run cover -- --dir output/<id> --no-font         # 不内联手写字体（SVG 更小，走系统字体）
+```
+
+**公式是真排版的，不是把 LaTeX 拍平成字符串**：核心公式用 KaTeX 生成 **MathML**（`output:'mathml'`），
+放进 SVG 的 `foreignObject`，由浏览器原生排版分数、上下标、希腊字母与 ⊙ / ∈ 这类符号——
+MathML 不依赖 KaTeX 的字体文件，所以既没有外链也不需要内嵌 60 多个字体。
+发布出去的文章页同样走 MathML（`protectMarkdownMath`：先在 Markdown 阶段把公式保护起来，
+再交给 markdown 转换，最后还原成 `<math>`），页面保持自包含、不引 CDN；代码块与行内代码里的 `$` 不动。
+
+**手写字体随项目走**：`assets/fonts/lxgw-wenkai-lite/` 内置霞鹜文楷 Lite（SIL OFL 1.1，含 `OFL.txt`），
+渲染时按**这张海报实际用到的字**挑选对应的 woff2 分片内联（一张海报约 0.8MB，而不是整套 4MB）。
+字体栈是「系统行楷 → 内嵌霞鹜文楷 → 楷体」，所以 macOS 上拿到更手绘的行楷观感，
+换机器或部署到 Linux 也不会退化成黑体；`--no-font` 可以完全关掉内嵌。
+（因此「同一篇稿子同一张图」的确定性是**在同一台机器/同一字体环境内**成立。）
+
+**自动提炼 + 自动决定视觉结构**（`src/cover/distill.js`，全部确定性、不调用模型）：
+
+- 从终稿里取标题、一句话结论、章节骨架、术语标签、归因句（批注素材）；
+- 结论数字只挑「带单位/指标 + 有条件句」的，按分数排序取前 5，并**带上承载它的原句**；
+  纯配置数字（层数、维度）和小整数不进海报；
+- 主结构三选一（`src/cover/distill.js#chooseCoverStructure`）：
+  结论数字多 → **数据条**（不是折线：几个不同维度的数字画成折线会暗示不存在的趋势）；
+  数字少但小节多 → **流程链路**；都没有 → **概念放射图**；
+- 辅助模块按内容出现：有公式→公式面板，出现消融/对比/取舍→决策树，有代码或「实现」小节→代码结构，
+  出现两个以上年份→时间线；模块数是奇数时用「术语与来源」补位。
+
+实现方式（`src/cover/svg.js` + `src/cover/index.js`）：所有图形都是 SVG 描边 + 确定性抖动
+（同一篇稿子永远生成同一张图），纸纹用二维噪声（`feTurbulence`，不是渐变），
+栅格化复用项目已有的本机 Chrome（`webToImages.svgToPng`）；没有 Chrome 时退化成只给 SVG。
+
+**发布时会自动带上头图**：`cover.png` 会复制成 `article/<NNN>/cover.png` 并作为文章页顶部的 `<figure class="cover">`；
+正文配图列表会排除 `cover.png`，不会重复。服务端默认也会在深度解读结束后生成头图
+（`DEEPREAD_COVER=0` 关闭，`DEEPREAD_COVER_RATIO=wide` 改版式），失败只记日志、不影响正文。
+
+### 正文配图：每节一张手绘重述图
+
+文章的配图不再是论文原图截图，而是**按节重画的示意图**，和头图同一套手绘语言
+（纸纹 / 铅笔线稿 / 蓝红强调 / 手写标题与批注），横版 1200×660：
+
+```bash
+npm run figures -- --dir output/<id>            # 一节一张 → <dir>/figures/figure-01.png …
+npm run figures -- --dir output/<id> --max 4    # 最多 4 张（默认 6）
+npm run figures -- --dir output/<id> --svg-only  # 只出 SVG（无需 Chrome）
+```
+
+每张图的内容也是自动提炼的（`distillSectionFigure`）：本节的关键数字（带条件句）、
+本节短句构成的流程节点、本节公式、本节归因句（手写批注）。结构选择与头图同一套规则：
+有结论数字 → 数据条；有动作句 → 流程链路；否则概念图。
+
+发布时会自动替换（`applyHandDrawnFigures`，纯函数、可测、幂等）：
+
+1. 正文里的**论文原图**从正文摘掉；
+2. 每个二级小节标题后面插入该节的手绘重述图（`article/<NNN>/figures/figure-0N.png`）；
+3. 文末生成「原图出处」清单，保留原图 URL 与图注——**重述图是示意图，原图仍可回查**，信息不丢。
+
+服务端在深度解读结束后一并生成（`DEEPREAD_FIGURES=0` 关闭，`DEEPREAD_FIGURES_MAX` 改数量），
+失败只记日志、不影响正文；`figures/index.json` 记录「小节 → 文件名 / 结构 / 数字个数」。
 
 编号 = 已有 `article/NNN` 最大值 +1，不复用、不重排；`--number` 指定到已存在的编号会被拒绝
 （要覆盖得显式加 `--force`）。首页入口更新分三种情况：
@@ -234,10 +320,12 @@ link2post/
 │   │   └── index.js          # runDeepRead 编排
 │   ├── publish/
 │   │   └── publicArticle.js  # public repo 发布：规划 / 落盘 / git 命令（默认不执行）
+│   ├── cover/                # 头图与正文配图：内容提炼 → 视觉结构决策 → 手绘风格 SVG → PNG
 │   ├── styleCheck.js         # 文风体检（AI 味词 + 慎用词 + 研究边界词）
 │   ├── pipeline.js           # 图文解读主流程编排
 │   └── store.js              # 落盘 + ZIP/Markdown 打包
 ├── public/                   # 前端（index.html / app.js / style.css）
+├── assets/fonts/             # 头图内嵌字体（霞鹜文楷 Lite，OFL；按需内联）
 ├── test/                     # node:test 测试（切片/检索/地图/审计/降级/provider）
 ├── output/                   # 每次生成结果（id/001.png … images.zip summary.md）
 └── .env.example
