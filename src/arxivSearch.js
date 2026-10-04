@@ -64,7 +64,9 @@ export async function searchArxiv({ days = 3, category = '', keyword = '', max =
     const published = (e.match(/<published>([\s\S]*?)<\/published>/) || [])[1] || '';
     const authors = [...e.matchAll(/<name>([\s\S]*?)<\/name>/g)].map((m) => m[1]).slice(0, 3).join(', ');
     if (!title) continue;
-    const id = rawId.replace(/^https?:\/\/arxiv\.org\/abs\//, '') || rawId;
+    // 统一成不带版本号的 ID（2610.02116v1 → 2610.02116），与前端/浏览器版保持一致
+    const bare = rawId.replace(/^https?:\/\/arxiv\.org\/abs\//, '') || rawId;
+    const id = (bare.match(/^(\d{4}\.\d{4,5})(v\d+)?$/i) || [])[1] || bare;
     papers.push({
       id,
       title,

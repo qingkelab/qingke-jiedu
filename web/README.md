@@ -14,16 +14,25 @@
 | 网页转图（整页截图） | ❌（无无头 Chrome，降级为抽正文出文案） | ✅ puppeteer |
 | 解读文案 + 爆款标题 | ✅ | ✅ |
 | 论文深度解读（arXiv） | ✅（同一套结构化管线） | ✅ |
-| 最新论文搜索 | ✅（需 CORS 代理） | ✅ |
+| 最新论文搜索 | ✅（填关键词免代理；按分类/日期需 CORS 代理） | ✅ |
 | 公众号凭证同步 | ❌（降级为复制 + 打开后台） | ✅ |
 | 论文播客视频 | ❌（需要 TTS / ffmpeg） | ✅ |
 | Ollama 本地模型 | ❌（浏览器跨域受限，可自行挂代理） | ✅ |
 
 ## 跨域（CORS）说明
 
-- arXiv 的 PDF 与 HTML 全文页**带 `Access-Control-Allow-Origin: *`，可直连**；
-- arXiv 搜索 API（export.arxiv.org）与绝大多数网页**不放 CORS**，需要在页面「接口设置」里填一个 CORS 代理
-  （格式：`https://corsproxy.io/?url=` 或任何含 `{url}` 占位符的代理地址）。代理只转发公开网页，与 API key 无关。
+实测过的四件事：
+
+- **arXiv 的 HTML 全文页 `/html/<id>` 带 `Access-Control-Allow-Origin: *`**，PDF 同样可直连 → 单篇论文的正文抓取不需要代理；
+- `arxiv.org/abs|list|search` 与搜索 API `export.arxiv.org` **都不放 CORS** → 想按「分类 + 精确日期」查最新论文，需要代理；
+- `api.openalex.org` **带 CORS** → **填关键词**的搜索可以免代理（返回结果里只保留能定位到 arXiv 的条目）；
+- `api.semanticscholar.org` 带 CORS，但无 key 时容易 429，只作兜底。
+
+所以浏览器版的检索顺序是：**同源 Node 后端 → 用户配置的代理 + arXiv 官方 API → OpenAlex（关键词）→ Semantic Scholar**。
+每一步失败都会继续下一级，全部失败才会报错，并且错误里会列出「试过哪些渠道、分别为什么失败」以及两条出路
+（① 填关键词走免代理搜索；② 在「接口设置 → CORS 代理」填代理，可一键填入公共代理，格式 `https://corsproxy.io/?url=` 或任何含 `{url}` 占位符的地址）。
+
+代理只转发公开页面，与 API key 无关；key 依然只存在内存里。
 
 ## 本地预览
 

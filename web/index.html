@@ -100,7 +100,7 @@
               <button class="chip kw" data-kw="World Model" type="button">World Model</button>
               <button class="chip kw" data-kw="World Action Model" type="button">World Action Model</button>
             </div>
-            <p class="muted latest-hint">搜索走 arXiv API（无 CORS），需要先在「接口设置」里填 CORS 代理。</p>
+            <p class="muted latest-hint">填关键词即可免代理搜索（走 OpenAlex / Semantic Scholar）；想按分类与精确日期查最新论文，需在「接口设置」填 CORS 代理走 arXiv 官方 API。</p>
           </div>
 
           <label class="only-images" id="only-images-row">
@@ -140,8 +140,13 @@
               </label>
               <label class="api-wide">
                 <span>CORS 代理（可选）</span>
-                <input id="api-proxy" type="url" placeholder="https://corsproxy.io/?url= （网页抓取 / arXiv 搜索需要）" />
+                <input id="api-proxy" type="url" placeholder="https://corsproxy.io/?url= （抓网页正文 / 按分类查最新论文时需要）" />
               </label>
+              <p class="muted api-wide" style="margin:-4px 0 0">
+                不填也能用：填关键词搜索走 OpenAlex（免代理），单篇元数据走 arXiv HTML 页（免代理）。
+                需要按分类/精确日期查最新论文时，点下面按钮自动填入一个公共代理：
+                <button id="api-proxy-fill" class="btn ghost" type="button" style="margin-left:6px">填入公共代理</button>
+              </p>
               <div class="api-actions">
                 <button id="api-test" class="btn ghost" type="button">测试连接</button>
                 <span id="api-test-note" class="muted"></span>

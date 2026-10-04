@@ -344,6 +344,8 @@ link2post/
 | GET | `/files/:id/:filename` | 内联访问生成的图片 / ZIP / Markdown |
 | GET | `/download/:id/:filename` | 强制下载（`Content-Disposition: attachment`） |
 | GET | `/api/health` | 健康检查（当前文案引擎 + 是否已配置 API key） |
+| GET | `/api/arxiv/search?days=&category=&keyword=` | 按分类/关键词查最新 arXiv 论文（服务端直连，浏览器版可同源调用，免 CORS 代理） |
+| GET | `/api/arxiv/meta?id=` | 单篇 arXiv 元数据（标题/作者/日期），浏览器版「深度解读出处块」的免代理回退 |
 | POST | `/api/sync/wechat` | `{"id":"…"}` → 有凭证自动存公众号草稿，无凭证返回降级信息 |
 
 `result.json` 里 `copyStatus` 有三态：`pending`（只转了图）→ `done`（文案已生成）/ `error`（模型失败，`copyError` 存原因）。

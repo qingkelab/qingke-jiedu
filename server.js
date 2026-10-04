@@ -763,6 +763,21 @@ app.get('/api/arxiv/search', async (req, res) => {
   }
 });
 
+// 单篇元数据（浏览器版在「有后端同源」时会走这个端点，避免跨域）
+app.get('/api/arxiv/meta', async (req, res) => {
+  const id = String(req.query.id || '').trim();
+  if (!id) return res.status(400).json({ error: '缺少 id 参数' });
+  try {
+    const meta = await fetchArxivMeta(id);
+    if (!meta) return res.status(404).json({ error: `没有找到 arXiv ${id}` });
+    res.json({ id, title: meta.title, authors: meta.authors, published: meta.published, url: `https://arxiv.org/abs/${id}` });
+  } catch (err) {
+    const message = err && err.message ? err.message : String(err);
+    console.error('[arxiv/meta]', message);
+    res.status(500).json({ error: message });
+  }
+});
+
 // 已配置的公众号账号列表（不含密钥）
 app.get('/api/wechat/accounts', (_req, res) => {
   res.json({

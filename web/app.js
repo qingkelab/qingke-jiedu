@@ -92,6 +92,17 @@ function initApiPanel() {
   ['#api-baseurl', '#api-model', '#api-key', '#api-proxy'].forEach((sel) =>
     $(sel).addEventListener('input', refreshApiFromInputs),
   );
+  // 一键填入公共 CORS 代理：只写进输入框（仍然只存内存），不自动启用其它服务
+  const proxyFill = $('#api-proxy-fill');
+  if (proxyFill) {
+    proxyFill.addEventListener('click', () => {
+      const input = $('#api-proxy');
+      if (!input.value.trim()) input.value = 'https://corsproxy.io/?url=';
+      refreshApiFromInputs();
+      const note = $('#api-test-note');
+      if (note) note.textContent = '已填入公共代理；它只转发公开页面，与 API key 无关。';
+    });
+  }
   $('#api-test').addEventListener('click', async () => {
     refreshApiFromInputs();
     const note = $('#api-test-note');
@@ -702,7 +713,7 @@ async function runSearch() {
       keyword: latestKeyword,
       proxy: apiCfg.proxy,
     });
-    renderArxivList({ papers, days, category, keyword: latestKeyword });
+    renderArxivList({ papers, days, category, keyword: latestKeyword, source: papers.source || '' });
   } catch (err) {
     showError('搜索失败：' + ((err && err.message) || err));
   } finally {
@@ -719,6 +730,12 @@ function renderArxivList(data) {
   if (data.keyword) parts.push(`关键词「${data.keyword}」`);
   parts.push(data.category || '全部');
   parts.push(`${data.papers.length} 篇`);
+  const SOURCE_LABEL = {
+    backend: '同源后端',
+    openalex: 'OpenAlex（免代理）',
+    semanticscholar: 'Semantic Scholar（免代理）',
+  };
+  if (SOURCE_LABEL[data.source]) parts.push(`来源 ${SOURCE_LABEL[data.source]}`);
   $('#arxivlist-count').textContent = parts.join(' · ');
   const body = $('#arxivlist-body');
   body.innerHTML = '';
