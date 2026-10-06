@@ -15,7 +15,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { COVER_RATIOS, buildCoverPng } from '../src/cover/index.js';
+import { COVER_RATIOS, buildAuditedCover, buildBestCover } from '../src/cover/index.js';
+import { formatFindings } from '../src/cover/audit.js';
 
 export function parseArgs(argv) {
   const args = { _: [] };
@@ -42,7 +43,10 @@ async function main(argv = process.argv.slice(2)) {
   const dir = args.dir || args._[0];
   const mdPath = args.md || (dir ? path.join(dir, 'deepread.md') : '');
   if (!mdPath) {
-    console.error('用法：node scripts/make-cover.js --dir output/<id> [--ratio poster|wide|square] [--out cover] [--scale 2] [--svg-only] [--no-font] [--json]');
+    console.error(
+      '用法：node scripts/make-cover.js --dir output/<id> [--ratio poster|wide|square] [--out cover] [--scale 2] [--svg-only] [--no-font] [--json]\n' +
+        '      额外：--rounds 2（审计+修复轮数）--variants 3（先发散后收敛）--audit（打印审计明细）--strict（有错误时退出码 1）--no-audit（不写审计文件）',
+    );
     return 2;
   }
   const markdown = await fs.readFile(mdPath, 'utf-8').catch(() => '');
@@ -60,21 +64,57 @@ async function main(argv = process.argv.slice(2)) {
 
   const ratio = args.ratio || 'poster';
   const scale = Number(args.scale || 2);
-  const built = await buildCoverPng({
+  const rounds = Number(args.rounds || 2);
+  const variants = Number(args.variants || 1);
+  const build = variants > 1 ? buildBestCover : buildAuditedCover;
+  const built = await build({
     markdown,
     meta,
     ratio,
-    scale,
     sourceUrl: args.source || '',
     embedFont: args['no-font'] !== true,
+    rounds,
+    variants,
   });
+  // 栅格化（没有 Chrome 就只留 SVG）
+  let png = null;
+  if (!args['svg-only']) {
+    try {
+      const { svgToPng } = await import('../src/webToImages.js');
+      png = (await svgToPng(built.svg, { scale, waitForFonts: true }))?.buffer || null;
+    } catch {
+      png = null;
+    }
+  }
+  const audit = built.audit;
 
   const base = args.out || (dir ? path.join(dir, 'cover') : 'cover');
   const svgPath = path.join(path.dirname(base), `${path.basename(base).replace(/\.(svg|png)$/, '')}.svg`);
   const pngPath = svgPath.replace(/\.svg$/, '.png');
   await fs.mkdir(path.dirname(svgPath), { recursive: true });
   await fs.writeFile(svgPath, built.svg, 'utf-8');
-  if (built.png && !args['svg-only']) await fs.writeFile(pngPath, built.png);
+  if (png) await fs.writeFile(pngPath, png);
+
+  // 审计 ledger 落盘（默认写；--no-audit 关掉）：哪一轮、发现什么、修了什么都能回查
+  const auditPath = args['no-audit'] ? null : svgPath.replace(/\.svg$/, '.audit.json');
+  if (auditPath) {
+    await fs.writeFile(
+      auditPath,
+      JSON.stringify(
+        {
+          ok: audit.ok,
+          summary: audit.summary,
+          rounds: built.rounds || 1,
+          ledger: built.ledger || [],
+          variants: built.variants || null,
+          findings: audit.findings,
+        },
+        null,
+        2,
+      ),
+      'utf-8',
+    );
+  }
 
   if (args.json) {
     console.log(
@@ -88,6 +128,8 @@ async function main(argv = process.argv.slice(2)) {
           tags: built.content.tags,
           steps: built.content.steps.length,
           claims: built.content.claims.length,
+          variants: built.variants || null,
+          audit: { ok: audit.ok, ...audit.summary, findings: audit.findings },
         },
         null,
         2,
@@ -97,7 +139,15 @@ async function main(argv = process.argv.slice(2)) {
   console.log(`视觉结构：${built.structure.primary}（${built.structure.reason}）`);
   console.log(`尺寸：${built.width}×${built.height}（${COVER_RATIOS[ratio] ? ratio : 'custom'}）`);
   console.log(`手写字体：${built.fontEmbedded ? '已按用字内联（霞鹜文楷 Lite / OFL）' : '未内联（退回系统字体栈）'}`);
-  console.log(`已写出：${svgPath}${built.png && !args['svg-only'] ? `\n         ${pngPath}` : '（未栅格化 PNG）'}`);
+  if (built.variants) {
+    console.log(`候选收敛：${built.variants.map((v) => `${v.structure}(${v.score})`).join(' → ')}`);
+  }
+  console.log(`审计：${audit.findings.length ? `${audit.summary.errors} 错误 / ${audit.summary.warns} 警告（共 ${built.rounds || 1} 轮）` : `通过（共 ${built.rounds || 1} 轮）`}`);
+  if (args.audit || audit.findings.some((f) => f.level === 'error')) {
+    for (const line of formatFindings(audit.findings)) console.log(`  ${line.replace(/\n/g, '\n  ')}`);
+  }
+  console.log(`已写出：${svgPath}${png ? `\n         ${pngPath}` : '（未栅格化 PNG）'}${auditPath ? `\n         ${auditPath}` : ''}`);
+  if (args.strict && audit.summary.errors > 0) return 1;
   return 0;
 }
 

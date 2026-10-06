@@ -217,6 +217,41 @@ MathML 不依赖 KaTeX 的字体文件，所以既没有外链也不需要内嵌
 （同一篇稿子永远生成同一张图），纸纹用二维噪声（`feTurbulence`，不是渐变），
 栅格化复用项目已有的本机 Chrome（`webToImages.svgToPng`）；没有 Chrome 时退化成只给 SVG。
 
+### 封面审计：先审契约与版面，再定稿
+
+借鉴 [paper-framework-figure-studio-pro](https://github.com/c-narcissus/paper-framework-figure-studio-pro)
+的「审计前移」思路（把质量控制放在生图 prompt 阶段，而不是看图之后）：
+我们的渲染器是确定性的代码，所以对应做法是**先审契约、再审版面，然后只改契约重渲染**。
+
+```bash
+npm run cover -- --dir output/<id> --audit        # 生成时打印审计明细
+npm run cover -- --dir output/<id> --strict       # 有错误时退出码 1（CI / 发布前卡口）
+npm run cover -- --dir output/<id> --variants 3   # 先发散：curve/pipeline/concept 各出一版
+npm run cover -- --dir output/<id> --rounds 2     # 审计 → 修契约 → 重渲染，最多两轮
+npm run audit:cover -- --dir output/handdrawn      # 审任意已生成的封面 SVG（含手工封面）
+npm run audit:cover -- --dir output/handdrawn --md article.md --strict   # 追加「数字出处」核查
+```
+
+两层审计（`src/cover/audit.js`）：
+
+1. **契约层**：`buildCoverSpec` 把「这张图要画什么」写成一纸可审的契约——标题、模块与优先级、
+   **可见文字白名单**、**负约束**（无 3D / 无渐变 / 无卡通 / 无 PPT 味 / 无 emoji / 无裸 LaTeX）、
+   以及每个数字/术语的**出处要求**；审计时逐个回查原文，编出来的数字直接报错；
+2. **版面层**：解析已渲染的 SVG，估算每段文字的包围盒，检查越界、两段文字压字、字号过小、
+   文字撑破所在面板、渐变/投影、调色板外颜色，以及「图上出现了契约外的文字」。
+   面板不需要渲染器改成 `<rect>`：本项目所有面板都是 `pencilRect` 的四条线段，
+   审计用「线段拼矩形」把它们反解出来（`detectPanels`）。
+
+发现问题时**只改契约、不改图**（`src/cover/repair.js`）：删掉没出处的数字/术语、清洗 emoji 与裸 LaTeX、
+补齐负约束与白名单、按优先级丢模块或收批注，然后重新渲染并再审一轮。
+每一轮的发现与修复都会写进 `cover.audit.json`（ledger 可回查），`--json` 时一并打印。
+
+`--variants` 是「先发散后收敛」：主图结构三选一各生成一版，按审计得分（错误 ×100 + 警告 ×10）收敛到最干净的一版。
+
+> 这套审计已经把两个真实缺陷逼出来过：一张手工封面的标签跨过了面板边界；
+> 概念放射图在标签很长时会把文字推到画布外（`drawConcept` 现在会把标签夹回面板内，
+> 并有 `test/cover-audit.test.js` 守着）。
+
 **发布时会自动带上头图**：`cover.png` 会复制成 `article/<NNN>/cover.png` 并作为文章页顶部的 `<figure class="cover">`；
 正文配图列表会排除 `cover.png`，不会重复。服务端默认也会在深度解读结束后生成头图
 （`DEEPREAD_COVER=0` 关闭，`DEEPREAD_COVER_RATIO=wide` 改版式），失败只记日志、不影响正文。

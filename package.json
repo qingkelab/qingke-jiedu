@@ -10,7 +10,8 @@
     "test": "node --test \"test/*.test.js\"",
     "benchmark": "node scripts/deepread-benchmark.js",
     "cover": "node scripts/make-cover.js",
-    "figures": "node scripts/make-figures.js"
+    "figures": "node scripts/make-figures.js",
+    "audit:cover": "node scripts/audit-cover.js"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",

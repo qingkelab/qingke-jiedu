@@ -276,8 +276,11 @@ function drawConcept({ x, y, w, h, title, steps, jitter }) {
   const parts = [];
   const cx = x + w / 2;
   const cy = y + h / 2;
-  const rx = w * 0.30;
-  const ry = h * 0.32;
+  // 放射半径要留出标签的位置：标签宽度按面板宽度收窄，避免「标签被推到画布外」
+  const labelW = Math.max(96, Math.min(200, w * 0.34));
+  const rx = w * 0.24;
+  // 竖直方向别把圆拉成竖长条：和 rx 挂钩，取两者的较小值
+  const ry = Math.min(h * 0.30, rx * 0.92);
   parts.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="${PALETTE.paper}"/>`);
   parts.push(
     `<ellipse cx="${cx}" cy="${cy}" rx="${rx.toFixed(1)}" ry="${ry.toFixed(1)}" fill="none" stroke="${PALETTE.ink}" stroke-width="2.4" stroke-linecap="round"/>`,
@@ -287,13 +290,18 @@ function drawConcept({ x, y, w, h, title, steps, jitter }) {
   const n = Math.min(steps.length, 5) || 3;
   for (let i = 0; i < n; i += 1) {
     const ang = (-Math.PI / 2) + (i * 2 * Math.PI) / n;
-    const px = cx + Math.cos(ang) * rx * 1.9;
-    const py = cy + Math.sin(ang) * ry * 1.85;
+    const px = cx + Math.cos(ang) * rx * 1.75;
+    const py = cy + Math.sin(ang) * ry * 1.9;
     const fromX = cx + Math.cos(ang) * rx;
     const fromY = cy + Math.sin(ang) * ry;
-    parts.push(pencilArrow(fromX, fromY, px - Math.cos(ang) * 66, py - Math.sin(ang) * 34, jitter, { color: PALETTE.blue, width: 1.8 }));
-    const lines = wrapText(stripDecorative(steps[i] || ''), 200, 15).slice(0, 3);
-    parts.push(textBlock(lines, px, py, 15, { font: FONT_HAND, anchor: 'middle', color: PALETTE.ink, lineHeight: 1.4 }));
+    const lines = wrapText(stripDecorative(steps[i] || ''), labelW, 15).slice(0, 3);
+    // 先把标签盒算出来，再把它夹进面板内：宁可标签贴着边，也不让它压到画布外
+    const boxW = Math.max(...lines.map((l) => textWidth(l, 15)), 24);
+    const halfH = ((lines.length - 1) * 15 * 1.4) / 2;
+    const lx = Math.min(Math.max(px, x + 10 + boxW / 2), x + w - 10 - boxW / 2);
+    const ly = Math.min(Math.max(py, y + 26 + halfH), y + h - 14 - halfH);
+    parts.push(pencilArrow(fromX, fromY, lx - Math.cos(ang) * (boxW / 2 + 8), ly - Math.sin(ang) * (halfH + 12), jitter, { color: PALETTE.blue, width: 1.8 }));
+    parts.push(textBlock(lines, lx, ly, 15, { font: FONT_HAND, anchor: 'middle', color: PALETTE.ink, lineHeight: 1.4 }));
   }
   return parts.join('');
 }
@@ -583,7 +591,9 @@ export function renderCoverSvg({
         : 420;
   // 剩余空间：55% 给中央图（它是视觉中心）、其余摊成三段留白，最后剩一点做页脚上方留白
   const free = footerTop - diagramTop - reserved - needDiagram;
-  const toDiagram = free > 0 ? Math.min(Math.round(free * 0.55), Math.round(needDiagram * 0.7), 340) : 0;
+  // 没有模块也没有批注时，中央图直接吃掉整块空白：否则海报下半页会空着（概念图尤其明显）
+  const toDiagram =
+    free > 0 ? (reserved ? Math.min(Math.round(free * 0.55), Math.round(needDiagram * 0.7), 340) : Math.round(free * 0.94)) : 0;
   const rest = free - toDiagram;
   const slack = Math.max(18, Math.min(56, Math.round(rest / 3)));
   const diagramH = Math.round(needDiagram + toDiagram);
