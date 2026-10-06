@@ -41,6 +41,34 @@ npm run check    # lint + test
 | 公众号同步 | `WECHAT_APP_ID/SECRET/NAME/THEME`，第 2 个账号用 `WECHAT2_*`（最多 5 个） |
 | 其他 | `PORT=4780`、`OUTPUT_DIR`、`FETCH_TIMEOUT_MS`、`UPLOAD_MAX_MB` |
 
+## 浏览器版（web/，可直接部署到 GitHub Pages）
+
+仓库里的 `web/` 是把整个应用搬进浏览器的**纯静态版本**，访问 https://qingkelab.github.io/qingke-jiedu/web/ 即可使用：
+
+- **API key 在页面输入、只存内存**：刷新/关闭即失效，不写 localStorage / Cookie / IndexedDB；LLM 请求从浏览器直连服务商。
+- **零改动复用 `src/`**：`web/index.html` 的 import map 把 `jsdom` / `node:path` / `dotenv` 垫成浏览器实现，取源、切片、提示词、文风体检等模块与 Node 版共用同一份代码。
+- PDF 转图走 [pdf.js]（CDN），网页正文走 [Readability]，arXiv 检索有多级 CORS 回退（同源后端 → 自配代理 → OpenAlex 免代理）。
+
+| 功能 | 浏览器版 | Node 版 |
+| --- | --- | --- |
+| PDF 转图（链接 / 上传） | ✅ pdf.js | ✅ pdf.js |
+| 网页转图（整页截图） | ❌（降级为抽正文出文案） | ✅ puppeteer |
+| 解读文案 + 爆款标题 | ✅（key 只存内存） | ✅ |
+| 最新论文检索 | ✅ | ✅ |
+| 论文播客视频 | ❌（需 ffmpeg / TTS） | ✅ |
+| 公众号凭证同步 | ❌（降级为复制 + 打开后台） | ✅ |
+| Ollama 本地模型 | ⚠️ 视 CORS 而定（浏览器直连 localhost 可行） | ✅ |
+
+本地预览与冒烟：
+
+```bash
+python3 -m http.server 8080     # 或 npx serve .
+open http://127.0.0.1:8080/web/
+node web/smoke.mjs              # 真实 Chrome 跑一遍 PDF→图片（需要 CHROME_PATH）
+```
+
+> pdf.js 渲染依赖 `requestAnimationFrame`：页面处于后台/隐藏状态会被浏览器节流，表现为卡在「正在抓取并转图…」，切到前台即可。
+
 ## 目录结构
 
 ```
@@ -121,7 +149,8 @@ docker compose up --build      # 含 ollama 服务，首次会自动拉模型
 
 ## 部署
 
-- **Render（推荐）**：使用仓库自带的 `render.yaml`（Docker 运行时，新加坡节点）。
+- **GitHub Pages（已启用）**：发布源为 `main / (root)`，根目录 `index.html` 是落地页，`/web/` 是浏览器版；push 即自动发布（无需构建）。
+- **Render（可选）**：使用仓库自带的 `render.yaml`（Docker 运行时，新加坡节点）；需在 Render 面板创建服务或配置 Deploy Hook。
 - **Railway**：连仓库即可，Dockerfile 已就绪。
 - **CI**：`.github/workflows/deploy.yml` 在 push / PR 时执行 `npm run lint` + `npm test`，并构建一次 Docker 镜像，提前发现镜像问题。
 

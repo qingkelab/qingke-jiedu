@@ -106,14 +106,16 @@ npm start                 # 浏览器打开 http://127.0.0.1:4780</code></pre>
     </ul>
 
     <div class="actions">
-      <a class="btn primary" href="https://github.com/qingkelab/qingke-jiedu">GitHub 仓库</a>
+      <a class="btn primary" href="./web/">🚀 在线使用（浏览器版）</a>
+      <a class="btn" href="https://github.com/qingkelab/qingke-jiedu">GitHub 仓库</a>
       <a class="btn" href="https://github.com/qingkelab/qingke-jiedu#readme">使用文档</a>
       <a class="btn" href="https://github.com/qingkelab/qingke-jiedu/blob/main/render.yaml">部署配置（Render）</a>
     </div>
 
     <footer>
-      本页是项目落地页；完整功能需要在本地或服务器运行 Node 服务（<span class="inline-code">npm start</span>）。
-      之前基于浏览器的在线演示版已下线。
+      <b>浏览器版</b>（<a href="./web/">/web/</a>）把整个应用搬进了浏览器：PDF 转图、文案与标题、arXiv 最新论文检索都能直接用，
+      API key 只存在内存里；受浏览器能力限制，<b>网页整页截图、论文播客视频、公众号凭证同步</b>需要在本机/服务器跑 Node 服务（<span class="inline-code">npm start</span>）。
+      浏览器版源码在仓库 <span class="inline-code">web/</span> 目录，与 Node 版共用 <span class="inline-code">src/</span> 里的取源、切片与提示词模块。
     </footer>
   </div>
 </body>

@@ -8,8 +8,9 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test \"test/*.test.js\"",
-    "lint": "oxlint src server.js test --max-warnings=0",
-    "check": "npm run lint && npm test"
+    "lint": "oxlint src web server.js test --max-warnings=0",
+    "check": "npm run lint && npm test",
+    "smoke:web": "node web/smoke.mjs"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
