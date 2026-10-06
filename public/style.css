@@ -146,7 +146,6 @@ h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
 }
 .arxiv-act:hover { border-color: var(--accent); color: var(--accent-dark); background: var(--accent-soft); }
 .arxiv-act.pic { color: #b85c0f; }
-.arxiv-act.deep { color: #0f4c81; }
 .arxiv-act.copy { color: var(--muted); }
 .arxiv-act.pod { color: var(--accent-dark); font-weight: 700; }
 #url {
@@ -190,7 +189,6 @@ h1 { margin: 0; font-size: 22px; letter-spacing: 0.5px; }
 
 /* Result */
 #result { display: grid; gap: 18px; }
-#deepresult { display: grid; gap: 18px; }
 #arxivlist { display: grid; gap: 18px; }
 .meta-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .meta-title { font-size: 15px; font-weight: 600; }
@@ -414,24 +412,6 @@ a.audit-chip:hover { filter: brightness(0.97); }
   .gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
 
-/* 深度解读写作规范（侧边栏） */
-.guide-card {
-  margin-top: 14px; padding: 14px 16px;
-  background: var(--card); border: 1px solid var(--line);
-  border-radius: var(--radius); box-shadow: var(--shadow);
-}
-.guide-card summary {
-  cursor: pointer; font-size: 13px; font-weight: 700; color: var(--accent-dark);
-  user-select: none;
-}
-.guide-sub { margin: 8px 0 4px; font-size: 12px; color: var(--muted); line-height: 1.6; }
-.guide-list {
-  margin: 6px 0 0; padding-left: 18px;
-  font-size: 12.5px; line-height: 1.7; color: var(--ink);
-}
-.guide-list li { margin: 4px 0; }
-.guide-list b { color: var(--accent-dark); font-weight: 700; }
-.guide-foot { margin: 10px 0 0; font-size: 11px; color: var(--muted); }
 
 /* 论文播客 */
 .podcast-options { margin-top: 12px; display: grid; gap: 8px; }

@@ -8,10 +8,8 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "test": "node --test \"test/*.test.js\"",
-    "benchmark": "node scripts/deepread-benchmark.js",
-    "cover": "node scripts/make-cover.js",
-    "figures": "node scripts/make-figures.js",
-    "audit:cover": "node scripts/audit-cover.js"
+    "lint": "oxlint src server.js test --max-warnings=0",
+    "check": "npm run lint && npm test"
   },
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
@@ -24,5 +22,8 @@
     "multer": "^2.2.0",
     "pdfjs-dist": "^6.2.108",
     "puppeteer-core": "^25.8.0"
+  },
+  "devDependencies": {
+    "oxlint": "^1.87.0"
   }
 }

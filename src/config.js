@@ -47,29 +47,17 @@ export const config = {
   maxCopyChars: Number(process.env.MAX_COPY_CHARS || 1000), // 解读文案字数上限
   maxTitleChars: Number(process.env.MAX_TITLE_CHARS || 20), // 标题字数上限
   qualityReview: process.env.QUALITY_REVIEW !== '0', // 生成后自检自修一遍（提升质量；嫌慢可设 0 关闭）
-
-  // 深度解读：Ollama 等本地模型默认用「分段生成再合并」（每节一次调用，绕开单次长文超时/写不满问题）；
   // 设 DEEPREAD_MULTIPASS=0 可关闭、走单次整篇生成
-  deepreadMultipass: process.env.DEEPREAD_MULTIPASS !== '0',
   // 结构化全文理解（切片 → 研究地图 → 检索 → 审计 → 定点修复）
-  deepreadStructured: process.env.DEEPREAD_STRUCTURED !== '0', // 关掉就完全走旧流程
-  deepreadChunkChars: Number(process.env.DEEPREAD_CHUNK_CHARS || 1600), // 单个 chunk 的字数上限
-  deepreadEvidenceChars: Number(process.env.DEEPREAD_EVIDENCE_CHARS || 6000), // 每节检索注入的证据字数预算
-  deepreadMaxChunks: Number(process.env.DEEPREAD_MAX_CHUNKS || 12), // 每节最多注入多少个 chunk
-  deepreadMapChars: Number(process.env.DEEPREAD_MAP_CHARS || 22000), // 研究地图阶段的输入预算
+  chunkChars: Number(process.env.CHUNK_CHARS || 1600), // 单个 chunk 的字数上限
   // 研究地图 / 大纲阶段的输出预算：reasoning 模型会把思考 token 计入 max_tokens，
   // 4096 实测会把可见 JSON 挤成 0 字（finish_reason=length），所以默认给足。
-  deepreadMapTokens: Number(process.env.DEEPREAD_MAP_TOKENS || 16000),
-  deepreadPlanTokens: Number(process.env.DEEPREAD_PLAN_TOKENS || 16000),
-  deepreadAudit: process.env.DEEPREAD_AUDIT !== '0', // 终稿证据审计
-  deepreadRepair: process.env.DEEPREAD_REPAIR !== '0', // 审计不通过时定点修复（只重写问题小节）
+  // 并发上限：分节生成按「波次」并行（同波内并行、波间保持前文衔接），定点修复并行生成、串行应用，
+  // 终稿审校按小节分块并行。设 1 即回到串行行为（用于 A/B 对比或排查）。
+  // 终稿审校分块并行（长稿收益最大；短稿自动回落整篇审校）
   // 头图：终稿生成后出一张「手绘技术研究笔记」风格封面（cover.svg / cover.png）。
   // 栅格化要起一次本机 Chrome（约 1 秒），失败只记日志、不影响正文。
-  coverEnabled: process.env.DEEPREAD_COVER !== '0',
-  coverRatio: process.env.DEEPREAD_COVER_RATIO || 'poster', // poster(1200×1600) | wide(1600×900) | square
   // 正文配图：每个二级小节出一张手绘重述图（替换论文原图，原图出处留在文末）
-  figuresEnabled: process.env.DEEPREAD_FIGURES !== '0',
-  figuresMax: Number(process.env.DEEPREAD_FIGURES_MAX || 6),
 
   // ===== 论文视频播客 =====
   // TTS 配音：auto = 有 MINIMAX_API_KEY 用 MiniMax(speech-02-hd)，否则用 edge-tts（免费，需已安装）

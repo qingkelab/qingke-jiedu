@@ -104,3 +104,10 @@ export function firstSentences(text, n) {
   const picked = s.filter((x) => x.trim()).slice(0, n);
   return picked.join('').trim();
 }
+
+/** 粗略判断文本是否以中文为主（用于兜底：审校/模型输出变成英文时丢弃）。 */
+export function isChineseText(text) {
+  const s = String(text || '');
+  const cjk = (s.match(/[\u3400-\u4dbf\u4e00-\u9fff]/g) || []).length;
+  return cjk >= 20;
+}

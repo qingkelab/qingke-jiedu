@@ -1,492 +1,133 @@
 # 青稞解读 · QingKe JieDu
 
-输入一篇 **论文 PDF 链接** 或 **任意网页链接**，一键生成内容并发布到多平台：
+输入论文 / 网页链接，一键产出：
 
-1. 📄 **内容图片** —— PDF 逐页转 PNG / 网页全页截图（长页自动分段），可逐张下载、可打包 ZIP；
-2. 📝 **解读文案** —— 面向公众号读者，**≤1000 字**，Markdown 结构化（小节标题 / 加粗 / 列表 / 引用 / 表格），前端格式化渲染，支持「预览 / 源码」切换与纯文本复制；
-3. 🔥 **爆款标题** —— 适合公众号传播，**≤20 字**（主标题 + 2 条备选）；
-4. 📖 **论文深度解读** —— 读 arXiv 论文 HTML 版，图片以 CDN 嵌入，按「零背景可进入」六部分生成 Markdown 图文报告；
-5. 📤 **多平台同步** —— 一键同步到多个公众号（贴图/文章，按账号配色）与 X。
-
-```
-阶段一（不依赖模型）  链接 → 抓取(PDF/HTML) → 转图 + 抽取正文 → 落盘 → 立即展示/下载
-阶段二（依赖模型）    已落盘的正文 → AI 生成文案/标题 → 回写 → 展示/复制 → 同步发布
-```
-
-两个阶段是**两个独立接口**（`/api/images`、`/api/copy`）：模型没配 key、超时、报错，
-都只影响「解读文案」那一块，**图片 / ZIP / summary.md 照常生成和下载**，页面上一键重试即可补上文案。
-侧边栏还提供「只转图，不生成文案」开关：勾上后完全不调用模型，只出图片（省时间、省 token）。
+- **🖼 图文转图**：PDF / 网页 → 逐页图片 + 1000 字内解读文案 + 20 字内爆款标题，可一键同步到公众号「贴图」（多账号 + 主题配色）。
+- **🎙️ 论文播客**：论文链接 → 3–5 分钟第一人称科普视频（AI 写稿 → 语音合成 → ffmpeg 合成 mp4，论文图/页面作画面）。
+- **🕒 最新论文**：按时间 + 分类 + 关键词检索 arXiv，列表里直接「转图 / 🎬 视频 / 复制」。
 
 ## 快速开始
 
-环境要求：Node.js ≥ 20、macOS（网页截图默认用系统 Chrome）。
+环境要求：Node.js ≥ 20；网页截图默认用系统 Chrome（`CHROME_PATH` 可覆盖）；播客需要 `ffmpeg`。
 
 ```bash
-cd link2post
-npm install --cache "$PWD/.npm-cache"   # 若全局 npm 缓存有权限问题，用本地缓存
-npm test                                 # 跑测试（切片 / 检索 / 地图 / 审计 / 降级 / provider）
-npm start                                # 或 npm run dev（热重载）
-# 浏览器打开 http://127.0.0.1:4780
+npm install
+cp .env.example .env      # 填 DEEPSEEK_API_KEY 或 OPENAI_API_KEY（本机 Ollama 亦可）
+npm start                 # 浏览器打开 http://127.0.0.1:4780
 ```
 
-> 网页截图依赖系统 Chrome，默认路径为
-> `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome`，可用环境变量
-> `CHROME_PATH` 覆盖。
-
-## 配置文案模型（DeepSeek / OpenAI）
-
-文案生成必须配置真实模型。未配置 key 时**只有文案这一步会失败**（不再生成示例文案）：
-图片转图、下载、ZIP、公众号贴图同步照常可用，页面会提示失败原因并给出「重新生成文案」按钮。
-复制 `.env.example` 为 `.env` 并填写：
+质量门禁：
 
 ```bash
-cp .env.example .env
-
-# DeepSeek（默认，OpenAI 兼容）
-echo 'LLM_PROVIDER=deepseek' >> .env
-echo 'DEEPSEEK_API_KEY=sk-xxx' >> .env
-
-# 或任意 OpenAI-compatible 端点
-# LLM_PROVIDER=openai
-# OPENAI_BASE_URL=https://api.openai.com/v1
-# OPENAI_API_KEY=sk-xxx
-# OPENAI_MODEL=gpt-4o-mini
+npm run dev      # node --watch 热重载
+npm run lint     # oxlint（0 error / 0 warning）
+npm test         # node --test（单元 + 服务端冒烟）
+npm run check    # lint + test
 ```
 
-Provider 接口统一为 `generate({ source, limits }) => { title, titles, copy }`，
-新增模型只需在 `src/ai/index.js` 的 `createProvider()` 里加一个分支。
+「图文转图」分两个阶段、两个独立接口：模型没配 key / 超时 / 报错时**只影响文案**，
+图片 / ZIP / summary.md 照常产出，页面上可一键重试补文案；侧边栏还有「只转图，不生成文案」开关（完全不调用模型）。
 
-## 两种模式
+## 配置
 
-- **图文转图**（默认）：链接 → PDF/网页转图片（可下载）+ 1000 字内解读文案 + 20 字内爆款标题。
-- **论文深度解读**：输入 arXiv 链接（abs/pdf/html），HTML → TeX 源码 → PDF 三级回退取源，
-  **全文结构化理解 + 证据驱动生成**（见下节），输出 3000–6000 字 Markdown 图文报告，可下载 `.md` / 复制。
+全部通过 `.env` / 环境变量，示例见 `.env.example`：
 
-### 深度解读怎么工作（全文结构化 + 证据驱动）
-
-```
-抓取 → chunking 全文切片 → research_map 论文地图 → retrieval 检索式上下文
-     → plan 大纲 → section 逐节写作 → audit 证据审计 → repair 定点修复 → finalize
-```
-
-- **chunking**：优先用 HTML 的真实 section 层次（`.ltx_section` / `figure` / `caption` / MathML `annotation` 里的 LaTeX），
-  TeX 用 `## 章节 / 图注： / $$公式$$` 标记还原结构，PDF 用带换行正文里的编号标题分节；
-  产出稳定 id 的 chunk（`c1`、`c2`…），带 section 标题、类型（段落/公式/图注/表格）与原文顺序。
-  30k+ 字论文整篇参与分析，不再 `slice(0, 16000)`。
-- **research_map**：写作前先做一次轻量结构化分析，产出 `problem / key_claims / method_components / equations /
-  datasets / benchmarks / baselines / main_results / ablations / limitations / figures / evidence`，
-  每条尽量带 `chunkIds`；模型给不出可用 JSON 时用本地关键词 + 数字抽取兜底。
-- **retrieval**：每个小节按「标题 + 写作要点 + 论文地图」做词法检索（中文 2-gram / 英文词干，无 embedding 依赖），
-  叠加章节角色先验（方法节偏爱方法/公式/架构图，结果节偏爱实验/表格/数字，局限节偏爱 limitation/ablation/失败案例），
-  每节注入证据片段（带 chunk id）+ 少量全局上下文（摘要、图片索引、研究地图）。
-- **retrieval v2（按具体小节检索）**：大纲阶段为每节额外产出 `sourceSections`（论文原文小节名）、
-  `mustUseTerms`（必用术语/表号/图号）与 `role`；检索时先做 source section 对齐（exact → 归一化 →
-  编号 → 术语模糊 → 缩写 → 父级，对不上会如实记录），再用「source-local / must-use / 地图证据 /
-  角色词 / 中文要点」五路查询分槽选取，并对前文已用过的 chunk 施加多样性惩罚（关键证据豁免）。
-  这样同角色小节不再拿到同一批证据；`Table 3`/`Figure 5` 这类引用会结构化绑定到第 N 个表/图 chunk。
-- **plan coverage v1（关键事实覆盖）**：研究地图里的 `main_results / ablations / limitations`
-  会被种成 5–8 条「关键事实」并绑定到真实原文小节；如果计划漏掉了承载这些事实的小节
-  （例如 1706 的 `Regularization`），会自动补进最相关小节。每节最终只关联 ≤3 个原文小节，
-  `mustUseTerms` 按「关键术语 → 稀有 → 指标 → 消融变量 → 局限词」排序后截断，保证
-  `label smoothing` / `MATH-500` 这类「针尖事实」不会被普通词挤掉。
-- **audit**：成稿后核对数字/百分比能否在原文找到、模型与数据集名、main result 覆盖、消融与局限是否覆盖、
-  公式是否被改写、`（图N）` 是否越界或与图注不符；产出内部 metadata（不进正文，另存 `deepread.audit.json`）。
-- **repair**：审计不通过时**只重写有问题的那一节**（按 H2 标题定点替换）并复检，不整篇重生成。
-- **降级**：切片不足 / 结构化流程整体失败 → 回退旧流程（Ollama 走 multipass、API 模型走整篇生成）；
-  研究地图失败 → 本地地图；检索失败 → 本节 chunks；审计失败 → 只记 warning，不阻断报告。
-  相关开关：`DEEPREAD_STRUCTURED`、`DEEPREAD_CHUNK_CHARS`、`DEEPREAD_EVIDENCE_CHARS`、
-  `DEEPREAD_MAX_CHUNKS`、`DEEPREAD_MAP_CHARS`、`DEEPREAD_MAP_TOKENS`、`DEEPREAD_PLAN_TOKENS`、
-  `DEEPREAD_AUDIT`、`DEEPREAD_REPAIR`；reasoning 模型可用 `LLM_REASONING_EFFORT` 把思考预算与可见输出分开。
-- **阶段可靠性（v2）**：每个阶段都留一条统一的元数据（`status` / `source` / `finishReason` /
-  `rawContentLength` / `fallbackReason` / `durationMs`），`model_truncated` 与 `parse_failed`
-  严格区分；`audit` 会结合上游地图可信度给出 `passed` / `passed_with_warning` / `failed`，
-  避免「地图没生效但审计说通过」被当成结论。
-
-### 生成质量：归因 / 数字条件 / 必写小节 / 数字核验表
-
-深度解读的「可读」不等于「可信」。这一层是从青稞社区技术解读规范里迁过来的**事实纪律**，
-全部作用在提示词与确定性后处理上，不改动 Research Map / Retrieval / Audit 的核心算法：
-
-- **归因分句（硬性）**：论文主张写「论文称 / 作者报告」，实验结果写「实验显示 / 在 X 设置下报告为」，
-  编辑部判断写「我们觉得 / 现有证据更适合支持」——三类句子不混写，判断不写成领域共识。
-- **数字必须绑定条件**：模型 / 数据集 / 任务 / 设置 / 基线 / 指标口径 / 单位缺一不可；
-  **证据之外的数字一个都不写**；禁止把 estimate 写成精确事实、把定性 case 写成定量证据、
-  把不同 protocol 的数字直接横比、把「图中排序位置」写成 benchmark ranking。
-- **必写小节**：计划阶段就要求保留「它还没有证明什么」（显式局限 / 失败案例 / 伦理与 broader impacts /
-  附录限制）与「技术小结」两节；每个实验结果后面要有一句「这个实验不能回答什么」。
-  模型没规划到这两节时，兜底大纲与终稿审校会补回来。
-- **慎用词 / 研究边界词扫描**：`src/styleCheck.js` 除 AI 味词外，还会统计
-  「真正 / 尤其 / 关键在于 / 值得注意的是 / 首次 / 革命 / 颠覆 / 最强 / SOTA / 碾压 / 下一代 / 已经解决」
-  与「排名 / 超越 / 证明 / best method / ranking」等边界词，命中以 `info` 提示并注入审校清单
-  （只提示、不阻断，`ok` 仍只由 `warn` 级问题决定）。
-- **去 AI 味：保真优先 + 逐条线索 + 注入人声**（规则来自 humanizer-zh / op7418 Humanizer-zh 2026-09-23 版 31 个检查点，
-  与社区流传的「去 AI 味」提示词合并后按本项目场景改写）。三层结构：
-  1. **第 0 条保真优先，压过所有文风规则**：不新增原文没有的事实/数字/名字/日期/引文/来源；
-     不丢否定、比较对象、范围、条件、时间、完成状态、归因；不把「可能」写成确定、把相关写成因果、把计划写成已完成；
-     资料不够就保留原来的概括程度，不用虚构细节填充。
-  2. **模式清单是检查线索，不是词语黑名单**：单个词、标点、三项列举、四字词本身都不是修改理由；
-     有真实作用的「首先/其次」（顺序）、「与此同时」（同时发生）、「不过」（转折）、承担解释的破折号、
-     施事者未知的被动句、中文排比与真实三项列举一律保留。夸大规模 / 动名词假深度 / 广告腔与模糊归因 /
-     客服套话 / 起跑式铺垫 / 句尾拔高尾巴 / 首句复读标题 / 层叠的「的」/「进行＋动词」等逐条列出适用条件。
-  3. **注入人声**：节奏错落、对事实给反应、允许不确定、第一人称、保留一点不整齐。
-  终稿审校改成「按上述线索改写 → 交付前核对保真五问 → 只输出最终稿」（不再要求自评分或字数统计）。
-  检查层把这四类模式变成可数指标，输出 `AI 腔密度 x/千字`，并作为 `aiTonePer1k` 进入 benchmark（线索指标，不是合规分）。
-  **保留本项目自己的版式选择**：小标题仍可用 emoji、破折号仍按用量上限管理（与流传版本不同，不照抄「一律禁用」）。
-- **审校保真护栏（`src/deepread/fidelity.js`）**：审校是「整篇交给模型重写再拿回来」，最容易出的问题不是截断，
-  而是**改顺了但改意思**。护栏用确定性比较分出两类：
-  `hard`＝受保护内容丢失（图片 / 链接 / 代码块 / 行内代码 / 公式 / 表格行 / 二级小节）→ 直接丢弃审校稿、保留原稿；
-  `soft`＝数字 / 否定 / 限定 / 归因计数下降 → 采纳但记进 `meta.stages.review.fidelity`，并作为
-  `reviewFidelityViolations` 进入 benchmark（越低越好）。否定词只收无歧义写法（不数单独的「不」「未」，
-  避免把「不仅」「未来」当否定）。
-- **数字核验表（`deepread.fact-check.md`）**：终稿里每个数字都回查原文 chunk，落成三态表格——
-  `source`（原文能定位，附条件句与 chunk）/ `derived`（正文标注了「按论文数据计算」）/
-  `unsupported`（原文查不到）。统计写进 `meta.factCheckStats` 与 `deepread.audit.json`，
-  并作为 `factCheckCoverage` / `factCheckUnsupportedRate` 进入 benchmark。
-- **源码抽取去噪**：arXiv HTML 的 MathML 同时含可见数字与 `application/x-tex` 注释，
-  直接取 `textContent` 会把两者粘起来（`41.0`+`41.0` → `41.041.0`、`N=6` → `N=6N=6`）。
-  切片现在遇到 `<math>` 一律取 LaTeX（`$N=6$`），粘连片段 5 → 0 个；
-  数字定位也补了一层**数值等价**（`41.0b` ≡ `41.0` ≡ `41`），避免把合法数字误判成编造。
-  实测同一篇 1706 终稿：`writerFactCoverage` 0% → 100%、`unsupportedFactRate` 100% → 0%。
-
-> 核验表不是新的审计器，而是把「这条数字从哪来、在什么条件下成立」摊开给人看：
-  表外出现数字 = 这条 claim 没有证据，要么补条件要么删。
-
-### 发布到 public repo（GitHub Pages）
-
-公开发布仓库是 `qingkelab/qingke-public-pages`（本地 `~/Documents/qingke-public-pages`，
-站点 <https://qingkelab.github.io/qingke-public-pages/>）。把一次深度解读发布成该仓库里的独立文章页，
-默认**只规划不落盘**：
-
-```bash
-# 不传 --repo 时默认用 ~/Documents/qingke-public-pages（或环境变量 PUBLIC_REPO_DIR）
-# 先看一眼会写哪些文件（默认 dry-run，不写盘、不碰 git）
-node scripts/publish-article.js --dir output/<id>
-
-# 确认后真正写盘
-node scripts/publish-article.js --dir output/<id> --yes
-
-# 需要建分支 + 提交 + 推送 + 开 PR 时（默认不做，必须显式加）
-node scripts/publish-article.js --dir output/<id> --yes --push --pr
-```
-
-产物形态：`article/<NNN>/index.html`（自包含 HTML，内联样式）+ `article/<NNN>/images/*.png`，
-正文里的本地图片会改写成 `images/xxx.png`，核验表折叠在页尾 `<details>` 里。
-仓库路径也可以走环境变量 `PUBLIC_REPO_DIR`。
-推到该仓库的 `main` 会触发 `.github/workflows/pages.yml` 自动发布到 Pages；首次部署已完成。
-
-### 头图：手绘技术研究笔记风格海报
-
-每篇解读可以配一张**自动生成**的头图：把终稿内容转译成「研究员在纸上推演复杂系统」的样子——
-米白纸张纹理、黑色铅笔线稿、少量蓝红强调色，以一个大型核心技术图为视觉中心，
-四周是流程图 / 坐标轴 / 公式 / 代码结构 / 决策树 / 数据图 / 手写批注。
-**禁止 3D、渐变、卡通、商业广告感与 PPT 风**（这三条有测试守着，见 `test/cover.test.js`）。
-
-```bash
-npm run cover -- --dir output/<id>                  # 海报 1200×1600 → cover.svg + cover.png
-npm run cover -- --dir output/<id> --ratio wide      # 宽版头图 1600×900
-npm run cover -- --dir output/<id> --ratio square    # 方图 1200×1200
-npm run cover -- --dir output/<id> --json            # 打印提炼结果与视觉结构（不只看图）
-npm run cover -- --md article.md --out /tmp/cover --svg-only   # 只出矢量图（无需 Chrome）
-npm run cover -- --dir output/<id> --no-font         # 不内联手写字体（SVG 更小，走系统字体）
-```
-
-**公式是真排版的，不是把 LaTeX 拍平成字符串**：核心公式用 KaTeX 生成 **MathML**（`output:'mathml'`），
-放进 SVG 的 `foreignObject`，由浏览器原生排版分数、上下标、希腊字母与 ⊙ / ∈ 这类符号——
-MathML 不依赖 KaTeX 的字体文件，所以既没有外链也不需要内嵌 60 多个字体。
-发布出去的文章页同样走 MathML（`protectMarkdownMath`：先在 Markdown 阶段把公式保护起来，
-再交给 markdown 转换，最后还原成 `<math>`），页面保持自包含、不引 CDN；代码块与行内代码里的 `$` 不动。
-
-**手写字体随项目走**：`assets/fonts/lxgw-wenkai-lite/` 内置霞鹜文楷 Lite（SIL OFL 1.1，含 `OFL.txt`），
-渲染时按**这张海报实际用到的字**挑选对应的 woff2 分片内联（一张海报约 0.8MB，而不是整套 4MB）。
-字体栈是「系统行楷 → 内嵌霞鹜文楷 → 楷体」，所以 macOS 上拿到更手绘的行楷观感，
-换机器或部署到 Linux 也不会退化成黑体；`--no-font` 可以完全关掉内嵌。
-（因此「同一篇稿子同一张图」的确定性是**在同一台机器/同一字体环境内**成立。）
-
-**自动提炼 + 自动决定视觉结构**（`src/cover/distill.js`，全部确定性、不调用模型）：
-
-- 从终稿里取标题、一句话结论、章节骨架、术语标签、归因句（批注素材）；
-- 结论数字只挑「带单位/指标 + 有条件句」的，按分数排序取前 5，并**带上承载它的原句**；
-  纯配置数字（层数、维度）和小整数不进海报；
-- 主结构三选一（`src/cover/distill.js#chooseCoverStructure`）：
-  结论数字多 → **数据条**（不是折线：几个不同维度的数字画成折线会暗示不存在的趋势）；
-  数字少但小节多 → **流程链路**；都没有 → **概念放射图**；
-- 辅助模块按内容出现：有公式→公式面板，出现消融/对比/取舍→决策树，有代码或「实现」小节→代码结构，
-  出现两个以上年份→时间线；模块数是奇数时用「术语与来源」补位。
-
-实现方式（`src/cover/svg.js` + `src/cover/index.js`）：所有图形都是 SVG 描边 + 确定性抖动
-（同一篇稿子永远生成同一张图），纸纹用二维噪声（`feTurbulence`，不是渐变），
-栅格化复用项目已有的本机 Chrome（`webToImages.svgToPng`）；没有 Chrome 时退化成只给 SVG。
-
-### 封面审计：先审契约与版面，再定稿
-
-借鉴 [paper-framework-figure-studio-pro](https://github.com/c-narcissus/paper-framework-figure-studio-pro)
-的「审计前移」思路（把质量控制放在生图 prompt 阶段，而不是看图之后）：
-我们的渲染器是确定性的代码，所以对应做法是**先审契约、再审版面，然后只改契约重渲染**。
-
-```bash
-npm run cover -- --dir output/<id> --audit        # 生成时打印审计明细
-npm run cover -- --dir output/<id> --strict       # 有错误时退出码 1（CI / 发布前卡口）
-npm run cover -- --dir output/<id> --variants 3   # 先发散：curve/pipeline/concept 各出一版
-npm run cover -- --dir output/<id> --rounds 2     # 审计 → 修契约 → 重渲染，最多两轮
-npm run audit:cover -- --dir output/handdrawn      # 审任意已生成的封面 SVG（含手工封面）
-npm run audit:cover -- --dir output/handdrawn --md article.md --strict   # 追加「数字出处」核查
-```
-
-两层审计（`src/cover/audit.js`）：
-
-1. **契约层**：`buildCoverSpec` 把「这张图要画什么」写成一纸可审的契约——标题、模块与优先级、
-   **可见文字白名单**、**负约束**（无 3D / 无渐变 / 无卡通 / 无 PPT 味 / 无 emoji / 无裸 LaTeX）、
-   以及每个数字/术语的**出处要求**；审计时逐个回查原文，编出来的数字直接报错；
-2. **版面层**：解析已渲染的 SVG，估算每段文字的包围盒，检查越界、两段文字压字、字号过小、
-   文字撑破所在面板、渐变/投影、调色板外颜色，以及「图上出现了契约外的文字」。
-   面板不需要渲染器改成 `<rect>`：本项目所有面板都是 `pencilRect` 的四条线段，
-   审计用「线段拼矩形」把它们反解出来（`detectPanels`）。
-
-发现问题时**只改契约、不改图**（`src/cover/repair.js`）：删掉没出处的数字/术语、清洗 emoji 与裸 LaTeX、
-补齐负约束与白名单、按优先级丢模块或收批注，然后重新渲染并再审一轮。
-每一轮的发现与修复都会写进 `cover.audit.json`（ledger 可回查），`--json` 时一并打印。
-
-`--variants` 是「先发散后收敛」：主图结构三选一各生成一版，按审计得分（错误 ×100 + 警告 ×10）收敛到最干净的一版。
-
-> 这套审计已经把两个真实缺陷逼出来过：一张手工封面的标签跨过了面板边界；
-> 概念放射图在标签很长时会把文字推到画布外（`drawConcept` 现在会把标签夹回面板内，
-> 并有 `test/cover-audit.test.js` 守着）。
-
-**发布时会自动带上头图**：`cover.png` 会复制成 `article/<NNN>/cover.png` 并作为文章页顶部的 `<figure class="cover">`；
-正文配图列表会排除 `cover.png`，不会重复。服务端默认也会在深度解读结束后生成头图
-（`DEEPREAD_COVER=0` 关闭，`DEEPREAD_COVER_RATIO=wide` 改版式），失败只记日志、不影响正文。
-
-### 正文配图：每节一张手绘重述图
-
-文章的配图不再是论文原图截图，而是**按节重画的示意图**，和头图同一套手绘语言
-（纸纹 / 铅笔线稿 / 蓝红强调 / 手写标题与批注），横版 1200×660：
-
-```bash
-npm run figures -- --dir output/<id>            # 一节一张 → <dir>/figures/figure-01.png …
-npm run figures -- --dir output/<id> --max 4    # 最多 4 张（默认 6）
-npm run figures -- --dir output/<id> --svg-only  # 只出 SVG（无需 Chrome）
-```
-
-每张图的内容也是自动提炼的（`distillSectionFigure`）：本节的关键数字（带条件句）、
-本节短句构成的流程节点、本节公式、本节归因句（手写批注）。结构选择与头图同一套规则：
-有结论数字 → 数据条；有动作句 → 流程链路；否则概念图。
-
-发布时会自动替换（`applyHandDrawnFigures`，纯函数、可测、幂等）：
-
-1. 正文里的**论文原图**从正文摘掉；
-2. 每个二级小节标题后面插入该节的手绘重述图（`article/<NNN>/figures/figure-0N.png`）；
-3. 文末生成「原图出处」清单，保留原图 URL 与图注——**重述图是示意图，原图仍可回查**，信息不丢。
-
-服务端在深度解读结束后一并生成（`DEEPREAD_FIGURES=0` 关闭，`DEEPREAD_FIGURES_MAX` 改数量），
-失败只记日志、不影响正文；`figures/index.json` 记录「小节 → 文件名 / 结构 / 数字个数」。
-
-编号 = 已有 `article/NNN` 最大值 +1，不复用、不重排；`--number` 指定到已存在的编号会被拒绝
-（要覆盖得显式加 `--force`）。首页入口更新分三种情况：
-
-- 首页有 `<!-- articles -->` 标记 → 插到标记后面（**推荐**在公开仓库首页保留这个标记）；
-- 没有标记但有 `</ul>` → 插到文章列表末尾（兼容卡片式首页；已有 `class="card"` 时按卡片样式生成）；
-- 两者都没有 → **不动首页**，只把入口片段打印出来让人工粘贴（绝不往 `</body>` 后面瞎追加）。
-
-### 质量基准测试（Benchmark）
-
-深度解读的质量不再只靠「功能测试通过」判断：`benchmark/` 维护了 5 篇 seed 论文
-（LLM / RL / Agent / VLM / 具身智能）与人工定义的**关键事实锚点**，用确定性指标衡量
-「全文证据覆盖 + 结构完整性」——重点看后半篇的实验、消融、局限与公式有没有真的被读到。
-
-```bash
-npm run benchmark -- --dry-run        # 只校验 metadata（不联网、不调模型）
-npm run benchmark                      # 跑全部 seed（需要真实模型，约 30–60 分钟）
-npm run benchmark -- --limit 1         # 冒烟：只跑一篇
-npm run benchmark -- --update-baseline # 把本次结果写成新 baseline
-```
-
-指标：`sourceCoverage` / `latePaperCoverage` / `numberEvidenceCoverage` / `figureCoverage` /
-`formulaCoverage` / `ablationCoverage` / `limitationCoverage` / `auditMissingRate` /
-`sectionCompleteness` / `lengthStability`，外加**阶段可靠性指标**（`researchMapModelSuccess` /
-`researchMapFallbackRate` / `planModelSuccess` / `planFallbackRate` / `stagesWithWarnings` /
-`evidenceFromModelMapRate` / `auditConfidence`）与**检索质量指标**（`uniqueEvidencePerPaper` /
-`evidenceReuseRate` / `sameRoleOverlap` / `sourceSectionHitRate` / `mustUseTermHitRate` /
-`lateEvidenceHitRate` / `retrievalProbeRate`）——CLI 与 summary 会把「内容覆盖」「阶段可靠性」
-「审计可信度」「检索质量」分开列出，research map 没生效时显式点名。每次运行的 `summary.json` + 逐篇明细写入
-`benchmark/runs/<timestamp>/`，并与 `benchmark/baseline.json` 对比输出 improved / regressed / unchanged。
-
-另有**数字核验指标**（`factCheckCoverage` / `factCheckUnsupportedRate` / `factCheckNumbers`），
-来自 `src/deepread/factCheck.js` 的确定性回查：终稿数字里有多少能在原文定位到承载它的句子。
-它们只做加法，不改上面任何既有指标的口径；旧 baseline 没记录这几个键时会显示为「无基线可比」。
-
-**注意**：benchmark 衡量的是证据覆盖与结构完整性，**不是对文章文学质量的绝对评分**；第一版不使用 LLM judge。
-没有配置真实模型时，benchmark 会明确标记 `skipped` 并提示需要哪个环境变量，命令仍以 0 退出，
-不影响 `npm test`。详见 [benchmark/README.md](benchmark/README.md)。
+| 分组 | 关键项 |
+| --- | --- |
+| 文案引擎 | `LLM_PROVIDER=deepseek\|openai\|ollama`、`DEEPSEEK_API_KEY`、`OPENAI_API_KEY`、`OLLAMA_BASE_URL` / `OLLAMA_MODEL` |
+| 生成约束 | `MAX_COPY_CHARS=1000`、`MAX_TITLE_CHARS=20`、`QUALITY_REVIEW=0`（关掉生成后自检自修） |
+| 渲染 | `MAX_PDF_PAGES`、`PDF_SCALE`、`WEB_VIEWPORT_WIDTH`、`WEB_SEGMENT_HEIGHT`、`CHROME_PATH` |
+| 播客配音 | `TTS_ENGINE=auto\|minimax\|edge`、`TTS_RATE=+8%`、`MINIMAX_API_KEY`、`PODCAST_MAX_SECONDS=310`、`VIDEO_WIDTH/HEIGHT`、`XFADE_SECONDS` |
+| 公众号同步 | `WECHAT_APP_ID/SECRET/NAME/THEME`，第 2 个账号用 `WECHAT2_*`（最多 5 个） |
+| 其他 | `PORT=4780`、`OUTPUT_DIR`、`FETCH_TIMEOUT_MS`、`UPLOAD_MAX_MB` |
 
 ## 目录结构
 
 ```
-link2post/
-├── server.js                 # Express 入口 + 静态/下载/处理路由
-├── benchmark/                # 深度解读质量基准（papers / expected / runs / metrics / baseline）
-├── scripts/
-│   ├── deepread-benchmark.js # npm run benchmark 入口
-│   └── publish-article.js    # 发布一次深度解读到 public repo（默认 dry-run）
-├── src/
-│   ├── config.js             # 环境变量与默认配置
-│   ├── fetchSource.js        # 下载并识别 PDF / 网页
-│   ├── pdfjs.js              # pdfjs-dist 单例（Node 端 fake worker）
-│   ├── pdfToImages.js        # PDF→PNG 渲染 + 正文/元数据抽取
-│   ├── webToImages.js        # 网页→全页截图（分段），复用系统 Chrome
-│   ├── extractText.js        # Readability 正文抽取（标题/作者/摘要）
-│   ├── arxiv.js              # arXiv API 精确标题/作者/时间
-│   ├── arxivHtml.js          # arXiv HTML 版抓取 + 图片(CDN)抽取
-│   ├── meta.js               # 机构/时间抽取
-│   ├── textUtils.js          # 字数统计 / 按字符/句/词边界截断
-│   ├── ai/
-│   │   ├── index.js          # createProvider 工厂
-│   │   ├── json.js           # 模型输出 JSON 宽松解析
-│   │   └── openaiProvider.js # DeepSeek/OpenAI 兼容引擎
-│   ├── deepread/             # 深度解读：全文结构化理解 + 证据驱动
-│   │   ├── chunker.js        # HTML/TeX/PDF → section/chunk 结构化切片
-│   │   ├── researchMap.js    # 论文地图（问题/主张/方法/公式/结果/消融/局限 + 证据定位）
-│   │   ├── retrieval.js      # 词法检索选证据（章节角色先验 + 全局上下文）
-│   │   ├── audit.js          # 证据审计（数字/实体/覆盖/公式/图）
-│   │   ├── factCheck.js      # 数字核验表（终稿数字 ↔ 原文句子，三态）
-│   │   ├── evidenceLedger.js # 事实台账（关键事实 → 有没有真的被写出来）
-│   │   ├── review.js         # 终稿审校护栏（防截断）
-│   │   ├── prompts.js        # 各阶段提示词
-│   │   ├── legacy.js         # 旧流程（multipass / 整篇生成）作为降级路径
-│   │   └── index.js          # runDeepRead 编排
-│   ├── publish/
-│   │   └── publicArticle.js  # public repo 发布：规划 / 落盘 / git 命令（默认不执行）
-│   ├── cover/                # 头图与正文配图：内容提炼 → 视觉结构决策 → 手绘风格 SVG → PNG
-│   ├── styleCheck.js         # 文风体检（AI 味词 + 慎用词 + 研究边界词）
-│   ├── pipeline.js           # 图文解读主流程编排
-│   └── store.js              # 落盘 + ZIP/Markdown 打包
-├── public/                   # 前端（index.html / app.js / style.css）
-├── assets/fonts/             # 头图内嵌字体（霞鹜文楷 Lite，OFL；按需内联）
-├── test/                     # node:test 测试（切片/检索/地图/审计/降级/provider）
-├── output/                   # 每次生成结果（id/001.png … images.zip summary.md）
-└── .env.example
+server.js              Express 主服务（路由 + SSE 进度 + 产物静态服务）
+public/                前端（原生 JS）：模式切换、图库、文案、播客进度与播放
+src/
+  pipeline.js          「图文转图」主流程：抓取 → 转图 → 抽取正文 → 文案
+  podcast/             论文播客：素材 → 写稿 → 配音 → 画面 → ffmpeg 合成
+  ai/                  LLM provider（deepseek / openai / ollama）+ JSON 解析
+  arxiv.js             arXiv API 元信息（标题 / 作者 / 时间）
+  arxivHtml.js         arXiv HTML 版：正文 + 图片（img / object-svg / 内联 svg）
+  arxivSource.js       取源三级回退：HTML → TeX 源码（e-print）→ PDF
+  chunker.js           结构化切片（HTML / TeX / PDF 统一成 section + chunk）
+  pdfToImages.js       PDF → PNG（页面图）+ 元信息 / 正文抽取
+  webToImages.js       网页整页截图（长页分段）+ SVG 栅格化（复用同一个 Chrome）
+  fetchSource.js       链接抓取（PDF / HTML）
+  markdown.js          Markdown → 公众号主题 HTML（内联样式）
+  wechat.js            公众号草稿：贴图（newspic，多账号）
+  wechatBrowser.js     浏览器兜底：复制文案 + 打开公众号后台（免 IP 白名单）
+  styleCheck.js        文风体检（段落粒度 / 句长 / 标点密度 / AI 味词）
+  store.js history.js memory.js meta.js textUtils.js typography.js
+test/                  node:test 测试（单元 + 服务端冒烟）
+output/                产物：图片 / zip / md / 播客 mp4
 ```
 
 ## API
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| POST | `/api/images` | `{"url":"…"}` → **阶段一**：抓取 + 转图 + 抽取正文，返回图片列表 / ZIP / summary.md 地址（不调用模型） |
-| POST | `/api/copy` | `{"id":"…","provider":"…","model":"…"}` → **阶段二**：对已落盘的结果生成解读文案 + 爆款标题，写回 `result.json` |
-| POST | `/api/upload` | 上传 PDF / Markdown / 文本 → **阶段一**（PDF 转图，纯文本无图），文案同样走 `/api/copy` |
-| POST | `/api/process` | `{"url":"…"}` → 一站式跑完两个阶段；模型不可用时返回 `200` + `copyStatus:"error"`，图片部分照常返回 |
-| POST | `/api/deepread` | `{"url":"…"}` → arXiv 论文深度解读：建任务返回 `{id}`，用 SSE 订阅进度；结果含 `markdown` / `audit`（证据审计元数据）/ `pipeline` / `structure` |
-| GET | `/api/deepread/events?job=…` | SSE 进度：`fetch → chunking → research_map → retrieval → plan → section → audit → repair → finalize` |
-| GET | `/files/:id/:filename` | 内联访问生成的图片 / ZIP / Markdown |
-| GET | `/download/:id/:filename` | 强制下载（`Content-Disposition: attachment`） |
-| GET | `/api/health` | 健康检查（当前文案引擎 + 是否已配置 API key） |
-| GET | `/api/arxiv/search?days=&category=&keyword=` | 按分类/关键词查最新 arXiv 论文（服务端直连，浏览器版可同源调用，免 CORS 代理） |
-| GET | `/api/arxiv/meta?id=` | 单篇 arXiv 元数据（标题/作者/日期），浏览器版「深度解读出处块」的免代理回退 |
-| POST | `/api/sync/wechat` | `{"id":"…"}` → 有凭证自动存公众号草稿，无凭证返回降级信息 |
+| POST | `/api/process` | 链接 → 图片 + 文案 + 标题（一步到位） |
+| POST | `/api/images` | 链接 → 只转图（返回 id，供后续单独生成文案） |
+| POST | `/api/copy` | 按 id 生成 / 重新生成文案与标题 |
+| POST | `/api/upload` | 上传 PDF / Markdown / 文本，同 `/api/process` |
+| POST | `/api/podcast` | 建播客任务 → **立即返回 `{id}`**，用 SSE 收进度 |
+| GET | `/api/podcast/events?job=<id>` | SSE：`snapshot` / `stage` / `done`（含 result）/ `fail` |
+| GET | `/api/podcast/info` | 配音引擎与可用音色（前端选择用） |
+| GET | `/api/podcast/files/:id/podcast.mp4` | 播客视频产物 |
+| GET | `/api/arxiv/search` | 最新论文检索（days / category / keyword） |
+| GET | `/api/arxiv/meta` | arXiv 论文元信息 |
+| POST | `/api/sync/wechat` | 同步选中图片为公众号「贴图」草稿 |
+| POST | `/api/sync/wechat-browser` | 浏览器兜底：复制文案 + 打开公众号后台 |
+| GET | `/api/wechat/accounts` | 已配置公众号账号（不含密钥） |
+| GET | `/api/providers`、`/api/ollama/models` | 可用模型与本地 Ollama 模型列表 |
+| GET | `/api/history`、`DELETE /api/history` | 历史记录 |
+| GET | `/api/health`、`/api/ip` | 健康检查、出站 IP（微信白名单用） |
+| GET | `/files/:id/:name`、`/download/:id/:name` | 图片内联预览 / 强制下载 |
 
-`result.json` 里 `copyStatus` 有三态：`pending`（只转了图）→ `done`（文案已生成）/ `error`（模型失败，`copyError` 存原因）。
+## 播客工作流
 
-## 同步发布（公众号贴图 / X）
-
-参考 [doocs/cose](https://github.com/doocs/cose) 与「爱贝壳内容同步助手」的「打开编辑器 → 自动填充」思路。
-
-- **公众号（多账号 + 贴图/文章）**：支持配置多个公众号（`WECHAT_APP_ID/SECRET`、`WECHAT2_APP_ID/SECRET`…，
-  用 `WECHAT_NAME` / `WECHAT2_NAME` 命名），同步时下拉选择账号、切换「贴图 / 文章」类型：
-  - **贴图**（`article_type: "newspic"`）：选中的图片上传为永久素材、首图为封面，标题 + 解读文案纯文本。
-  - **文章**（`article_type: "news"`）：第一张图作封面，正文 Markdown 渲染为 HTML + 图片，存为图文草稿。
-  未配置凭证时降级为**打包下载图片 + 打开公众号后台**，手动上传。
-- **X**：点「同步到 X」打开 `twitter.com/intent/tweet` 发帖框并**预填标题**（无凭证可用）；
-  图片需手动附图。长文同步到 X Articles 需走 X API 或浏览器自动化，暂未内置。
-
-## 关键设计点
-
-- **深度解读：全文结构化 + 证据驱动**：先切片（HTML/TeX 真实章节层次；PDF 编号标题），再建「论文地图」
-  （问题/主张/方法/公式/结果/消融/局限 + chunkIds 证据定位），逐节写作改为**按小节从全文检索证据**
-  （词法检索 + 章节角色先验），成稿后做证据审计，只在个别小节出问题时定点重写。
-  每一步都有降级路径，`/api/deepread` 的 SSE 协议与前端进度不变（新增 chunking/research_map/retrieval/audit/repair 阶段）。
-- **转图与文案解耦**：`prepareUrl/prepareUpload` 只做「抓取 + 转图 + 抽取正文」，先把图片写进
-  `output/{id}/` 并打包；`generateCopy` 再单独读回正文生成文案。模型未配置 / 超时 / 报错只把
-  `copyStatus` 标成 `error`，图片、ZIP、summary.md 不受影响，前端在「解读文案」卡片内提示失败并给出
-  「重新生成文案」按钮（重试只重跑模型那一步，不重新下载与转图）。
-- **约束兜底 + 完整收尾**：标题用 `truncateTitle` 压到 `MAX_TITLE_CHARS`（20）并按词边界截断、
-  超长时自动重写。文案通过三层保证「≤ `MAX_COPY_CHARS`（1000）且完整」：① 提示词强制按预算成稿、
-  以结论收尾；② 超预算时自动做一次**压缩重试**（保留全部小节与结论）；③ 最后用 `truncateAtSentence`
-  按**句边界**兜底，绝不截在词/句中间。前端按「不含空白的字符数」展示字数。
-- **文案格式化**：文案统一用 Markdown 输出（`##` 小节、`**加粗**`、`-` 列表、`>` 引用），
-  前端用内置的极简渲染器转成富文本（先 HTML 转义防 XSS），并提供「预览 / Markdown 源码」
-  切换；「复制文案」自动剥离 Markdown 符号，得到可直接粘贴的纯文本。
-- **PDF 渲染**：`pdfjs-dist`（legacy 构建）+ `@napi-rs/canvas` 纯 JS 栅格化，无系统依赖；
-  `MAX_PDF_PAGES` 限制最多转图页数，`PDF_SCALE` 控制清晰度。
-  **中文 PDF 必须带 CMap/标准字体资源**：`src/pdfjs.js` 会把 `pdfjs-dist/cmaps` 与
-  `standard_fonts` 目录传给 `getDocument`（`cMapUrl` / `cMapPacked` / `standardFontDataUrl`）。
-  简中论文常用 CID 字体 + CMap 编码（UniGB-UCS2-H 等），缺这些资源时字体翻译会失败，
-  中文会整段消失、只剩英文与公式。中文标题也从正文首行抽取（「递归循环 Transformer」），
-  不再误取英文副标题/作者名。
-- **网页渲染**：`puppeteer-core` 直连系统 Chrome，`WEB_SEGMENT_HEIGHT` 把超长页切段，
-  规避 Chrome 单图超高纹理上限。
-- **文案引擎可插拔**：DeepSeek / OpenAI 共用同一接口，`LLM_PROVIDER` 一键切换。
-- **机构与时效**：自动抽取「机构」与「发表时间」——arXiv 走 API 拿发布时间、PDF 首页抓机构名、
-  网页读 meta/正文日期；提示词要求文案自然交代「XX 机构在 YYYY 年提出…」，信息缺失时不硬编。
-- **解读方法论（参考 [paper-deep-reader-skill](https://github.com/Linwei-Chen/paper-deep-reader-skill)）**：
-  文案采用「零背景可进入 + 技术足够硬」的双层讲解法——术语首次出现即白话解释、用一个最小
-  例子走通机制、Before/After/Diff 最小差分、具体数字支撑并区分「作者主张 / 直接证据 / 推断」、
-  证据强度分级、边界从论文具体缺口推出。已在模型提示词中落地。
-
-## Docker 运行（含 Ollama）
-
-项目提供 `Dockerfile` 与 `docker-compose.yml`，会同时启动 link2post、Ollama，并自动拉取模型：
-
-```bash
-cd link2post
-OLLAMA_MODEL=qwen3:8b docker compose up -d --build
-# 首次启动会下载模型，浏览器打开 http://127.0.0.1:4780
+```
+链接 ─┬─ arXiv：HTML 取源（正文 + 图）→ 失败回退 TeX 源码（e-print）→ 再回退 PDF
+      └─ 普通网页：正文抽取 + 整页截图
+        ↓
+   写稿模型：一次产出 8–12 个场景（旁白 + 引用哪张图），字数不足自动扩写一次
+        ↓
+   TTS：有 MINIMAX_API_KEY 用 MiniMax（speech-02-hd），否则 edge-tts；逐场景 mp3 + ffprobe 取时长，超长自动加速重录
+        ↓
+   画面：canvas 合成 1920×1080 静态帧（封面 / 论文页 / 配图 / 结尾卡）
+        ↓
+   ffmpeg：逐场景「静帧 + 旁白」→ 视频 xfade、音频 acrossfade 串成全片 mp4
 ```
 
-数据保存在 Docker volume `ollama-data` 与 `link2post-output`。如使用已有 Ollama 服务，将 `OLLAMA_BASE_URL` 设置为宿主机可访问的 `http://host.docker.internal:11434/v1`。
+进度通过 SSE 实时回传（抽取 → 写稿 → 配音 i/n → 画面 → 合成），前端状态区逐条显示；
+「最新论文」列表里点「🎬 视频」也会走同一条链路，结果直接展示在列表下方。
 
-## 部署到 Render / Railway（在线可访问）
+## 同步发布
 
-GitHub Pages **不能**运行本应用（纯静态，无 Node / 无头 Chrome）。要在线运行，用连 GitHub 的
-PaaS 即可，仓库里已备好 `Dockerfile`（Node 22 + Google Chrome + 中文字体）。
+- **公众号贴图**：前端勾选图片 → `POST /api/sync/wechat` → 草稿箱。需要认证服务号凭证，且调用 **IP 必须在公众号后台的 IP 白名单** 内（当前出站 IP 显示在页面左下角）。
+- **浏览器兜底**：`POST /api/sync/wechat-browser` 复制标题 / 文案并打开公众号后台（持久化 Chrome 会话，免白名单）。
+- **X**：前端直接打开预填标题的发帖框。
 
-### Render（推荐，免费档）
-
-1. 把代码推到 GitHub（见下方「推送到 GitHub」）。
-2. 打开 [render.com](https://render.com) → New → **Blueprint**，选择该仓库（会用 `render.yaml` 自动配置）；
-   或 New → **Web Service** → 选择仓库，Runtime 选 **Docker**。
-3. 环境变量：`LLM_PROVIDER=deepseek`（默认）+ `DEEPSEEK_API_KEY`（部署后在 Render 面板填写，未填时文案生成会报错）；
-   `CHROME_PATH` 已由镜像设好，无需改动。
-4. 部署完成后得到 `https://xxx.onrender.com` 公网地址。
-
-> 免费档无流量会休眠（首次访问冷启动约 30–50s），磁盘为临时盘：重启/重新部署后
-> `output/` 里已生成的结果会被清空，属正常现象。
-
-### Railway
-
-1. 推代码到 GitHub 后，在 [railway.app](https://railway.app) 新建项目 → **Deploy from GitHub**。
-2. Railway 会自动识别仓库根目录的 `Dockerfile` 并构建上线，同样返回公网地址。
-
-### GitHub Actions（CI）
-
-`.github/workflows/deploy.yml` 会在每次 push / PR 时用 `docker build` 校验镜像能否构建成功。
-部署本身走 Render/Railway 的「Auto Deploy」即可；如需用 Actions 手动触发 Render 部署，
-在仓库 Secrets 添加 `RENDER_DEPLOY_HOOK` 并取消工作流末尾注释。
-
-### 推送到 GitHub
+## Docker 运行
 
 ```bash
-cd link2post
-git init
-git add .
-git commit -m "link2post: 论文/网页 → 图片 + 解读 + 爆款标题"
-git branch -M main
-git remote add origin https://github.com/<你的用户名>/link2post.git
-git push -u origin main
+docker compose up --build      # 含 ollama 服务，首次会自动拉模型
+# 浏览器打开 http://127.0.0.1:4780
 ```
 
-## 局限与后续
+## 部署
 
-- 部分站点有反爬（如需要登录、Cloudflare 校验）会抓取失败；网页截图对动态渲染页面
-  依赖 `networkidle2`，个别懒加载内容可能未展开。
-- 文案生成依赖真实模型（需配置 `DEEPSEEK_API_KEY` 或 `OPENAI_API_KEY`）；未配置或调用失败时
-  **只缺文案**，图片/ZIP 照常产出，可在页面上重试。标题与解读质量取决于模型与正文抽取质量。
-- 可扩展点：任务队列 + SSE 进度、历史记录、PDF 图表智能裁剪、多链接批量处理。
+- **Render（推荐）**：使用仓库自带的 `render.yaml`（Docker 运行时，新加坡节点）。
+- **Railway**：连仓库即可，Dockerfile 已就绪。
+- **CI**：`.github/workflows/deploy.yml` 在 push / PR 时执行 `npm run lint` + `npm test`，并构建一次 Docker 镜像，提前发现镜像问题。
+
+## 局限
+
+- 部分站点有反爬（登录墙、Cloudflare 校验）会抓取失败；网页截图依赖 `networkidle2`，个别懒加载内容可能未展开。
+- 文案生成需要真实模型；未配置或调用失败时**只缺文案**，图片 / ZIP 照常产出，可在页面上重试。
+- 公众号 API 同步受 IP 白名单限制，换机器或宽带 IP 变化后需在后台更新白名单。
+- 播客依赖本机 `ffmpeg` 与 `edge-tts`（或 `MINIMAX_API_KEY`）；Windows 需要自行安装 ffmpeg。

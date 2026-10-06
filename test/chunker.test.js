@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildPaperStructure, chunksFromHtml, classifyBlock, extractNumbers } from '../src/deepread/chunker.js';
+import { buildPaperStructure, chunksFromHtml, classifyBlock, extractNumbers } from '../src/chunker.js';
 import { longPaperText, paperHtml, paperTex, paperPdfLines } from './fixtures.js';
 
 test('30k+ 字论文被完整切片（不再只取前 16k）', () => {
@@ -8,7 +8,7 @@ test('30k+ 字论文被完整切片（不再只取前 16k）', () => {
   assert.ok(text.length > 30000, `合成论文应 >30k 字，实际 ${text.length}`);
 
   const structure = buildPaperStructure({ kind: 'tex', text });
-  const { chunks, sections, stats } = structure;
+  const { chunks, sections } = structure;
 
   assert.ok(chunks.length >= 20, `chunks 数量应足够多，实际 ${chunks.length}`);
   assert.ok(sections.length >= 8, `应识别出多个章节，实际 ${sections.length}: ${sections.map((s) => s.title).join('/')}`);

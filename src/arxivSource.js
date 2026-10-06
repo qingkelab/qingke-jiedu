@@ -7,7 +7,7 @@ import { config } from './config.js';
 import { fetchArxivHtml, parseArxivId } from './arxivHtml.js';
 import { pdfToImages, extractPdfInfo, extractPdfTextBlocks } from './pdfToImages.js';
 import { svgToPng } from './webToImages.js';
-import { assemble, blocksFromMarkdownish } from './deepread/chunker.js';
+import { assemble, blocksFromMarkdownish } from './chunker.js';
 
 const execFileP = promisify(execFile);
 

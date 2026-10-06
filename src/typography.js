@@ -25,6 +25,8 @@ export function normalizeTypography(text) {
   t = t.replace(/'([^'\n]{1,40})'/g, '‘$1’');
 
   // 还原受保护内容
+  // 占位符用 \u0000 包裹（有意使用控制字符）
+  // oxlint-disable-next-line no-control-regex
   t = t.replace(/\u0000(\d+)\u0000/g, (_m, i) => stash[Number(i)] ?? '');
 
   return t;

@@ -12,7 +12,7 @@ const FILLER =
   '我们强调每个判断都要有依据，不能靠堆砌术语；同时保留工程上关心的开销、吞吐与可复现性讨论。';
 
 function filler(n) {
-  return Array.from({ length: n }, (_, i) => `${FILLER}`).join('');
+  return Array.from({ length: n }, () => `${FILLER}`).join('');
 }
 
 /** 合成一篇 30k+ 字论文。 */

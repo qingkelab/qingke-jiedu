@@ -61,12 +61,12 @@ export function markdownToHtml(md, theme = 'orange') {
     const line = lines[i].trimEnd().trim();
     if (!line) { flushPara(); closeList(); i++; continue; }
 
-    if (/^```/.test(line)) {
+    if (line.startsWith('```')) {
       flushPara(); closeList();
       const lang = line.replace(/^```/, '').trim().toLowerCase();
       const code = [];
       i++;
-      while (i < lines.length && !/^```/.test(lines[i].trim())) { code.push(lines[i]); i++; }
+      while (i < lines.length && !lines[i].trim().startsWith('```')) { code.push(lines[i]); i++; }
       i++;
       if (lang === 'svg') {
         html += '<p style="color:#888;font-size:13px;text-align:center;">（图解为 SVG，微信正文不支持内嵌，请在原文 .md 或网页预览中查看）</p>';

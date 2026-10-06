@@ -26,7 +26,6 @@
     <nav class="mode-nav" aria-label="功能菜单">
       <div class="seg">
         <button id="mode-pic" class="seg-btn active" type="button">🖼 图文转图</button>
-        <button id="mode-deep" class="seg-btn" type="button">📖 论文深度解读</button>
         <button id="mode-podcast" class="seg-btn" type="button">🎙️ 论文播客</button>
         <button id="mode-latest" class="seg-btn" type="button">🕒 最新论文</button>
       </div>
@@ -138,28 +137,6 @@
       </div>
     </section>
 
-    <!-- 深度解读写作规范（静态参考，来自 qingke-tech-writing skill；仅「论文深度解读」模式显示） -->
-    <section id="deep-guide" class="guide-card" hidden>
-      <details open>
-        <summary>📖 深度解读 · 写作规范</summary>
-        <p class="guide-sub">按青稞社区（qingke-tech-writing）风格执行，每次生成与审校都遵守以下规则：</p>
-        <ul class="guide-list">
-          <li><b>导语</b>：开头 3 段内讲清「论文回答什么问题 → 为什么现在值得读 → 作者给出什么」。</li>
-          <li><b>结构</b>：小节标题用结论句/名词短语，禁「引言 / 相关工作 / 背景介绍」腔与编号模板；每节先给加粗结论再展开（一段至多一个加粗点）。</li>
-          <li><b>篇幅</b>：正文目标 3000–6000 字（不含出处块/图片/公式）；低于 2500 字视为未达标，靠加深机制细节与证据解读扩写，不注水。</li>
-          <li><b>术语</b>：Agent / Harness / Policy / RL / SFT / RLHF / Skill / World Model / benchmark 等社区通用词保留英文、不硬译；方法/模型/机构名一律原文；新概念首次出现定形后全文只用一种形态。</li>
-          <li><b>数字</b>：模型规模 / 数据集 / 设置 / 对比基线 / 单位齐全；口径精确（「提升至 X」是终值、「提升了 X」是增量，百分比写清基数）；论文声称与「我们的判断」分开。</li>
-          <li><b>图片</b>：正文至少分散嵌 3 张关键图，（图N）引用写在讲对应内容的段落里（架构图放讲架构处、结果图放讲结果处、公式图放讲公式处）；禁止在文末集中写「（图1）…（图2）…」式图注清单；每张图自动补一行引用式图注。</li>
-          <li><b>出处</b>：文首自动生成出处块——作者 / 机构 / 时间 / Paper / arXiv / Code；正文不再重复链接块。</li>
-          <li><b>收尾</b>：给一句具体的社区视角判断（与既有工作的关系、可复现性、最该补的验证），不升华成金句。</li>
-          <li><b>反 AI 味</b>：禁「随着…的发展」「首先/其次/最后」「总而言之」「不是 A 而是 B」「本质上 / 更重要的是」等模板腔与空泛开头。</li>
-          <li><b>审校</b>：生成后自动对照原文自检一遍（出处 / 导语 / 结构 / 术语一致 / 数字口径 / 图片引用 / 去 AI 味）。</li>
-          <li><b>全文理解</b>：先做结构化切片（章节 / 段落 / 公式 / 图注 / 表格）与「研究地图」（问题 / 主张 / 方法 / 结果 / 消融 / 局限 + 证据定位），逐节写作按小节从全文检索证据，不再只看前半篇。</li>
-          <li><b>证据审计</b>：成稿后核对数字 / 模型与数据集名 / 消融 / 局限 / 公式 / 图与正文对应；发现问题只重写有问题的那一节。</li>
-        </ul>
-        <p class="guide-foot">规则来源：qingkelab/agent-skills · qingke-tech-writing</p>
-      </details>
-    </section>
       </aside>
 
       <main class="content">
@@ -269,43 +246,6 @@
       </section>
     </main>
 
-    <main id="deepresult" hidden>
-      <div class="meta-bar">
-        <span class="badge">📖 论文深度解读</span>
-        <div class="meta-title" id="deep-title"></div>
-        <span id="deep-origin" class="muted"></span>
-      </div>
-      <section class="card">
-        <div class="card-head">
-          <h2>📝 解读报告</h2>
-          <div class="head-actions">
-            <span id="deep-fig-count" class="muted"></span>
-            <button class="btn ghost" id="deep-copy" type="button">复制 Markdown</button>
-            <a id="deep-md-btn" class="btn ghost" href="#">下载 .md</a>
-          </div>
-        </div>
-        <div id="deep-style" class="style-check" hidden></div>
-        <div id="deep-audit" class="style-check" hidden></div>
-        <div class="copy-render deep" id="deep-render"></div>
-        <details class="reasoning" id="deep-reasoning" hidden>
-          <summary>🧠 推理过程（模型思考）</summary>
-          <pre id="deep-reasoning-text"></pre>
-        </details>
-      </section>
-
-      <section class="card">
-        <div class="card-head">
-          <h2>📤 同步发布</h2>
-          <span class="muted">同步为公众号文章</span>
-        </div>
-        <div class="account-radios" id="deep-wechat-account"></div>
-        <div class="sync-actions">
-          <button class="btn sync" id="deep-sync-wechat">同步为公众号文章</button>
-          <button class="btn ghost" id="deep-sync-wechat-browser">浏览器打开后台</button>
-        </div>
-        <p class="sync-note" id="deep-sync-note"></p>
-      </section>
-    </main>
 
     <main id="podcastresult" hidden>
       <div class="meta-bar">

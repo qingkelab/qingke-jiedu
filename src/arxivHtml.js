@@ -1,6 +1,6 @@
 import { JSDOM } from 'jsdom';
 import { config } from './config.js';
-import { blocksFromDom, assemble } from './deepread/chunker.js';
+import { blocksFromDom, assemble } from './chunker.js';
 
 /** 从 arXiv 链接解析出论文 ID（abs/pdf/html 均可）。 */
 export function parseArxivId(url) {
@@ -59,7 +59,7 @@ export async function fetchArxivHtml(url) {
   // 结构化切片（section / paragraph / formula / figure / table），供深度解读全文分析
   let structure = null;
   try {
-    structure = assemble(blocksFromDom(doc), { kind: 'html', maxChunkChars: config.deepreadChunkChars });
+    structure = assemble(blocksFromDom(doc), { kind: 'html', maxChunkChars: config.chunkChars });
   } catch {
     structure = null; // 结构抽取失败不影响纯文本路径
   }

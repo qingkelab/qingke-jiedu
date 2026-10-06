@@ -1,4 +1,4 @@
-# CI：每次 push 到 main 都构建一次 Docker 镜像，提前发现镜像构建问题。
+# CI：每次 push / PR 都跑 lint + 单测，并构建一次 Docker 镜像。
 # 部署本身推荐用 Render 的「Auto Deploy」：在 Render 连接 GitHub 仓库后，
 # 每次 push 会自动用 Dockerfile 构建并上线（无需本工作流触发）。
 #
@@ -13,6 +13,23 @@ on:
     branches: [main]
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint（oxlint：0 error，告警数不得增长）
+        run: npm run lint
+      - name: Unit tests
+        run: npm test
+
   build:
     runs-on: ubuntu-latest
     steps:

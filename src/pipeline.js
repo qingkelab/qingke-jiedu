@@ -275,9 +275,9 @@ function composeCopy(generated, source, url, limits) {
 export async function generateCopy(id, providerName, model) {
   const record = await readResult(id); // 记录不存在时抛 ENOENT，由路由层转 404
   const source = {
-    ...(record.source || {}),
+    ...record.source,
     type: record.type,
-    title: (record.source && record.source.title) || record.sourceTitle || '',
+    title: record.source?.title || record.sourceTitle || '',
   };
   source.text = String(source.text || '');
 

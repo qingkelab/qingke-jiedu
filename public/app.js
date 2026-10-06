@@ -7,7 +7,6 @@ const statusEl = $('#status');
 const statusText = $('#status-text');
 const errorEl = $('#error');
 const resultEl = $('#result');
-const deepResultEl = $('#deepresult');
 const podcastResultEl = $('#podcastresult');
 let currentId = null;
 let currentCopy = '';
@@ -16,7 +15,6 @@ let currentZipUrl = '';
 let currentMarkdownUrl = '';
 let selectedFiles = new Set();
 let currentMode = 'pic'; // pic | deep | podcast | latest
-let deepSource = null; // 深度解读 SSE 事件源（当前活动任务）
 let podSource = null; // 论文播客 SSE 事件源（当前活动任务）
 
 function setStatus(msg, show = true) {
@@ -28,7 +26,6 @@ function showError(msg) {
   errorEl.textContent = msg;
   errorEl.hidden = false;
   resultEl.hidden = true;
-  deepResultEl.hidden = true;
   podcastResultEl.hidden = true;
   podcastResultEl.hidden = true;
 }
@@ -103,7 +100,6 @@ document.querySelectorAll('.chip').forEach((chip) => {
 function setMode(mode) {
   currentMode = mode;
   $('#mode-pic').classList.toggle('active', mode === 'pic');
-  $('#mode-deep').classList.toggle('active', mode === 'deep');
   $('#mode-podcast').classList.toggle('active', mode === 'podcast');
   $('#mode-latest').classList.toggle('active', mode === 'latest');
   const isLatest = mode === 'latest';
@@ -117,25 +113,16 @@ function setMode(mode) {
   const onlyImagesRow = $('#only-images-row');
   if (onlyImagesRow) onlyImagesRow.hidden = mode !== 'pic';
   resultEl.hidden = mode !== 'pic';
-  deepResultEl.hidden = mode !== 'deep';
   podcastResultEl.hidden = mode !== 'podcast';
-  // 写作规范面板：仅「论文深度解读」模式可见
-  const guide = $('#deep-guide');
-  if (guide) guide.hidden = mode !== 'deep';
-  // 切走深度解读/播客：中断当前进度订阅（后台任务不受影响）
-  if (mode !== 'deep') closeDeepSource();
+  // 切走播客：中断当前进度订阅（后台任务不受影响）
   if (mode !== 'podcast') closePodSource();
-  $('#submit').textContent =
-    mode === 'deep' ? '生成深度解读' : mode === 'podcast' ? '生成播客视频' : '生成图文';
+  $('#submit').textContent = mode === 'podcast' ? '生成播客视频' : '生成图文';
   urlInput.placeholder =
-    mode === 'deep'
-      ? 'https:// 输入 arXiv 论文链接（abs/pdf/html）'
-      : mode === 'podcast'
-        ? 'https:// 输入 arXiv 论文链接或文章链接'
-        : 'https:// 输入论文 PDF 链接或网页链接';
+    mode === 'podcast'
+      ? 'https:// 输入 arXiv 论文链接或文章链接'
+      : 'https:// 输入论文 PDF 链接或网页链接';
 }
 $('#mode-pic').addEventListener('click', () => setMode('pic'));
-$('#mode-deep').addEventListener('click', () => setMode('deep'));
 $('#mode-podcast').addEventListener('click', () => setMode('podcast'));
 $('#mode-latest').addEventListener('click', () => setMode('latest'));
 setMode('pic');
@@ -147,7 +134,6 @@ $('#file-upload').addEventListener('change', async (e) => {
   e.target.value = '';
   errorEl.hidden = true;
   resultEl.hidden = true;
-  deepResultEl.hidden = true;
   podcastResultEl.hidden = true;
   submitBtn.disabled = true;
   setStatus('正在上传并转图…');
@@ -197,7 +183,6 @@ async function searchLatest() {
   const category = $('#latest-category').value;
   errorEl.hidden = true;
   resultEl.hidden = true;
-  deepResultEl.hidden = true;
   podcastResultEl.hidden = true;
   $('#arxivlist').hidden = true;
   setStatus('正在搜索 arXiv…');
@@ -218,7 +203,6 @@ async function searchLatest() {
 function renderArxivList(data) {
   errorEl.hidden = true;
   resultEl.hidden = true;
-  deepResultEl.hidden = true;
   podcastResultEl.hidden = true;
   const list = $('#arxivlist');
   list.hidden = false;
@@ -240,12 +224,10 @@ function renderArxivList(data) {
       </div>
       <div class="arxiv-actions">
         <button class="arxiv-act pic" type="button" title="导入到「图文转图」并生成">转图</button>
-        <button class="arxiv-act deep" type="button" title="导入到「论文深度解读」并生成">解读</button>
         <button class="arxiv-act pod" type="button" title="用该论文生成视频播客（写稿+配音+合成）">🎬 视频</button>
         <button class="arxiv-act copy" type="button" title="复制 arXiv 链接">复制</button>
       </div>`;
     row.querySelector('.arxiv-act.pic').onclick = () => usePaper(p.pdfUrl, 'pic');
-    row.querySelector('.arxiv-act.deep').onclick = () => usePaper(p.url, 'deep');
     row.querySelector('.arxiv-act.pod').onclick = () => runPodcastForUrl(p.url);
     row.querySelector('.arxiv-act.copy').onclick = () =>
       copyText(p.url).then(() => toast('arXiv 链接已复制')).catch(() => toast('复制失败'));
@@ -475,7 +457,7 @@ function renderHistory(items) {
       <button class="history-link" type="button" title="${escapeHtml(it.url)}">${escapeHtml(it.title || it.url)}</button>
       <span class="history-time">${time}</span>`;
     li.querySelector('.history-link').onclick = () => {
-      setMode(it.type === 'deepread' ? 'deep' : it.type === 'podcast' ? 'podcast' : 'pic');
+      setMode(it.type === 'podcast' ? 'podcast' : 'pic');
       urlInput.value = it.url;
       urlInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
@@ -496,106 +478,6 @@ $('#history-clear').addEventListener('click', async () => {
   }
 });
 loadHistory();
-
-// ===== 深度解读：异步任务 + SSE 进度 =====
-function closeDeepSource() {
-  if (deepSource) {
-    deepSource.close();
-    deepSource = null;
-  }
-}
-function resetDeepProgress() {
-  const el = $('#status-detail');
-  if (el) {
-    el.hidden = true;
-    el.innerHTML = '';
-  }
-}
-function deepStageText(p) {
-  const s = (p && p.stage) || '';
-  const sec = p && p.section;
-  const detail = (p && p.detail) || '';
-  if (s === 'queued') return '排队中…';
-  if (s === 'fetch') return '正在抓取论文与图片…';
-  if (s === 'memory') return '正在整理上下文记忆…';
-  // 结构化全文理解：切片 → 研究地图 → 检索 → 大纲 → 逐节写作 → 审计 → 修复 → 收尾
-  if (s === 'chunking') return detail || '正在结构化切片全文…';
-  if (s === 'research_map') return detail ? `研究地图：${detail}` : '正在建立研究地图…';
-  if (s === 'retrieval') return detail || '正在从全文检索本节证据…';
-  if (s === 'plan') return detail ? `大纲已就绪：${detail}` : '正在规划解读大纲…';
-  if (s === 'audit') return detail || '正在做证据审计（数字/公式/图/结论）…';
-  if (s === 'repair') return detail || '正在按审计结果定点修复…';
-  if (s === 'finalize') return detail ? `正在收尾（${detail}）…` : '正在收尾…';
-  if ((s === 'section' || s === 'writing') && sec) {
-    return detail
-      ? `正在撰写第 ${sec.index}/${sec.total} 节：${sec.title}（${detail}）`
-      : `正在撰写第 ${sec.index}/${sec.total} 节：${sec.title}…`;
-  }
-  if (s === 'section_done' && sec) return `第 ${sec.index}/${sec.total} 节完成`;
-  if (s === 'merge') return '正在合并成稿…';
-  if (s === 'generating') return '模型正在生成（本地模型约需数分钟）…';
-  if (s === 'review') return '正在对照原文审校修正…';
-  return detail || '处理中…';
-}
-function addDeepSectionDone(sec) {
-  const el = $('#status-detail');
-  if (!el || !sec) return;
-  el.hidden = false;
-  const row = document.createElement('div');
-  row.className = 'done';
-  row.textContent = `✓ 第 ${sec.index}/${sec.total} 节：${sec.title}`;
-  el.appendChild(row);
-  el.scrollTop = el.scrollHeight;
-}
-/** 订阅深度解读任务直至终态：done → renderDeep，fail/断线 → reject。 */
-function streamDeepRead(jobId) {
-  return new Promise((resolve, reject) => {
-    closeDeepSource();
-    let settled = false;
-    const finish = (err) => {
-      if (settled) return;
-      settled = true;
-      closeDeepSource();
-      err ? reject(err) : resolve();
-    };
-    const es = new EventSource(`/api/deepread/events?job=${encodeURIComponent(jobId)}`);
-    deepSource = es;
-    es.addEventListener('stage', (ev) => {
-      try {
-        setStatus(deepStageText(JSON.parse(ev.data)));
-      } catch {
-        /* ignore */
-      }
-    });
-    es.addEventListener('section', (ev) => {
-      try {
-        addDeepSectionDone(JSON.parse(ev.data));
-      } catch {
-        /* ignore */
-      }
-    });
-    es.addEventListener('done', (ev) => {
-      try {
-        const d = JSON.parse(ev.data);
-        renderDeep(d.result);
-        loadHistory();
-        finish();
-      } catch {
-        finish(new Error('结果解析失败'));
-      }
-    });
-    es.addEventListener('fail', (ev) => {
-      try {
-        finish(new Error(JSON.parse(ev.data).message || '深度解读失败'));
-      } catch {
-        finish(new Error('深度解读失败'));
-      }
-    });
-    es.onerror = () => {
-      if (!settled) finish(new Error('进度连接中断，请重试'));
-    };
-  });
-}
 
 // ===== 论文播客：异步任务 + SSE 进度 =====
 let podVoiceNames = {};
@@ -697,7 +579,6 @@ async function loadPodcastInfo() {
 function renderPodcast(d) {
   errorEl.hidden = true;
   resultEl.hidden = true;
-  deepResultEl.hidden = true;
   podcastResultEl.hidden = true;
   podcastResultEl.hidden = false;
   currentId = d.id;
@@ -754,14 +635,11 @@ form.addEventListener('submit', async (e) => {
 
   errorEl.hidden = true;
   resultEl.hidden = true;
-  deepResultEl.hidden = true;
   podcastResultEl.hidden = true;
   submitBtn.disabled = true;
 
-  const isDeep = currentMode === 'deep';
   const isPod = currentMode === 'podcast';
-  if (isDeep) resetDeepProgress();
-  if (!isDeep && !isPod) setStatus('正在抓取并转图…');
+  if (!isPod) setStatus('正在抓取并转图…');
 
   let imagesReady = false; // 图片阶段是否已经成功（决定失败时是整块报错还是只提示文案）
   try {
@@ -785,13 +663,6 @@ form.addEventListener('submit', async (e) => {
       if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
       await streamPodcast(data.id);
       loadHistory();
-    } else if (isDeep) {
-      // 深度解读：建任务 → SSE 实时进度 → done 事件携带结果
-      setStatus('正在建立深度解读任务…');
-      const res = await fetch('/api/deepread', { method: 'POST', headers, body });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
-      await streamDeepRead(data.id);
     } else {
       // 图文转图：阶段一先拿图片（不依赖模型），阶段二再单独生成文案
       const res = await fetch('/api/images', { method: 'POST', headers, body });
@@ -813,78 +684,12 @@ form.addEventListener('submit', async (e) => {
     if (imagesReady) renderCopyFailure(err.message || String(err));
     else showError('处理失败：' + (err.message || err));
   } finally {
-    closeDeepSource();
     closePodSource();
     submitBtn.disabled = false;
     setStatus('', false);
   }
 });
 
-function renderDeep(d) {
-  errorEl.hidden = true;
-  resultEl.hidden = true;
-  deepResultEl.hidden = false;
-  currentId = d.id;
-
-  $('#deep-title').textContent = d.title || d.source?.title || '';
-  $('#deep-origin').textContent = [d.institution, d.date, d.provider ? `${d.provider}（${d.model || ''}）` : ''].filter(Boolean).join(' · ');
-  $('#deep-fig-count').textContent = `${(d.figures || []).length} 张图（CDN 嵌入）`;
-  renderStyleCheck($('#deep-style'), d.style);
-  renderDeepAudit(d);
-  $('#deep-render').innerHTML = renderMarkdown(d.markdown);
-  renderMath($('#deep-render'));
-  const deepReasoning = $('#deep-reasoning');
-  if (d.reasoning) {
-    deepReasoning.hidden = false;
-    $('#deep-reasoning-text').textContent = d.reasoning;
-  } else {
-    deepReasoning.hidden = true;
-  }
-  $('#deep-copy').onclick = () =>
-    copyText(d.markdown).then(() => toast('Markdown 已复制')).catch(() => toast('复制失败'));
-  $('#deep-md-btn').href = d.markdownUrl;
-
-  // 深度解读同步为公众号文章
-  const deepNote = $('#deep-sync-note');
-  deepNote.textContent = '';
-  $('#deep-sync-wechat').onclick = async () => {
-    deepNote.textContent = '正在同步为公众号文章…';
-    try {
-      const res = await fetch('/api/sync/wechat-article', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: d.title,
-          markdown: d.markdown,
-          figures: d.figures || [],
-          sourceUrl: d.arxivUrl || '',
-          accountIndex: getSelectedAccount('#deep-wechat-account'),
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        deepNote.textContent = `已同步到「${data.account}」的文章草稿（media_id: ${data.draft.media_id}），到公众号后台「草稿箱」查看。`;
-        toast(`已同步文章到${data.account}`);
-      } else if (data.needCreds) {
-        deepNote.textContent = '未配置公众号凭证：请到公众号后台手动发布。';
-      } else {
-        throw new Error(data.error || data.message || '同步失败');
-      }
-    } catch (err) {
-      deepNote.textContent = '同步失败：' + (err.message || err);
-    }
-  };
-
-  $('#deep-sync-wechat-browser').onclick = () =>
-    openWechatBrowser(d.title || '', stripMarkdown(d.markdown), deepNote);
-
-  deepResultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/**
- * 阶段一渲染：来源信息 + 图片立即可用（下载 / ZIP / 勾选同步），文案区显示生成中。
- * 这一步完全不依赖文案模型，所以模型挂了页面也不会空。
- */
 function renderPrepared(d) {
   errorEl.hidden = true;
   resultEl.hidden = false;
@@ -1160,58 +965,6 @@ function escapeHtml(s) {
  * 证据审计面板：展示全文切片规模、研究地图来源、审计各项结论与定点修复次数。
  * 只做展示，不进入正文（Markdown 里不含审计噪声）。
  */
-function renderDeepAudit(d) {
-  const el = $('#deep-audit');
-  if (!el) return;
-  const audit = d.audit;
-  const struct = d.structure;
-  const meta = audit && audit.stats;
-  if (!audit && !struct) {
-    el.hidden = true;
-    el.innerHTML = '';
-    return;
-  }
-  const label = { pass: '通过', warn: '提示', fail: '未通过', info: '跳过' };
-  const chips = [];
-  if (d.pipeline === 'structured' && struct) {
-    chips.push(
-      `<span class="audit-chip info">全文切片 ${struct.sectionCount} 节 / ${struct.chunkCount} chunks / ${struct.chars} 字</span>`,
-    );
-  } else {
-    chips.push('<span class="audit-chip info">旧流程（未做结构化切片）</span>');
-  }
-  for (const c of (audit && audit.checks) || []) {
-    const detail = c.detail ? ` title="${escapeHtml(c.detail)}"` : '';
-    chips.push(`<span class="audit-chip ${c.status}"${detail}>${c.name}·${label[c.status] || c.status}</span>`);
-  }
-  if (audit && audit.after) {
-    chips.push('<span class="audit-chip info">已定点修复并复检</span>');
-  }
-  if (meta) {
-    chips.push(`<span class="audit-chip info">审计数字 ${meta.numbers} 个 / 公式 ${meta.formulas} 条</span>`);
-  }
-  // 数字核验表（迁移自青稞解读规范）：终稿数字 ↔ 原文条件，单独一份产物
-  const fc = d.factCheck;
-  if (fc && fc.stats) {
-    const s = fc.stats;
-    const bad = s.unsupported ? 'warn' : 'info';
-    chips.push(
-      fc.url
-        ? `<a class="audit-chip ${bad}" href="${fc.url}" target="_blank" rel="noopener" title="终稿每个数字的来源与条件">数字核验 ${s.numbers} 个 · 可定位 ${s.located} · 查不到 ${s.unsupported} →</a>`
-        : `<span class="audit-chip ${bad}">数字核验 ${s.numbers} 个 · 可定位 ${s.located} · 查不到 ${s.unsupported}</span>`,
-    );
-  }
-  // 头图（手绘技术研究笔记风格）：可点开看大图 / 下载 SVG
-  if (d.cover && d.cover.url) {
-    chips.push(
-      `<a class="audit-chip info" href="${d.cover.url}" target="_blank" rel="noopener" title="手绘技术研究笔记风格头图（${escapeHtml(d.cover.size || '')}）">头图 ${escapeHtml(d.cover.structure?.primary || '')} →</a>`,
-    );
-  }
-  el.hidden = false;
-  el.innerHTML = chips.join('');
-}
-
-/** 文风体检面板：段落粒度 / 句长 / 标点密度 / AI 味词命中 + 整改提示。 */
 function renderStyleCheck(el, style) {
   if (!el) return;
   const m = style && style.metrics;

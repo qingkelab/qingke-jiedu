@@ -1,4 +1,4 @@
-// 冒烟测试：服务能启动、/api/health 与 /api/copy 的校验分支、/api/deepread 建任务
+// 冒烟测试：服务能启动、/api/health 与 /api/copy、/api/images 的校验分支
 // 用独立端口与独立 output 目录，避免污染本机数据；不触发任何真实模型调用。
 import fs from 'node:fs';
 import os from 'node:os';
@@ -25,7 +25,7 @@ async function waitForHealth(timeoutMs = 15000) {
   throw new Error('服务未在预期时间内启动');
 }
 
-test('服务可启动，且 /api/copy 与 /api/deepread 的基础校验正常', async (t) => {
+test('服务可启动，且 /api/copy 与 /api/images 的基础校验正常', async (t) => {
   const child = spawn(process.execPath, ['server.js'], {
     cwd: path.resolve(import.meta.dirname, '..'),
     env: {
@@ -64,14 +64,6 @@ test('服务可启动，且 /api/copy 与 /api/deepread 的基础校验正常', 
     body: JSON.stringify({ id: '00000000-0000-0000-0000-000000000000' }),
   });
   assert.equal(missingCopy.status, 404, '不存在的 id 应返回 404（不再调用模型）');
-
-  // 深度解读：缺少 url 应 400；正常建的 job 只回 id（不改变 SSE 协议）
-  const badDeep = await fetch(`http://127.0.0.1:${PORT}/api/deepread`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({}),
-  });
-  assert.equal(badDeep.status, 400);
 
   const stats = await fetch(`http://127.0.0.1:${PORT}/api/providers`).then((r) => r.json());
   assert.ok(stats.api, 'providers 应返回默认 API provider');

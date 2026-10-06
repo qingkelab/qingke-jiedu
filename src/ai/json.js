@@ -30,5 +30,7 @@ export function parseJsonLoose(content) {
 function stripTrailingCommas(s) {
   return String(s)
     .replace(/,\s*([}\]])/g, '$1')
+    // 清理 JSON 解析残留的控制字符（有意使用控制字符集）
+    // oxlint-disable-next-line no-control-regex
     .replace(/[\u0000-\u001f]+/g, ' ');
 }
