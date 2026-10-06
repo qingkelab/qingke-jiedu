@@ -99,8 +99,8 @@ async function extractAssets(url, workDir, log, emit) {
 
     return {
       sourceType: 'arxiv',
-      url: `https://arxiv.org/abs/${html.id}`,
-      title: arxiv?.title || html.title || html.id,
+      url: `https://arxiv.org/abs/${src.id}`,
+      title: arxiv?.title || src.title || src.id,
       authors: arxiv?.authors || '',
       institution: '',
       date: arxiv?.published ? `${Number(String(arxiv.published).slice(0, 4))}年${Number(String(arxiv.published).slice(5, 7))}月` : '',

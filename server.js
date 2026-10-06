@@ -1,4 +1,5 @@
 import express from 'express';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import multer from 'multer';
@@ -6,6 +7,7 @@ import { config } from './src/config.js';
 import { prepareUrl, prepareUpload, generateCopy, processUrl } from './src/pipeline.js';
 import { closeBrowser } from './src/webToImages.js';
 import { createProvider, apiProviderName, apiConfigured } from './src/ai/index.js';
+import { syncWechatPic } from './src/wechat.js';
 import { plainFromMarkdown } from './src/markdown.js';
 import { fetchArxivMeta } from './src/arxiv.js';
 import { ARXIV_SRC_DIR } from './src/arxivSource.js';

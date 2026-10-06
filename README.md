@@ -6,6 +6,13 @@
 - **🎙️ 论文播客**：论文链接 → 3–5 分钟第一人称科普视频（AI 写稿 → 语音合成 → ffmpeg 合成 mp4，论文图/页面作画面）。
 - **🕒 最新论文**：按时间 + 分类 + 关键词检索 arXiv，列表里直接「转图 / 🎬 视频 / 复制」。
 
+两种形态，同一套代码：
+
+| 形态 | 地址 / 启动 | 能力 |
+| --- | --- | --- |
+| **Node 服务**（本机或服务器） | `npm start` → http://127.0.0.1:4780 | 全部功能（含网页截图、播客视频、公众号同步） |
+| **浏览器版**（纯静态，已部署） | https://qingkelab.github.io/qingke-jiedu/web/ | PDF 转图 + 文案 + arXiv 检索；key 只存内存（对照表见下文） |
+
 ## 快速开始
 
 环境要求：Node.js ≥ 20；网页截图默认用系统 Chrome（`CHROME_PATH` 可覆盖）；播客需要 `ffmpeg`。
@@ -19,10 +26,11 @@ npm start                 # 浏览器打开 http://127.0.0.1:4780
 质量门禁：
 
 ```bash
-npm run dev      # node --watch 热重载
-npm run lint     # oxlint（0 error / 0 warning）
-npm test         # node --test（单元 + 服务端冒烟）
-npm run check    # lint + test
+npm run dev       # node --watch 热重载
+npm run lint      # oxlint（0 error / 0 warning；.oxlintrc.json 开启 no-undef，能拦住未定义引用）
+npm test          # node --test（单元 + 服务端冒烟）
+npm run check     # lint + test
+npm run smoke:web # 真实 Chrome 跑一遍浏览器版 PDF→图片（需先起静态服务，见下）
 ```
 
 「图文转图」分两个阶段、两个独立接口：模型没配 key / 超时 / 报错时**只影响文案**，
@@ -73,25 +81,32 @@ node web/smoke.mjs              # 真实 Chrome 跑一遍 PDF→图片（需要 
 
 ```
 server.js              Express 主服务（路由 + SSE 进度 + 产物静态服务）
-public/                前端（原生 JS）：模式切换、图库、文案、播客进度与播放
+public/                Node 版前端：模式导航、图库、文案、播客进度与播放
+web/                   浏览器版（纯静态，Pages 直接发布）
+  app.js               前端主逻辑（表单式 key 面板 / 转图 / 文案 / 检索）
+  lib/                 pdf.js 封装、抓取（CORS 多级回退）、arXiv 检索、ZIP、Readability
+  shims/               jsdom / node:path / node:url / dotenv 的浏览器垫片
+  smoke.mjs            端到端冒烟（真实 Chrome 跑 PDF→图片）
 src/
   pipeline.js          「图文转图」主流程：抓取 → 转图 → 抽取正文 → 文案
   podcast/             论文播客：素材 → 写稿 → 配音 → 画面 → ffmpeg 合成
   ai/                  LLM provider（deepseek / openai / ollama）+ JSON 解析
   arxiv.js             arXiv API 元信息（标题 / 作者 / 时间）
+  arxivSearch.js       arXiv 最新论文检索
   arxivHtml.js         arXiv HTML 版：正文 + 图片（img / object-svg / 内联 svg）
   arxivSource.js       取源三级回退：HTML → TeX 源码（e-print）→ PDF
   chunker.js           结构化切片（HTML / TeX / PDF 统一成 section + chunk）
-  pdfToImages.js       PDF → PNG（页面图）+ 元信息 / 正文抽取
-  webToImages.js       网页整页截图（长页分段）+ SVG 栅格化（复用同一个 Chrome）
   fetchSource.js       链接抓取（PDF / HTML）
-  markdown.js          Markdown → 公众号主题 HTML（内联样式）
+  extractText.js       网页正文抽取（Readability）
+  pdfjs.js pdfToImages.js   PDF → PNG（页面图）+ 元信息 / 正文抽取
+  webToImages.js       网页整页截图（长页分段）+ SVG 栅格化（复用同一个 Chrome）
+  markdown.js          Markdown → 纯文本 / 公众号主题 HTML
   wechat.js            公众号草稿：贴图（newspic，多账号）
   wechatBrowser.js     浏览器兜底：复制文案 + 打开公众号后台（免 IP 白名单）
   styleCheck.js        文风体检（段落粒度 / 句长 / 标点密度 / AI 味词）
-  store.js history.js memory.js meta.js textUtils.js typography.js
+  store.js history.js memory.js meta.js textUtils.js typography.js config.js
 test/                  node:test 测试（单元 + 服务端冒烟）
-output/                产物：图片 / zip / md / 播客 mp4
+output/                产物：图片 / zip / md / 播客 mp4（已 gitignore）
 ```
 
 ## API
@@ -115,6 +130,7 @@ output/                产物：图片 / zip / md / 播客 mp4
 | GET | `/api/history`、`DELETE /api/history` | 历史记录 |
 | GET | `/api/health`、`/api/ip` | 健康检查、出站 IP（微信白名单用） |
 | GET | `/files/:id/:name`、`/download/:id/:name` | 图片内联预览 / 强制下载 |
+| GET | `/_arxivsrc/<id>/<file>` | TeX 源码图 / SVG 栅格化后的本地素材 |
 
 ## 播客工作流
 
@@ -160,3 +176,6 @@ docker compose up --build      # 含 ollama 服务，首次会自动拉模型
 - 文案生成需要真实模型；未配置或调用失败时**只缺文案**，图片 / ZIP 照常产出，可在页面上重试。
 - 公众号 API 同步受 IP 白名单限制，换机器或宽带 IP 变化后需在后台更新白名单。
 - 播客依赖本机 `ffmpeg` 与 `edge-tts`（或 `MINIMAX_API_KEY`）；Windows 需要自行安装 ffmpeg。
+- **浏览器版**：网页整页截图、播客视频、公众号凭证同步三项做不了（浏览器能力所限），分别降级为「抽正文出文案」「无」「复制 + 打开后台」；
+  生成时请让页面保持前台 —— pdf.js 渲染依赖 `requestAnimationFrame`，后台标签页会被节流而看起来"卡住"。
+- **浏览器版跨域**：arXiv 的 `/html/<id>` 与 PDF 带 CORS 可直连；分类/日期检索需要自配 CORS 代理，或改用「关键词」搜索（走 OpenAlex，免代理）。

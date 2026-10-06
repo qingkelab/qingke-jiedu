@@ -831,6 +831,8 @@ function renderStyleCheck(el, style) {
   el.innerHTML = chips.map((c) => `<span class="style-chip">${escapeHtml(c)}</span>`).join('') + warns;
 }
 
+const lightbox = $('#lightbox');
+
 function openLightbox(img) {
   $('#lightbox-img').src = img.objectUrl;
   $('#lightbox-dl').onclick = () => downloadBlob(img.blob, img.filename);
