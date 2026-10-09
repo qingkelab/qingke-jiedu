@@ -41,16 +41,40 @@ try {
   await page.waitForFunction(() => document.querySelectorAll('#gallery .tile').length > 0, { timeout: 180000, polling: 1000 });
   await page.waitForFunction(() => document.querySelector('#status').hidden, { timeout: 180000, polling: 1000 }).catch(() => {});
 
-  const result = await page.evaluate(() => ({
-    tiles: document.querySelectorAll('#gallery .tile').length,
-    imgCount: document.querySelector('#img-count')?.textContent || '',
-    metaTitle: document.querySelector('#meta-title')?.textContent || '',
-    copyNotice: document.querySelector('#copy-notice-text')?.textContent?.slice(0, 80) || '',
-    errorShown: document.querySelector('#error')?.hidden ? '' : document.querySelector('#error').textContent.slice(0, 200),
-  }));
+  const result = await page.evaluate(() => {
+    const checks = document.querySelectorAll('#gallery .tile-check');
+    document.querySelector('#sel-all')?.click();
+    const afterAll = {
+      label: document.querySelector('#sel-count')?.textContent || '',
+      zipSelDisabled: document.querySelector('#zip-sel-btn')?.disabled,
+      selectedTiles: document.querySelectorAll('#gallery .tile.selected').length,
+    };
+    document.querySelector('#sel-clear')?.click();
+    const afterClear = {
+      hidden: document.querySelector('#sel-count')?.hidden,
+      zipSelDisabled: document.querySelector('#zip-sel-btn')?.disabled,
+    };
+    return {
+      tiles: document.querySelectorAll('#gallery .tile').length,
+      checkboxes: checks.length,
+      selection: { afterAll, afterClear },
+      syncButtons: ['#sync-wechat-browser', '#sync-copy', '#sync-x'].filter((id) => !!document.querySelector(id)).length,
+      imgCount: document.querySelector('#img-count')?.textContent || '',
+      metaTitle: document.querySelector('#meta-title')?.textContent || '',
+      copyNotice: document.querySelector('#copy-notice-text')?.textContent?.slice(0, 80) || '',
+      errorShown: document.querySelector('#error')?.hidden ? '' : document.querySelector('#error').textContent.slice(0, 200),
+    };
+  });
   console.log('结果:', JSON.stringify(result, null, 1));
   console.log(errors.length ? '控制台错误:\n - ' + errors.join('\n - ') : '控制台错误: 无');
-  const ok = result.tiles > 0 && !result.errorShown;
+  const ok =
+    result.tiles > 0 &&
+    result.checkboxes === result.tiles &&
+    result.selection.afterAll.selectedTiles === result.tiles &&
+    result.selection.afterAll.zipSelDisabled === false &&
+    result.selection.afterClear.zipSelDisabled === true &&
+    result.syncButtons === 3 &&
+    !result.errorShown;
   console.log(ok ? '✅ 冒烟通过' : '❌ 冒烟失败');
   process.exitCode = ok ? 0 : 1;
 } catch (err) {

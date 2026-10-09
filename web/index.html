@@ -200,6 +200,10 @@
               <h2>🎞️ 内容图片</h2>
               <div class="head-actions">
                 <span id="img-count" class="muted"></span>
+                <span id="sel-count" class="badge" hidden></span>
+                <button class="btn ghost" id="sel-all" type="button">全选</button>
+                <button class="btn ghost" id="sel-clear" type="button">清空</button>
+                <button class="btn ghost" id="zip-sel-btn" type="button" disabled>⬇ 下载选中（ZIP）</button>
                 <button class="btn ghost" id="zip-btn" type="button">⬇ 下载全部（ZIP）</button>
               </div>
             </div>
@@ -251,13 +255,18 @@
           <section class="card">
             <div class="card-head">
               <h2>📤 同步发布</h2>
-              <span class="muted">浏览器版为降级同步：复制内容后手动粘贴</span>
+              <span class="muted">浏览器版为半自动同步：打包图片 + 复制文案，粘贴进公众号后台</span>
             </div>
             <div class="sync-actions">
-              <button class="btn sync" id="sync-wechat-browser">复制文案 + 打开公众号后台</button>
+              <button class="btn sync" id="sync-wechat-browser">📦 准备同步（打包选中图 + 复制文案 + 打开后台）</button>
+              <button class="btn ghost" id="sync-copy" type="button">只复制标题与文案</button>
               <button class="btn sync" id="sync-x">同步到 X</button>
             </div>
             <p class="sync-note" id="sync-note"></p>
+            <p class="muted" style="font-size:12px;margin:8px 0 0;line-height:1.7">
+              凭证直连同步（access_token → 上传素材 → 建草稿）必须在服务端完成：本地 <code>npm start</code> 的 Node 版已支持，
+              浏览器版受密钥安全、CORS 与微信 IP 白名单限制，只做半自动。
+            </p>
           </section>
         </main>
 

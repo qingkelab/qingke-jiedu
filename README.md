@@ -56,6 +56,7 @@ npm run smoke:web # 真实 Chrome 跑一遍浏览器版 PDF→图片（需先起
 - **API key 在页面输入、只存内存**：刷新/关闭即失效，不写 localStorage / Cookie / IndexedDB；LLM 请求从浏览器直连服务商。
 - **零改动复用 `src/`**：`web/index.html` 的 import map 把 `jsdom` / `node:path` / `dotenv` 垫成浏览器实现，取源、切片、提示词、文风体检等模块与 Node 版共用同一份代码。
 - PDF 转图走 [pdf.js]（CDN），网页正文走 [Readability]，arXiv 检索有多级 CORS 回退（同源后端 → 自配代理 → OpenAlex 免代理）。
+- 图片支持**勾选 / 全选 / 清空**与「下载选中（ZIP）」；「📦 准备同步」会**打包选中图片 + 复制标题文案 + 打开公众号后台**，粘贴即可发布。
 
 | 功能 | 浏览器版 | Node 版 |
 | --- | --- | --- |
@@ -64,7 +65,8 @@ npm run smoke:web # 真实 Chrome 跑一遍浏览器版 PDF→图片（需先起
 | 解读文案 + 爆款标题 | ✅（key 只存内存） | ✅ |
 | 最新论文检索 | ✅ | ✅ |
 | 论文播客视频 | ❌（需 ffmpeg / TTS） | ✅ |
-| 公众号凭证同步 | ❌（降级为复制 + 打开后台） | ✅ |
+| 图片勾选 / 选中打包 | ✅ | ✅ |
+| 公众号同步 | ⚠️ 半自动（打包选中图 + 复制文案 + 打开后台手动粘贴） | ✅ 凭证直连（access_token → 素材 → 草稿） |
 | Ollama 本地模型 | ⚠️ 视 CORS 而定（浏览器直连 localhost 可行） | ✅ |
 
 本地预览与冒烟：

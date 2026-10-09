@@ -129,6 +129,7 @@ const urlInput = $('#url');
 
 let currentMode = 'pic';
 let currentImages = []; // {filename,label,width,height,blob,objectUrl}
+const selectedImages = new Set(); // 勾选中的图片 filename
 let currentCopy = '';
 let currentTitleText = '';
 // 三个内容区各自「有没有东西」：空着时不占版面，只显示引导空状态
@@ -286,6 +287,44 @@ function titleFromPdfText(text) {
   return (first || t).slice(0, 100);
 }
 
+/** 打包并下载一组图片（供「下载选中 / 全部」与半自动同步共用）。 */
+async function packImages(list, filename) {
+  if (!list.length) return null;
+  setStatus('正在打包 ZIP…');
+  try {
+    const blob = await zipBlobs(list.map((i) => ({ name: i.filename, blob: i.blob })));
+    downloadBlob(blob, filename);
+    return blob;
+  } finally {
+    setStatus('', false);
+  }
+}
+
+function pickedImages() {
+  return currentImages.filter((i) => selectedImages.has(i.filename));
+}
+
+function updateSelCount() {
+  const el = $('#sel-count');
+  const n = selectedImages.size;
+  el.hidden = n === 0;
+  el.textContent = `已选 ${n} 张`;
+  $('#zip-sel-btn').disabled = n === 0;
+}
+
+function setAllSelected(checked) {
+  selectedImages.clear();
+  if (checked) currentImages.forEach((i) => selectedImages.add(i.filename));
+  document.querySelectorAll('#gallery .tile-check').forEach((c) => {
+    c.checked = checked;
+    c.closest('.tile')?.classList.toggle('selected', checked);
+  });
+  updateSelCount();
+}
+
+$('#sel-all').addEventListener('click', () => setAllSelected(true));
+$('#sel-clear').addEventListener('click', () => setAllSelected(false));
+
 function renderPrepared({ source, images, webOnly }) {
   errorEl.hidden = true;
   hasResult = true;
@@ -312,15 +351,26 @@ function renderPrepared({ source, images, webOnly }) {
     gallery.innerHTML =
       '<p class="muted">该来源没有可转的图片（浏览器版不支持网页截图），文案生成后可直接复制。</p>';
   }
+  selectedImages.clear();
+  updateSelCount();
   currentImages.forEach((img) => {
     const tile = document.createElement('div');
     tile.className = 'tile';
     tile.innerHTML = `
+      <input type="checkbox" class="tile-check" title="选择" />
       <img src="${img.objectUrl}" alt="${escapeHtml(img.label)}" loading="lazy" />
       <div class="tile-foot">
         <span>${escapeHtml(img.label)} · ${img.width}×${img.height}</span>
         <button class="tile-dl" type="button">下载</button>
       </div>`;
+    const check = tile.querySelector('.tile-check');
+    check.checked = selectedImages.has(img.filename);
+    check.addEventListener('change', () => {
+      if (check.checked) selectedImages.add(img.filename);
+      else selectedImages.delete(img.filename);
+      tile.classList.toggle('selected', check.checked);
+      updateSelCount();
+    });
     tile.querySelector('.tile-dl').addEventListener('click', () =>
       downloadBlob(img.blob, img.filename),
     );
@@ -330,15 +380,13 @@ function renderPrepared({ source, images, webOnly }) {
 
   $('#zip-btn').onclick = async () => {
     if (!currentImages.length) return toast('没有可打包的图片');
-    setStatus('正在打包 ZIP…');
-    try {
-      const blob = await zipBlobs(
-        currentImages.map((i) => ({ name: i.filename, blob: i.blob })),
-      );
-      downloadBlob(blob, 'images.zip');
-    } finally {
-      setStatus('', false);
-    }
+    await packImages(currentImages, 'images.zip');
+  };
+
+  $('#zip-sel-btn').onclick = async () => {
+    const list = pickedImages();
+    if (!list.length) return toast('请先勾选要下载的图片');
+    await packImages(list, 'images-selected.zip');
   };
 
   if (webOnly) {
@@ -626,13 +674,40 @@ $('#sync-x').onclick = () => {
   copyText(text).then(() => toast('已打开 X 发帖框，标题已复制')).catch(() => toast('已打开 X 发帖框'));
 };
 
-$('#sync-wechat-browser').onclick = () => {
-  copyText(stripMarkdown(currentCopy) || currentTitleText || '')
-    .then(() => toast('文案已复制，请粘贴到公众号后台'))
-    .catch(() => toast('请手动复制文案'));
+$('#sync-copy').onclick = () => {
+  const text = [currentTitleText, '', stripMarkdown(currentCopy)].filter((x) => x && x.trim()).join('\n');
+  if (!text.trim()) return toast('先生成文案再复制');
+  copyText(text).then(() => toast('标题与文案已复制')).catch(() => toast('复制失败'));
+};
+
+/** 半自动同步：打包选中图片（未勾选则全部）+ 复制标题文案 + 打开公众号后台。 */
+$('#sync-wechat-browser').onclick = async () => {
+  const list = selectedImages.size ? pickedImages() : currentImages;
+  const note = $('#sync-note');
+  const text = [currentTitleText, '', stripMarkdown(currentCopy)].filter((x) => x && x.trim()).join('\n');
+  let copied = false;
+  try {
+    if (text.trim()) {
+      await copyText(text);
+      copied = true;
+    }
+  } catch {
+    /* 复制失败不阻断 */
+  }
+  if (list.length) {
+    try {
+      await packImages(list, `wechat-${list.length}张.zip`);
+    } catch {
+      /* 打包失败不阻断 */
+    }
+  }
   window.open('https://mp.weixin.qq.com/', '_blank', 'noopener');
-  $('#sync-note').textContent =
-    '已打开公众号后台并复制文案；图片请先下载后手动上传（浏览器版无服务端凭证同步）。';
+  note.textContent = [
+    copied ? '标题与文案已复制 ✓' : '请手动复制文案',
+    list.length ? `已打包 ${list.length} 张图片（${selectedImages.size ? '选中' : '全部'}）✓` : '没有可打包的图片',
+    '后台操作：新建「图片消息」→ 粘贴标题文案 → 上传解压后的图片（顺序即文件名顺序）。',
+  ].join(' ｜ ');
+  toast('已准备就绪，去公众号后台粘贴');
 };
 
 /* ================= Markdown 渲染 / 文风体检 / KaTeX（与 Node 版前端同款） ================= */
